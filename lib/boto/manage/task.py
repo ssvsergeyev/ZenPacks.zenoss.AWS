@@ -21,7 +21,7 @@
 #
 
 import boto
-from boto.sdb.db.property import *
+from boto.sdb.db.property import StringProperty, DateTimeProperty, IntegerProperty
 from boto.sdb.db.model import Model
 import datetime, subprocess, StringIO, time
 
@@ -72,7 +72,6 @@ class Task(Model):
         If it's an hourly task and it's never been run, run it now.
         If it's a daily task and it's never been run and the hour is right, run it now.
         """
-        need_to_run = False
         boto.log.info('checking Task[%s]-now=%s, last=%s' % (self.name, self.now, self.last_executed))
 
         if self.hourly and not self.last_executed:
@@ -156,7 +155,7 @@ class TaskPoller(object):
         self.queue = self.sqs.lookup(queue_name)
 
     def poll(self, wait=60, vtimeout=60):
-        while 1:
+        while True:
             m = self.queue.read(vtimeout)
             if m:
                 task = Task.get_by_id(m.get_body())

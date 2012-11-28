@@ -1,4 +1,5 @@
-# Copyright (c) 2006-2009 Mitch Garnaat http://garnaat.org/
+# Copyright (c) 2006-2010 Mitch Garnaat http://garnaat.org/
+# Copyright (c) 2010, Eucalyptus Systems, Inc.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the
@@ -20,20 +21,24 @@
 # IN THE SOFTWARE.
 
 """
-Represents an EC2 Elastic IP Snapshot
+Represents an EC2 Elastic Block Store Snapshot
 """
-from boto.ec2.ec2object import EC2Object
+from boto.ec2.ec2object import TaggedEC2Object
+from boto.ec2.zone import Zone
 
-class Snapshot(EC2Object):
+class Snapshot(TaggedEC2Object):
+    
+    AttrName = 'createVolumePermission'
     
     def __init__(self, connection=None):
-        EC2Object.__init__(self, connection)
+        TaggedEC2Object.__init__(self, connection)
         self.id = None
         self.volume_id = None
         self.status = None
         self.progress = None
         self.start_time = None
         self.owner_id = None
+        self.owner_alias = None
         self.volume_size = None
         self.description = None
 
@@ -51,8 +56,13 @@ class Snapshot(EC2Object):
             self.start_time = value
         elif name == 'ownerId':
             self.owner_id = value
+        elif name == 'ownerAlias':
+            self.owner_alias = value
         elif name == 'volumeSize':
-            self.volume_size = int(value)
+            try:
+                self.volume_size = int(value)
+            except:
+                self.volume_size = value
         elif name == 'description':
             self.description = value
         else:
@@ -62,36 +72,72 @@ class Snapshot(EC2Object):
         self.progress = updated.progress
         self.status = updated.status
 
-    def update(self):
+    def update(self, validate=False):
+        """
+        Update the data associated with this snapshot by querying EC2.
+
+        :type validate: bool
+        :param validate: By default, if EC2 returns no data about the
+                         snapshot the update method returns quietly.  If
+                         the validate param is True, however, it will
+                         raise a ValueError exception if no data is
+                         returned from EC2.
+        """
         rs = self.connection.get_all_snapshots([self.id])
         if len(rs) > 0:
             self._update(rs[0])
+        elif validate:
+            raise ValueError('%s is not a valid Snapshot ID' % self.id)
         return self.progress
     
     def delete(self):
         return self.connection.delete_snapshot(self.id)
 
     def get_permissions(self):
-        attrs = self.connection.get_snapshot_attribute(self.id,
-                                                       attribute='createVolumePermission')
+        attrs = self.connection.get_snapshot_attribute(self.id, self.AttrName)
         return attrs.attrs
 
     def share(self, user_ids=None, groups=None):
         return self.connection.modify_snapshot_attribute(self.id,
-                                                         'createVolumePermission',
+                                                         self.AttrName,
                                                          'add',
                                                          user_ids,
                                                          groups)
 
     def unshare(self, user_ids=None, groups=None):
         return self.connection.modify_snapshot_attribute(self.id,
-                                                         'createVolumePermission',
+                                                         self.AttrName,
                                                          'remove',
                                                          user_ids,
                                                          groups)
 
     def reset_permissions(self):
-        return self.connection.reset_snapshot_attribute(self.id, 'createVolumePermission')
+        return self.connection.reset_snapshot_attribute(self.id,
+                                                        self.AttrName)
+
+    def create_volume(self, zone, size=None, volume_type=None, iops=None):
+        """
+        Create a new EBS Volume from this Snapshot
+
+        :type zone: string or :class:`boto.ec2.zone.Zone`
+        :param zone: The availability zone in which the Volume will be created.
+
+        :type size: int
+        :param size: The size of the new volume, in GiB. (optional). Defaults to
+            the size of the snapshot.
+
+        :type volume_type: string
+        :param volume_type: The type of the volume. (optional).  Valid
+            values are: standard | io1.
+
+        :type iops: int
+        :param iops: The provisioned IOPs you want to associate with
+            this volume. (optional)
+        """
+        if isinstance(zone, Zone):
+            zone = zone.name
+        return self.connection.create_volume(size, zone, self.id, volume_type, iops)
+
 
 class SnapshotAttribute:
 
@@ -106,12 +152,12 @@ class SnapshotAttribute:
         if name == 'createVolumePermission':
             self.name = 'create_volume_permission'
         elif name == 'group':
-            if self.attrs.has_key('groups'):
+            if 'groups' in self.attrs:
                 self.attrs['groups'].append(value)
             else:
                 self.attrs['groups'] = [value]
         elif name == 'userId':
-            if self.attrs.has_key('user_ids'):
+            if 'user_ids' in self.attrs:
                 self.attrs['user_ids'].append(value)
             else:
                 self.attrs['user_ids'] = [value]

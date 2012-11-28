@@ -1,4 +1,4 @@
-# Copyright (c) 2006,2007 Mitch Garnaat http://garnaat.org/
+# Copyright (c) 2006-2012 Mitch Garnaat http://garnaat.org/
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the
@@ -14,33 +14,41 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 # OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABIL-
 # ITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
-# SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+# SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
 
-import boto
-
-boto.check_extensions(__name__, __path__)
-
-from queue import Queue
-from message import Message, MHMessage, EncodedMHMessage
 from regioninfo import SQSRegionInfo
+
 
 def regions():
     """
     Get all available regions for the SQS service.
-        
-    :rtype: list
-    :return: A list of :class:`boto.ec2.regioninfo.RegionInfo`
-    """
-    return [SQSRegionInfo(name='us-east-1', endpoint='queue.amazonaws.com'),
-            SQSRegionInfo(name='eu-west-1', endpoint='eu-west-1.queue.amazonaws.com'),
-            SQSRegionInfo(name='us-west-1', endpoint='us-west-1.queue.amazonaws.com')]
 
-def connect_to_region(region_name):
+    :rtype: list
+    :return: A list of :class:`boto.sqs.regioninfo.RegionInfo`
+    """
+    return [SQSRegionInfo(name='us-east-1',
+                          endpoint='queue.amazonaws.com'),
+            SQSRegionInfo(name='eu-west-1',
+                          endpoint='eu-west-1.queue.amazonaws.com'),
+            SQSRegionInfo(name='us-west-1',
+                          endpoint='us-west-1.queue.amazonaws.com'),
+            SQSRegionInfo(name='us-west-2',
+                          endpoint='us-west-2.queue.amazonaws.com'),
+            SQSRegionInfo(name='sa-east-1',
+                          endpoint='sa-east-1.queue.amazonaws.com'),
+            SQSRegionInfo(name='ap-northeast-1',
+                          endpoint='ap-northeast-1.queue.amazonaws.com'),
+            SQSRegionInfo(name='ap-southeast-1',
+                          endpoint='ap-southeast-1.queue.amazonaws.com')
+            ]
+
+
+def connect_to_region(region_name, **kw_params):
     for region in regions():
         if region.name == region_name:
-            return region.connect()
+            return region.connect(**kw_params)
     return None

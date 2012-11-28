@@ -1,6 +1,7 @@
 from boto.sdb.db.model import Model
-from boto.sdb.db.property import *
-from boto.sdb.db.manager import get_manager
+from boto.sdb.db.property import StringProperty, IntegerProperty, BooleanProperty
+from boto.sdb.db.property import DateTimeProperty, FloatProperty, ReferenceProperty
+from boto.sdb.db.property import PasswordProperty, ListProperty, MapProperty
 from datetime import datetime
 import time
 from boto.exception import SDBPersistenceError
@@ -152,7 +153,7 @@ def test_list():
     t = TestList()
     _objects['test_list_t'] = t
     t.name = 'a list of ints'
-    t.nums = [1,2,3,4,5]
+    t.nums = [1, 2, 3, 4, 5]
     t.put()
     tt = TestList.get_by_id(t.id)
     _objects['test_list_tt'] = tt

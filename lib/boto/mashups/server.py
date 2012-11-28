@@ -22,14 +22,16 @@
 """
 High-level abstraction of an EC2 server
 """
-import boto, boto.utils
+import boto
+import boto.utils
 from boto.mashups.iobject import IObject
 from boto.pyami.config import Config, BotoConfigPath
 from boto.mashups.interactive import interactive_shell
 from boto.sdb.db.model import Model
-from boto.sdb.db.property import *
+from boto.sdb.db.property import StringProperty
 import os
 import StringIO
+
 
 class ServerSet(list):
 
@@ -57,7 +59,11 @@ class ServerSet(list):
 
 class Server(Model):
 
-    ec2 = boto.connect_ec2()
+    @property
+    def ec2(self):
+        if self._ec2 is None:
+            self._ec2 = boto.connect_ec2()
+        return self._ec2
 
     @classmethod
     def Inventory(cls):
@@ -87,6 +93,7 @@ class Server(Model):
         self._ssh_client = None
         self._pkey = None
         self._config = None
+        self._ec2 = None
 
     name = StringProperty(unique=True, verbose_name="Name")
     instance_id = StringProperty(verbose_name="Instance ID")

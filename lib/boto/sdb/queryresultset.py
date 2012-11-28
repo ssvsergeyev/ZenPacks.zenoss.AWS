@@ -19,8 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-from boto.sdb.item import Item
-
 def query_lister(domain, query='', max_items=None, attr_names=None):
     more_results = True
     num_results = 0
@@ -66,9 +64,10 @@ def select_lister(domain, query='', max_items=None):
 class SelectResultSet(object):
 
     def __init__(self, domain=None, query='', max_items=None,
-                 next_token=None):
+                 next_token=None, consistent_read=False):
         self.domain = domain
         self.query = query
+        self.consistent_read = consistent_read
         self.max_items = max_items
         self.next_token = next_token
 
@@ -77,7 +76,8 @@ class SelectResultSet(object):
         num_results = 0
         while more_results:
             rs = self.domain.connection.select(self.domain, self.query,
-                                               next_token=self.next_token)
+                                               next_token=self.next_token,
+                                               consistent_read=self.consistent_read)
             for item in rs:
                 if self.max_items and num_results >= self.max_items:
                     raise StopIteration

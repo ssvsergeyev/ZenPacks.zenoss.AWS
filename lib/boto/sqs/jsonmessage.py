@@ -22,7 +22,10 @@
 from boto.sqs.message import MHMessage
 from boto.exception import SQSDecodeError
 import base64
-import json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 class JSONMessage(MHMessage):
     """

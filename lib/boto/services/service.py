@@ -23,13 +23,11 @@ import boto
 from boto.services.message import ServiceMessage
 from boto.services.servicedef import ServiceDef
 from boto.pyami.scriptbase import ScriptBase
-from boto.exception import S3ResponseError
 from boto.utils import get_ts
-import StringIO
 import time
 import os
-import sys, traceback
 import mimetypes
+
 
 class Service(ScriptBase):
 
@@ -94,7 +92,7 @@ class Service(ScriptBase):
     def save_results(self, results, input_message, output_message):
         output_keys = []
         for file, type in results:
-            if input_message.has_key('OutputBucket'):
+            if 'OutputBucket' in input_message:
                 output_bucket = input_message['OutputBucket']
             else:
                 output_bucket = input_message['Bucket']
@@ -107,7 +105,7 @@ class Service(ScriptBase):
     def write_message(self, message):
         message['Service-Write'] = get_ts()
         message['Server'] = self.name
-        if os.environ.has_key('HOSTNAME'):
+        if 'HOSTNAME' in os.environ:
             message['Host'] = os.environ['HOSTNAME']
         else:
             message['Host'] = 'unknown'
@@ -155,7 +153,7 @@ class Service(ScriptBase):
                 else:
                     empty_reads += 1
                     time.sleep(self.loop_delay)
-            except Exception, e:
+            except Exception:
                 boto.log.exception('Service Failed')
                 empty_reads += 1
         self.notify('Service: %s Shutting Down' % self.name)

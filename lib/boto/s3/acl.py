@@ -20,10 +20,13 @@
 # IN THE SOFTWARE.
 
 from boto.s3.user import User
-import StringIO
+
 
 CannedACLStrings = ['private', 'public-read',
-                    'public-read-write', 'authenticated-read']
+                    'public-read-write', 'authenticated-read',
+                    'bucket-owner-read', 'bucket-owner-full-control',
+                    'log-delivery-write']
+
 
 class Policy:
 
@@ -42,7 +45,7 @@ class Policy:
                 elif g.type == 'Group':
                     u = g.uri
                 else:
-                    u = g.email
+                    u = g.email_address
                 grants.append("%s = %s" % (u, g.permission))
         return "<Policy: %s>" % ", ".join(grants)
 
@@ -85,8 +88,8 @@ class ACL:
                       email_address=email_address)
         self.grants.append(grant)
 
-    def add_user_grant(self, permission, user_id):
-        grant = Grant(permission=permission, type='CanonicalUser', id=user_id)
+    def add_user_grant(self, permission, user_id, display_name=None):
+        grant = Grant(permission=permission, type='CanonicalUser', id=user_id, display_name=display_name)
         self.grants.append(grant)
 
     def startElement(self, name, attrs, connection):

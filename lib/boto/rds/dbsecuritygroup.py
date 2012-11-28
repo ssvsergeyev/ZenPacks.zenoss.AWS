@@ -14,7 +14,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 # OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABIL-
 # ITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
-# SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+# SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
@@ -25,7 +25,19 @@ Represents an DBSecurityGroup
 from boto.ec2.securitygroup import SecurityGroup
 
 class DBSecurityGroup(object):
-    
+    """
+    Represents an RDS database security group
+
+    Properties reference available from the AWS documentation at http://docs.amazonwebservices.com/AmazonRDS/latest/APIReference/API_DeleteDBSecurityGroup.html
+
+    :ivar Status: The current status of the security group. Possibile values are [ active, ? ]. Reference documentation lacks specifics of possibilities
+    :ivar connection: boto.rds.RDSConnection associated with the current object
+    :ivar description: The description of the security group
+    :ivar ec2_groups: List of EC2SecurityGroup objects that this security group PERMITS
+    :ivar ip_ranges: List of IPRange objects (containing CIDR addresses) that this security group PERMITS
+    :ivar name: Name of the security group
+    :ivar owner_id: ID of the owner of the security group. Can be 'None'
+    """
     def __init__(self, connection=None, owner_id=None,
                  name=None, description=None):
         self.connection = connection
@@ -70,12 +82,12 @@ class DBSecurityGroup(object):
         Add a new rule to this DBSecurity group.
         You need to pass in either a CIDR block to authorize or
         and EC2 SecurityGroup.
-        
+
         @type cidr_ip: string
         @param cidr_ip: A valid CIDR IP range to authorize
 
-        @type ec2_group: :class:`boto.ec2.securitygroup.SecurityGroup>`b
-                         
+        @type ec2_group: :class:`boto.ec2.securitygroup.SecurityGroup>`
+
         @rtype: bool
         @return: True if successful.
         """
@@ -92,30 +104,34 @@ class DBSecurityGroup(object):
 
     def revoke(self, cidr_ip=None, ec2_group=None):
         """
-        Revoke access to a CIDR range or EC2 SecurityGroup
-        You need to pass in either a CIDR block to authorize or
-        and EC2 SecurityGroup.
-        
-        @type cidr_ip: string
-        @param cidr_ip: A valid CIDR IP range to authorize
+        Revoke access to a CIDR range or EC2 SecurityGroup.
+        You need to pass in either a CIDR block or
+        an EC2 SecurityGroup from which to revoke access.
 
-        @type ec2_group: :class:`boto.ec2.securitygroup.SecurityGroup>`b
-                         
+        @type cidr_ip: string
+        @param cidr_ip: A valid CIDR IP range to revoke
+
+        @type ec2_group: :class:`boto.ec2.securitygroup.SecurityGroup>`
+
         @rtype: bool
         @return: True if successful.
         """
         if isinstance(ec2_group, SecurityGroup):
             group_name = ec2_group.name
             group_owner_id = ec2_group.owner_id
-        else:
-            group_name = None
-            group_owner_id = None
-        return self.connection.revoke_dbsecurity_group(self.name,
-                                                       cidr_ip,
-                                                       group_name,
-                                                       group_owner_id)
+            return self.connection.revoke_dbsecurity_group(
+                self.name,
+                ec2_security_group_name=group_name,
+                ec2_security_group_owner_id=group_owner_id)
+
+        # Revoking by CIDR IP range
+        return self.connection.revoke_dbsecurity_group(
+            self.name, cidr_ip=cidr_ip)
 
 class IPRange(object):
+    """
+    Describes a CIDR address range for use in a DBSecurityGroup
+    """
 
     def __init__(self, parent=None):
         self.parent = parent
@@ -137,6 +153,9 @@ class IPRange(object):
             setattr(self, name, value)
 
 class EC2SecurityGroup(object):
+    """
+    Describes an EC2 security group for use in a DBSecurityGroup
+    """
 
     def __init__(self, parent=None):
         self.parent = parent
@@ -156,4 +175,3 @@ class EC2SecurityGroup(object):
             self.owner_id = value
         else:
             setattr(self, name, value)
-

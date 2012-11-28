@@ -20,11 +20,9 @@
 # IN THE SOFTWARE.
 import boto
 from boto.utils import find_class, Password
-import uuid
 from boto.sdb.db.key import Key
 from boto.sdb.db.model import Model
 from datetime import datetime
-from boto.exception import SDBPersistenceError
 from xml.dom.minidom import getDOMImplementation, parse, parseString, Node
 
 ISO8601 = '%Y-%m-%dT%H:%M:%SZ'
@@ -397,7 +395,7 @@ class XMLManager(object):
         return ' intersection '.join(parts)
 
     def query_gql(self, query_string, *args, **kwds):
-        raise NotImplementedError, "GQL queries not supported in XML"
+        raise NotImplementedError("GQL queries not supported in XML")
 
     def save_list(self, doc, items, prop_node):
         items_node = doc.createElement('items')
@@ -411,7 +409,7 @@ class XMLManager(object):
                 text_node = doc.createTextNode(item)
                 item_node.appendChild(text_node)
 
-    def save_object(self, obj):
+    def save_object(self, obj, expected_value=None):
         """
         Marshal the object and do a PUT
         """
@@ -461,7 +459,7 @@ class XMLManager(object):
                 elif isinstance(value, Node):
                     prop_node.appendChild(value)
                 else:
-                    text_node = doc.createTextNode(str(value))
+                    text_node = doc.createTextNode(unicode(value).encode("ascii", "ignore"))
                     prop_node.appendChild(text_node)
             obj_node.appendChild(prop_node)
 
@@ -497,7 +495,7 @@ class XMLManager(object):
 
     def get_key_value(self, obj, name):
         a = self.domain.get_attributes(obj.id, name)
-        if a.has_key(name):
+        if name in a:
             return a[name]
         else:
             return None

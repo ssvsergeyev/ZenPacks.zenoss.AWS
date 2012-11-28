@@ -19,12 +19,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
-import os, sys, traceback, StringIO
+import sys
 import boto
 from boto.utils import find_class
 from boto import config
 from boto.pyami.scriptbase import ScriptBase
-from boto.utils import find_class
+
 
 class Startup(ScriptBase):
 
@@ -45,7 +45,8 @@ class Startup(ScriptBase):
                     else:
                         boto.log.warning('Trouble parsing script: %s' % script)
                 except Exception, e:
-                    boto.log.exception('Problem Running Script: %s' % script)
+                    boto.log.exception('Problem Running Script: %s. Startup process halting.' % script)
+                    raise e
 
     def main(self):
         self.run_scripts()

@@ -1,4 +1,4 @@
-# Copyright (c) 2009 Mitch Garnaat http://garnaat.org/
+# Copyright (c) 2009-2010 Mitch Garnaat http://garnaat.org/
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the
@@ -34,7 +34,7 @@ class VpnConnection(EC2Object):
         self.customer_gateway_configuration = None
         self.type = None
         self.customer_gateway_id = None
-        self.vpn_gateway_id = Nonen
+        self.vpn_gateway_id = None
 
     def __repr__(self):
         return 'VpnConnection:%s' % self.id
@@ -44,7 +44,7 @@ class VpnConnection(EC2Object):
             self.id = value
         elif name == 'state':
             self.state = value
-        elif name == 'CustomerGatewayConfiguration':
+        elif name == 'customerGatewayConfiguration':
             self.customer_gateway_configuration = value
         elif name == 'type':
             self.type = value

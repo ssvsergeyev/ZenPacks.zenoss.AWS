@@ -20,9 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-import getopt, sys, os, time, mimetypes
+import os
 from datetime import datetime, timedelta
-from boto.services.servicedef import ServiceDef
 from boto.utils import parse_ts
 import boto
 
@@ -58,10 +57,9 @@ class ResultProcessor:
             self.latest_time = end_time
 
     def log_message(self, msg, path):
-        keys = msg.keys()
-        keys.sort()
+        keys = sorted(msg.keys())
         if not self.log_fp:
-            self.log_fp = open(os.path.join(path, self.LogFileName), 'w')
+            self.log_fp = open(os.path.join(path, self.LogFileName), 'a')
             line = ','.join(keys)
             self.log_fp.write(line+'\n')
         values = []
@@ -77,15 +75,13 @@ class ResultProcessor:
         self.log_message(record, path)
         self.calculate_stats(record)
         outputs = record['OutputKey'].split(',')
-        if record.has_key('OutputBucket'):
+        if 'OutputBucket' in record:
             bucket = boto.lookup('s3', record['OutputBucket'])
         else:
             bucket = boto.lookup('s3', record['Bucket'])
         for output in outputs:
             if get_file:
-                key_name, type = output.split(';')
-                if type:
-                    mimetype = type.split('=')[1]
+                key_name = output.split(';')[0]
                 key = bucket.lookup(key_name)
                 file_name = os.path.join(path, key_name)
                 print 'retrieving file: %s to %s' % (key_name, file_name)
@@ -95,7 +91,7 @@ class ResultProcessor:
     def get_results_from_queue(self, path, get_file=True, delete_msg=True):
         m = self.queue.read()
         while m:
-            if m.has_key('Batch') and m['Batch'] == self.batch:
+            if 'Batch' in m and m['Batch'] == self.batch:
                 self.process_record(m, path, get_file)
                 if delete_msg:
                     self.queue.delete_message(m)
@@ -111,8 +107,8 @@ class ResultProcessor:
         if bucket:
             print 'No output queue or domain, just retrieving files from output_bucket'
             for key in bucket:
-                file_name = os.path.join(path, key_name)
-                print 'retrieving file: %s to %s' % (key_name, file_name)
+                file_name = os.path.join(path, key)
+                print 'retrieving file: %s to %s' % (key, file_name)
                 key.get_contents_to_filename(file_name)
                 self.num_files + 1
 
