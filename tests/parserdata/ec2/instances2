@@ -1,0 +1,8 @@
+list instances
+
+InstanceId:i-2024a74d CPUUtilization 66.89 NetworkIn 345449030.40 NetworkOut 185151176.00 DiskReadBytes 0.00 DiskWriteBytes 9364275.20 DiskReadOps 0.00 DiskWriteOps 338.20
+InstanceId:i-188d8073 NetworkIn 14848.60 DiskWriteBytes 313139.20 DiskWriteOps 60.60
+InstanceId:i-26a0a54d CPUUtilization 0.11 NetworkOut 12438.00 DiskReadBytes 0.00 DiskWriteBytes 0.00
+InstanceId:i-273b0d4d NetworkIn 17112025.20 NetworkOut 50059260.00 DiskWriteBytes 0.00 DiskReadOps 0.00 DiskWriteOps 0.00
+InstanceId:i-ec5dee81 CPUUtilization 4.45 NetworkIn 818341.00 NetworkOut 700148.80 DiskReadBytes 0.00 DiskWriteBytes 0.00 DiskReadOps 0.00 DiskWriteOps 0.00
+InstanceId:i-765dee1b

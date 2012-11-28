@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:browser="http://namespaces.zope.org/browser"
+           >
+
+  <adapter factory=".info.CWMonitorDataSourceInfo"
+           for=".datasources.CWMonitorDataSource.CWMonitorDataSource"
+           provides=".interfaces.ICWMonitorDataSourceInfo"
+           />
+
+    <adapter provides=".interfaces.IEC2InstanceInfo"
+        for=".EC2Instance.EC2Instance"
+        factory=".info.EC2InstanceInfo"
+        />
+
+    <adapter provides=".interfaces.IEC2InstanceTypeInfo"
+        for=".EC2InstanceType.EC2InstanceType"
+        factory=".info.EC2InstanceTypeInfo"
+        />
+
+  <!-- Define the router/facade for this zenpack -->
+  <adapter factory=".awsfacade.AWSFacade"
+           provides=".interfaces.IAWSFacade"
+           name="aws"
+           for="*"
+           />
+
+  <!-- Define the device loader -->
+    <utility component=".awsloader.AWSLoader"
+             name="aws"
+             provides="Products.ZenModel.interfaces.IDeviceLoader"
+             />
+
+    <!-- Define a place for our zenpack to register javascript -->
+    <browser:resourceDirectory
+        name="zenaws"
+        directory="resources"
+        />
+
+    <browser:viewlet
+      name="js-zenaws"
+      paths="/++resource++zenaws/ZenAWS.js
+             /++resource++zenaws/ZenAWSInstanceTypes.js"
+      weight="10"
+      manager="Products.ZenUI3.browser.interfaces.IJavaScriptSrcManager"
+      class="Products.ZenUI3.browser.javascript.JavaScriptSrcBundleViewlet"
+      permission="zope2.Public"
+      />
+
+
+</configure>

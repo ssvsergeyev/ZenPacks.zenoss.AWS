@@ -1,0 +1,79 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+<script type="text/javascript" 
+    src="/zport/portal_skins/zenmodel/getProdSelectList.js"></script>
+
+    <form method=post 
+        tal:attributes="action string:${here/absolute_url_path}">
+            <input type="hidden" name="zenScreenName" 
+            tal:attributes="value template/id" /> 
+
+
+<tal:block tal:define="device python: here.meta_type != 'DeviceLoader' 
+                                        and here or None;
+                       tabletitle string:Configure EC2" >
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents" tal:define="
+    submitViaEnter string:return submitViaEnter(event, 'manage_editEC2Manager')">
+
+<!-- BEGIN TABLE CONTENTS -->
+        <tal:block metal:define-macro="body" tal:omit-tag="">
+        <tr>
+            <td class="tableheader" align="left">Access Key ID</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" name="access_id" size="25" 
+                    tal:attributes="onkeypress submitViaEnter;
+                        value device/access_id | request/access_id | nothing"/>
+                                        
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Secret Access Key</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="password" 
+                    name="secret" size="70" 
+                    tal:attributes="onkeypress submitViaEnter;
+                        value device/zEC2Secret | 
+                        request/secret | nothing"/>
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Default Device Class Mapping</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" name="devicePath" size="70" 
+                    tal:attributes="onkeypress submitViaEnter;
+                        value device/devicePath | request/devicePath | nothing"/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;(eg. /Server/SSH/Linux)
+            </td>
+        </tr>
+        <tr>
+            <td class="tableheader" align="left">Windows&reg; Device Class Mapping</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text" name="devicePathForWindows" size="70" 
+                    tal:attributes="onkeypress submitViaEnter;
+                        value device/devicePathForWindows | request/devicePathForWindows | nothing"/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;(eg. /Server/Windows)
+            </td>
+        </tr>
+        </tal:block>
+        <tr>
+            <td class=tableheader align="left" >
+            </td>
+            <td align="left"  class="tableheader" colspan=3>
+                <input class="tableheader" type="submit" value=" Save "
+                    name="manage_editEC2Manager:method" />
+            </td>
+            
+        </tr>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+    </form>
+</tal:block>
+</tal:block>

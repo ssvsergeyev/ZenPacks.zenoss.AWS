@@ -1,0 +1,51 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<tal:block metal:define-macro="deviceStatusInfo"
+           tal:define=" tabletitle string:Status;">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
+
+<tal:block metal:fill-slot="title">
+    Instances
+</tal:block>
+<tal:block metal:fill-slot="body">
+    <div style="padding:5px;border-bottom:1px solid #aaa;
+                background-color:#f8f8f8">
+    </div>
+    <div class="yui-t1" style="width:100%">
+        <div class="yui-b yui-z">
+            <div class="zentable-rainbow">
+                <div metal:use-macro="here/rainbows/macros/horizontal"></div>
+            </div>
+        </div>
+        <div class="yui-b yui-z2">
+            <dl class="faux-table">
+                <dt>Instance Type</dt>
+                    <dd tal:content="here/id"/>
+            </dl>
+            <dl class="faux-table">
+            <dt>Instances</dt>
+            <dd>
+            <tal:block tal:repeat="item here/instances/objectValuesAll">
+            <a tal:attributes="href python:item.getPrimaryUrlPath()+'/ec2InstanceStatus'"
+               tal:content="structure item/titleOrId" />
+            
+            </tal:block>
+            </dd>
+            </dl>
+        </div>
+    </div>
+    <div
+    style="clear:both;font-size:.000001em;line-height:0pt;margin:0;padding:0">
+    &nbsp;
+    </div>
+    <tal:block tal:condition="here/monitored" >
+    <table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
+    </tal:block>
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+
+</tal:block>
+</tal:block>

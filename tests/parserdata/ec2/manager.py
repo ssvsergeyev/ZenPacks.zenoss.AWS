@@ -1,0 +1,9 @@
+dict(
+CPUUtilization=0.09,
+NetworkIn=1626.40,
+NetworkOut=2660.00,
+DiskReadBytes=819.20,
+DiskWriteBytes=564428.80,
+DiskReadOps=0.20,
+DiskWriteOps=137.80
+)

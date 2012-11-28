@@ -1,0 +1,73 @@
+<tal:block metal:use-macro="here/templates/macros/page5">
+<tal:block metal:fill-slot="contentPane">
+<tal:block metal:define-macro="deviceStatusInfo"
+           tal:define=" tabletitle string:Status;">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
+
+<tal:block metal:fill-slot="title">
+    Instances
+</tal:block>
+<tal:block metal:fill-slot="body">
+    <div style="padding:5px;border-bottom:1px solid #aaa;
+                background-color:#f8f8f8">
+    </div>
+    <div class="yui-t1" style="width:100%">
+        <div class="yui-b yui-z">
+            <div class="zentable-rainbow">
+                <div metal:use-macro="here/rainbows/macros/vertical"></div>
+            </div>
+        </div>
+        <div class="yui-b yui-z2">
+            <dl class="faux-table">
+                <dt>Instance ID</dt>
+                    <dd tal:content="here/titleOrId"/>
+                <dt>DNS Name</dt>
+                    <dd tal:content="structure python: here.dns_name if here.dns_name else '&nbsp;' "/>
+                <!--Managed Device-->
+                <dt>Managed Device</dt>
+                <dd tal:condition="python:here.getDeviceName()">
+                <a tal:attributes="href python: here.getDeviceLink()"
+                     tal:content="python:here.getDeviceName()"/>
+                </dd>
+                <dd tal:condition="python:not here.getDeviceName()"
+                    tal:content="string:Not Linked"/>
+                <dt>Image ID</dt>
+                    <dd tal:content="here/image_id"/>
+                <dt>Instance Type</dt>
+                    <dd>
+                       <a tal:attributes="href python:here.instanceType.getPrimaryHref()+'/ec2InstanceTypeStatus'"
+                          tal:content="here/instanceType/getRelatedId" />
+                    </dd>
+            </dl>
+        </div>
+        <div class="yui-b yui-z2">
+            <dl class="faux-table">
+                <dt>Kernel</dt>
+                    <dd tal:content="structure python: here.kernel if here.kernel else '&nbsp;' "/>
+                <dt>Key Name</dt>
+                    <dd tal:content="here/key_name"/>
+                <dt>Launch Time</dt>
+                    <dd tal:content="here/launch_time"/>
+                <dt>Monitored</dt>
+                    <dd tal:content="here/monitored"/>
+                <dt>Placement</dt>
+                    <dd tal:content="here/placement"/>
+                <dt>RAM Disk</dt>
+                    <dd tal:content="structure python: here.ramdisk if here.ramdisk else '&nbsp;' "/>
+            </dl>
+        </div>
+    </div>
+
+    <div style="clear:both"></div>
+    <tal:block tal:condition="here/monitored" >
+    <table metal:use-macro="here/viewPerformanceDetail/macros/objectperf" />
+    </tal:block>
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+
+</tal:block>
+</tal:block>
+
