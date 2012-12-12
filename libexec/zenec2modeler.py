@@ -28,6 +28,7 @@ class ZenEC2Modeler(object):
     keys = (
         "id",
         "dns_name",
+        "aws_name",
         "public_dns_name",
         "image_id",
         "instance_type",
@@ -90,6 +91,7 @@ class ZenEC2Modeler(object):
                         if instance.state == 'terminated': continue
                         if not instance.monitored: instance.monitor()
                         ec2instance = self.buildProxyDict(instance)
+                        ec2instance['aws_name'] = instance.tags['Name']
                         ec2instance['platform'] = \
                             self.getAmiPlatform(str(instance.image_id),
                                            region.name, conn)

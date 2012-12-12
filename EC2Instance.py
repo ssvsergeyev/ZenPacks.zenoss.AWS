@@ -24,6 +24,7 @@ class EC2Instance(DeviceComponent, ManagedEntity):
     
     instance_id = ""
     dns_name = ""
+    aws_name = ""
     public_dns_name = ""
     private_dns_name = ""
     private_ip = ""
@@ -45,6 +46,7 @@ class EC2Instance(DeviceComponent, ManagedEntity):
     _properties = (
         {'id':'instance_id',        'type':'string', 'mode':'w'},
         {'id':'dns_name',           'type':'string', 'mode':'w'},
+        {'id':'aws_name',           'type':'string', 'mode':'w'},
         {'id':'public_dns_name',    'type':'string', 'mode':'w'},
         {'id':'private_dns_name',   'type':'string', 'mode':'w'},
         {'id':'private_ip',         'type':'string', 'mode':'w'},
