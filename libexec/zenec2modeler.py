@@ -28,7 +28,6 @@ class ZenEC2Modeler(object):
     keys = (
         "id",
         "dns_name",
-        "aws_name",
         "public_dns_name",
         "image_id",
         "instance_type",
@@ -88,15 +87,22 @@ class ZenEC2Modeler(object):
                 amiPlatforms = {}
                 for reservation in conn.get_all_instances():
                     for instance in reservation.instances:
+                        if not instance.id: continue
                         if instance.state == 'terminated': continue
                         if not instance.monitored: instance.monitor()
-                        ec2instance = self.buildProxyDict(instance)
-                        ec2instance['aws_name'] = instance.tags['Name']
-                        ec2instance['platform'] = \
-                            self.getAmiPlatform(str(instance.image_id),
+                        try:
+                            ec2instance = self.buildProxyDict(instance)
+                            ec2instance['aws_name'] = instance.tags['Name']
+                            ec2instance['platform'] = \
+                                self.getAmiPlatform(str(instance.image_id),
                                            region.name, conn)
+                        except boto.exception.EC2ResponseError, ex:
+                            #pdb.set_trace()
+                            # throw it on the ground!
+                            continue
                         ec2instances.append(ec2instance)
         except boto.exception.EC2ResponseError, ex:
+            #pdb.set_trace()
             print "ERROR:%s" % ex.error_message
             sys.exit(1)
         else:
