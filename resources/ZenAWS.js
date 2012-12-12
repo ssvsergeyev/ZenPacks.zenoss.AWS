@@ -32,7 +32,7 @@ ZC.EC2InstancePanel = Ext.extend(ZC.ComponentGridPanel, {
             fields: [
                 {name: 'uid'},
                 {name: 'instance_id'},
-                {name: 'device'},
+                {name: 'aws_name'},
                 {name: 'placement'},
                 {name: 'instance_type'},
                 {name: 'image_id'},
@@ -45,10 +45,9 @@ ZC.EC2InstancePanel = Ext.extend(ZC.ComponentGridPanel, {
                 width: 80,
                 sortable: true
             },{
-                id: 'device',
-                dataIndex: 'device',
-                header: _t('Device'),
-                renderer: Zenoss.render.default_uid_renderer,
+                id: 'aws_name',
+                dataIndex: 'aws_name',
+                header: _t('Name'),
                 width: 280,
                 sortable: true
             },{

@@ -46,6 +46,7 @@ class IEC2InstanceInfo(IComponentInfo):
     instance_id = schema.TextLine(title=u"Instance ID", readonly=True)
     device = schema.Entity(title=u"Device", readonly=True)
     dns_name = schema.TextLine(title=u"DNS Name", readonly=True)
+    aws_name = schema.TextLine(title=u"AWS Name", readonly=True)
     placement = schema.TextLine(title=u"Placement", readonly=True)
     instance_type = schema.Entity(title=u"Instance Type", readonly=True)
     state = schema.TextLine(title=u"state", readonly=True)

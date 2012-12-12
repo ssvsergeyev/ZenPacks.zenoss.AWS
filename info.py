@@ -62,6 +62,11 @@ class EC2InstanceInfo(ComponentInfo):
     
     @property
     @info
+    def aws_name(self):
+        return self._object.aws_name
+    
+    @property
+    @info
     def placement(self):
         return self._object.placement
     
