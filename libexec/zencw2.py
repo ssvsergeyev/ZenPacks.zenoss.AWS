@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 import pickle
 import operator
 import logging
+import pdb
 logging.basicConfig()
 log = logging.getLogger('ec2')
 
@@ -27,16 +28,6 @@ if os.path.isdir(libDir):
 
 import boto
 logging.getLogger('boto').setLevel(logging.CRITICAL)
-
-#monkeypatch the requestmethod so we can count how many requests are being made
-from boto import connection
-oldMethod = connection.AWSAuthConnection.make_request
-connection.AWSAuthConnection.mycounter = 0
-def myCountingMethod(self, method, path, headers=None, data='', host=None,
-                     auth_path=None, sender=None):
-    connection.AWSAuthConnection.mycounter += 1
-    return oldMethod(self, method, path, headers, data, host, auth_path, sender)
-connection.AWSAuthConnection.make_request = myCountingMethod
 
 ZENHOME = os.getenv('ZENHOME', '/opt/zenoss')
 CACHE_LIFE = 600
@@ -82,7 +73,7 @@ def getOpts():
     return parser.parse_args()
 
 
-def buildData(opts, stats):
+def work(opts):
     import time
     units = opts.units
     consolidate = opts.consolidate
@@ -93,88 +84,30 @@ def buildData(opts, stats):
         'aws_secret_access_key': opts.privatekey,
     }
    
-    querystart = time.time() 
-    instances = getCurrentInstances( conn_kwargs )
+    instances = [i for i in getCurrentInstances( conn_kwargs ) if i]
 
     conn = boto.connect_cloudwatch(**conn_kwargs)
-    metlist = []
-    tmp = conn.list_metrics()
-    metlist = tmp
-    nt = metlist.next_token
-    resultsets = 0
-    if not stats:
-        stats = {}
-    #allocate 1/5 of the runtime to fetching the avail metrics
-    prevResultsets = stats.get("resultsetcount", 10.0)
-    if prevResultsets == 0:
-        prevResultsets = 10.0
-    metricWaitTime = (opts.range * 0.2) / prevResultsets
-    if opts.logseverity > 0:
-        print "previous result set count was %f" % prevResultsets
-        print "wait time is %f" % metricWaitTime
+    #for i in instances:
+    #    metrics.append(conn.list_metrics(dimensions={'InstanceId':i}))
+    #metrics=reduce(lambda x,y:x+y,metrics)
 
-    while nt:
-        resultsets += 1
-        if opts.logseverity > 0:
-            print("using token: %s" % nt)
-        time.sleep(metricWaitTime)
-        tmp = conn.list_metrics(next_token=nt)
-        metlist += tmp
-        nt = tmp.next_token
-   
+    pdb.set_trace()
     end = datetime.utcnow()
     start = end - timedelta(seconds=seconds+5)
-    mdict = dict()
-    counter = 1
-    metriccounter = 0
-    prevMetricCount = stats.get("metriccount", 1000.0)
-    metricCountWaitTime = (opts.range * 0.6) / prevMetricCount
-
-    if opts.logseverity > 0:
-        print "previous metric count was %f" % prevMetricCount
-        print "wait time is %f" % metricCountWaitTime
-
-    for met in metlist:
-        if filterMetricTypes( met, instances):
-            time.sleep(metricCountWaitTime)
-            counter += 1
-            metriccounter += 1
-            if opts.logseverity > 0:
-                print "fetching: %r" % met
-            id = getMetricId(met)
-            instvalues = mdict.setdefault(id, [])
-            ret = met.query(start, end, consolidate, units, seconds)
+    
+    for i in instances:
+        id = 'InstanceId:' + i
+        #nagios format
+        output = id
+        metrics = conn.list_metrics(dimensions={'InstanceId':i})
+        if len(metrics) == 0:
+            continue
+        for m in metrics:
+            ret = m.query(start, end, consolidate, units, seconds)
             if len(ret) > 0:
-                instvalues.append((met.name, ret[-1][consolidate]))
-        else:
-            if opts.logseverity > 0:
-                print "excluding: %r" % met
-    queryend = time.time()
-   
-    stats = dict(
-        resultsetcount = resultsets, 
-        metriccount = metriccounter,
-        querytime = queryend - querystart
-    )
-
-    return stats, mdict
-
-
-def filterMetricTypes( met, instances):
-
-    #filter out decommissioned instances
-    instanceId = met.dimensions.get('InstanceId')
-    if instanceId:
-        return instanceId in instances
-    else:
-        #exclude metric types we don't do
-        #anything with, in order to preserve calls to Amazon
-        for mtype in ('ImageId', 'VolumeId'):
-            if met.dimensions.get(mtype): 
-                return False
-        return True
-
-
+                output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+        print output
+    
 def getCurrentInstances( conn_kwargs ):
     '''
     Collect all the instances across all the
@@ -198,78 +131,6 @@ def getCurrentInstances( conn_kwargs ):
     return ec2instances
 
 
-def getMetricId(met):
-    if met.dimensions is not None:
-        for itype in ('InstanceId', 'InstanceType', 'ImageId', 'VolumeId'):
-            if met.dimensions.get(itype, None) is not None:
-                return "%s:%s" % (itype, met.dimensions.get(itype))
-    return "Manager:0"
-
-
-def output(requestInstanceType, data):
-    # print out our data using the Nagios API format (for zencommand)
-    for instId, instData in data.items():
-        # this is for backwards compatability.
-        # old interface used Instance now it must be InstanceId
-        if requestInstanceType == "Instance":
-            requestInstanceType += "Id"
-        if str(instId.split(':')[0]) != requestInstanceType:
-            continue
-        outData = []
-        for dpvalue in instData:
-            outData.append(dpvalue)
-        sortedOutData = [instId]
-        for dpname in DP_NAMES:
-            for dptuple in outData:
-                if dpname in dptuple:
-                    sortedOutData.append("%s %0.2f" % (dptuple))
-        print " ".join(sortedOutData)
-
-
-
-def buildCache(opts, stats):
-    # touch the file if it doesn't exist
-    if not os.path.exists(opts.cachefile):
-        open(opts.cachefile, 'w').close()
-        open(STATS_FILE, 'w').close()
-
-    # now rebuild the file if it's of 0 size or old
-    if (os.path.getsize(opts.cachefile) == 0 or
-        os.path.getctime(opts.cachefile) < time.time() - CACHE_LIFE):
-        if opts.logseverity > 0:
-            print('rebuilding the cloud watch cache file')
-        fd = open(opts.cachefile, 'w')
-        sfd = open(STATS_FILE, 'w')
-        fcntl.lockf(fd, fcntl.LOCK_EX)
-        fcntl.lockf(sfd, fcntl.LOCK_EX)
-
-        stats, mdict = buildData(opts, stats)
-        stats['requestcount'] = connection.AWSAuthConnection.mycounter
-        pickle.dump(mdict, fd)
-        pickle.dump(stats, sfd)
-
-        fcntl.lockf(fd, fcntl.LOCK_UN)
-        fcntl.lockf(sfd, fcntl.LOCK_UN)
-        fd.close()
-        sfd.close()
-    return stats
-
-
-def readCache(cacheFile):
-    # read the file using a shared lock
-    # this will block if buildCache is in the process of a cache refresh
-    if not os.path.exists(cacheFile):
-        return None
-    with open(cacheFile, 'r') as fd:
-        fcntl.lockf(fd, fcntl.LOCK_SH)
-        try:
-            return pickle.load(fd)
-        except:
-            return None
-        finally:
-            fcntl.lockf(fd, fcntl.LOCK_UN)
-
-
 def main():
     opts, myargs = getOpts()
     if not myargs:
@@ -281,19 +142,9 @@ def main():
         print "zencw2.py command [options] command must be of type " \
               "EC2Manager, EC2Instance, EC2InstanceType or EC2ImageId"
         raise SystemExit(3)
-
-    stats = readCache(STATS_FILE)
-    stats = buildCache(opts, stats)
-    if stats and opts.logseverity > 0:
-        print "Total Request Count  : %i" % stats['requestcount']
-        print "Total Resultset Count: %i" % stats['resultsetcount']
-        print "Total Query Time     : %i" % stats['querytime']
-        print "Total Metric Count   : %i" % stats['metriccount']
-
-    data = readCache(opts.cachefile)
-    #print targetType
-    #print data
-    output(targetType, data)
+    
+    pdb.set_trace()
+    work(opts)
 
 
 if __name__ == '__main__':
