@@ -73,7 +73,7 @@ def getOpts():
     return parser.parse_args()
 
 
-def work(opts):
+def work(opts,targetType):
     import time
     units = opts.units
     consolidate = opts.consolidate
@@ -84,7 +84,6 @@ def work(opts):
         'aws_secret_access_key': opts.privatekey,
     }
     
-    instances = [i for i in getCurrentInstances( conn_kwargs ) if i]
     
     conn = boto.connect_cloudwatch(**conn_kwargs)
     #metrics=reduce(lambda x,y:x+y,[conn.list_metrics(dimensions={'InstanceId':i}) for i in instances])
@@ -92,40 +91,51 @@ def work(opts):
     end = datetime.utcnow()
     start = end - timedelta(seconds=seconds+5)
     
+    instTypes={}
+    instances = getInstances(conn_kwargs)
     for i in instances:
-        id = 'InstanceId:' + i
-        #nagios format
-        output = id
-        metrics = conn.list_metrics(dimensions={'InstanceId':i})
-        if len(metrics) == 0:
-            continue
-        for m in metrics:
-            ret = m.query(start, end, consolidate, units, seconds)
-            if len(ret) > 0:
-                output += " %s %0.2f" % (m.name,ret[-1][consolidate])
-        print output
+        if not instTypes.has_key(i.instance_type):
+            instTypes[i.instance_type]=None
+    instTypes=instTypes.keys()
     
-def getCurrentInstances( conn_kwargs ):
+    if targetType == 'Instance':
+        for i in instances:
+            output = 'InstanceId:' + i.id
+            metrics = conn.list_metrics(dimensions={'InstanceId':i.id})
+            if len(metrics) == 0:
+                continue
+            for m in metrics:
+                ret = m.query(start, end, consolidate, units, seconds)
+                if len(ret) > 0:
+                    output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+            print output
+    elif targetType == 'InstanceType':
+        for t in instTypes:
+            output = 'InstanceType:' + t
+            for m in conn.list_metrics(dimensions={'InstanceType':t}):
+                ret = m.query(start, end, consolidate, units, seconds)
+                output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+            print output
+    
+def getInstances( conn_kwargs ):
     '''
     Collect all the instances across all the
     systems (east, west, etc.). Leave out 
-    terminated instances
+    terminated instances and None instances
     '''
-
     ec2conn = boto.connect_ec2(**conn_kwargs)
     ec2instances = []
     regions = ec2conn.get_all_regions()
-    try:
-        for region in regions:
+    for region in regions:
+        try:
             conn = region.connect(**conn_kwargs)
             for reservation in conn.get_all_instances():
-                for instance in reservation.instances:
-                    if instance.state == 'terminated': continue
-                    ec2instances.append(instance.id)
-    except boto.exception.EC2ResponseError, ex:
-        print "ERROR:%s" % ex.error_message
-        sys.exit(1)
-    return ec2instances
+                ec2instances.append([i for i in reservation.instances
+                                     if i.id and i.state != 'terminated'])
+        except boto.exception.EC2ResponseError, ex:
+            #print "ERROR:%s" % ex.error_message
+            continue
+    return reduce(lambda x,y:x+y, ec2instances)
 
 
 def main():
@@ -140,7 +150,7 @@ def main():
               "EC2Manager, EC2Instance, EC2InstanceType or EC2ImageId"
         raise SystemExit(3)
     
-    work(opts)
+    work(opts,targetType)
     exit()
 
 
