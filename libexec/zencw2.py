@@ -83,15 +83,12 @@ def work(opts):
         'aws_access_key_id': opts.userkey,
         'aws_secret_access_key': opts.privatekey,
     }
-   
+    
     instances = [i for i in getCurrentInstances( conn_kwargs ) if i]
-
+    
     conn = boto.connect_cloudwatch(**conn_kwargs)
-    #for i in instances:
-    #    metrics.append(conn.list_metrics(dimensions={'InstanceId':i}))
-    #metrics=reduce(lambda x,y:x+y,metrics)
+    #metrics=reduce(lambda x,y:x+y,[conn.list_metrics(dimensions={'InstanceId':i}) for i in instances])
 
-    pdb.set_trace()
     end = datetime.utcnow()
     start = end - timedelta(seconds=seconds+5)
     
@@ -143,8 +140,8 @@ def main():
               "EC2Manager, EC2Instance, EC2InstanceType or EC2ImageId"
         raise SystemExit(3)
     
-    pdb.set_trace()
     work(opts)
+    exit()
 
 
 if __name__ == '__main__':
