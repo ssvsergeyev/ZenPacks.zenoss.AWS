@@ -116,7 +116,61 @@ def work(opts,targetType):
                 ret = m.query(start, end, consolidate, units, seconds)
                 output += " %s %0.2f" % (m.name,ret[-1][consolidate])
             print output
-    
+
+def getEBSVols():
+    vols=ec2conn.get_all_volumes()
+    vols=[v for v in vols if v.attachment_state() == 'attached']
+    byInst = {}
+    for v in vols:
+        k=v.attach_data.instance_id
+        byInst[k] = byInst.get(k,[]) + [v]
+    return byInst
+
+def query_with_backoff(metric,
+                       start=datetime.utcnow() - timedelta(seconds=600),
+                       end=datetime.utcnow(),
+                       consolidate='Average',
+                       units=None,
+                       seconds=None):
+    delay = 1
+    tries = 4
+    while(True):
+        try:
+            ret=m.query(start,end,consolidate,units,seconds)
+            return ret
+        except boto.exception.BotoServerError as ex:
+            if ex.body.find('Throttling') > -1:
+                print "throttled"
+                tries -= 1
+                delay *= 2
+            else:
+                raise ex
+    return None
+
+def aggEBSmetrics(volumes):
+    readOps = 0
+    writeOps = 0
+    readBytes = 0.0
+    writeBytes = 0.0
+    end = datetime.utcnow()
+    start = end - timedelta(seconds=600+5)
+    for v in volumes:
+        mets=[m for m in conn.list_metrics(dimensions={'VolumeId':v.id})
+              if m.name in ['VolumeReadOps','VolumeWriteBytes','VolumeReadBytes','VolumeWriteOps']]
+        for m in mets:
+            ret=query_with_backoff(m,start,end,consolidate,units,seconds)
+            if len(ret)>0:
+                if m.name == 'VolumeReadOps':
+                    readOps += ret[-1][consolidate]
+                elif m.name == 'VolumeWriteOps':
+                    writeOps += ret[-1][consolidate]
+                elif m.name == 'VolumeReadBytes':
+                    readBytes += ret[-1][consolidate]
+                elif m.name == 'VolumeWriteBytes':
+                    writeBytes += ret[-1][consolidate]
+    return (readOps,writeOps,readBytes,writeBytes)
+
+
 def getInstances( conn_kwargs ):
     '''
     Collect all the instances across all the
