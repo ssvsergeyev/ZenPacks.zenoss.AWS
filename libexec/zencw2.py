@@ -109,12 +109,13 @@ def work(opts,targetType):
                 if len(ret) > 0:
                     output += " %s %0.2f" % (m.name,ret[-1][consolidate])
             print output
-    elif targetType == 'InstanceType':
+    elif targetType == 'InstanceType' or targetType == 'Manager':
         for t in instTypes:
             output = 'InstanceType:' + t
             for m in conn.list_metrics(dimensions={'InstanceType':t}):
                 ret = m.query(start, end, consolidate, units, seconds)
-                output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+                if len(ret) > 0:
+                    output += " %s %0.2f" % (m.name,ret[-1][consolidate])
             print output
 
 def getEBSVols():
@@ -127,20 +128,20 @@ def getEBSVols():
     return byInst
 
 def query_with_backoff(metric,
-                       start=datetime.utcnow() - timedelta(seconds=600),
-                       end=datetime.utcnow(),
-                       consolidate='Average',
-                       units=None,
-                       seconds=None):
+                       start,
+                       end,
+                       consolidate,
+                       units,
+                       seconds):
     delay = 1
     tries = 4
-    while(True):
+    while(tries>0):
         try:
-            ret=m.query(start,end,consolidate,units,seconds)
+            ret=metric.query(start,end,consolidate,units,seconds)
             return ret
         except boto.exception.BotoServerError as ex:
             if ex.body.find('Throttling') > -1:
-                print "throttled"
+                time.sleep(delay)
                 tries -= 1
                 delay *= 2
             else:
@@ -148,6 +149,7 @@ def query_with_backoff(metric,
     return None
 
 def aggEBSmetrics(volumes):
+    runtime = datetime.utcnow()
     readOps = 0
     writeOps = 0
     readBytes = 0.0
@@ -168,7 +170,8 @@ def aggEBSmetrics(volumes):
                     readBytes += ret[-1][consolidate]
                 elif m.name == 'VolumeWriteBytes':
                     writeBytes += ret[-1][consolidate]
-    return (readOps,writeOps,readBytes,writeBytes)
+    runtime = (datetime.utcnow() - runtime).total_seconds()
+    return (readOps,writeOps,readBytes,writeBytes,runtime)
 
 
 def getInstances( conn_kwargs ):
