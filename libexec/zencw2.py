@@ -86,7 +86,6 @@ def work(opts,targetType):
     
     
     conn = boto.connect_cloudwatch(**conn_kwargs)
-    #metrics=reduce(lambda x,y:x+y,[conn.list_metrics(dimensions={'InstanceId':i}) for i in instances])
 
     end = datetime.utcnow()
     start = end - timedelta(seconds=seconds+5)
@@ -99,26 +98,40 @@ def work(opts,targetType):
     instTypes=instTypes.keys()
     
     if targetType == 'Instance':
+        volumes = getEBSVols(boto.connect_ec2(**conn_kwargs))
         for i in instances:
             output = 'InstanceId:' + i.id
             metrics = conn.list_metrics(dimensions={'InstanceId':i.id})
             if len(metrics) == 0:
                 continue
             for m in metrics:
-                ret = m.query(start, end, consolidate, units, seconds)
-                if len(ret) > 0:
-                    output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+                try:
+                    ret = m.query(start, end, consolidate, units, seconds)
+                    if len(ret) > 0:
+                        output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+                except:
+                    continue
+            # get ebs metrics
+            try:
+                volstats = aggEBSmetrics(conn,volumes[i.id],consolidate, units, seconds)
+                for mname in volstats.keys():
+                    output += " %s %0.2f" % (mname,volstats[mname])
+            except:
+                pass
             print output
     elif targetType == 'InstanceType' or targetType == 'Manager':
         for t in instTypes:
             output = 'InstanceType:' + t
             for m in conn.list_metrics(dimensions={'InstanceType':t}):
-                ret = m.query(start, end, consolidate, units, seconds)
-                if len(ret) > 0:
-                    output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+                try:
+                    ret = m.query(start, end, consolidate, units, seconds)
+                    if len(ret) > 0:
+                        output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+                except:
+                    continue
             print output
 
-def getEBSVols():
+def getEBSVols(ec2conn):
     vols=ec2conn.get_all_volumes()
     vols=[v for v in vols if v.attachment_state() == 'attached']
     byInst = {}
@@ -148,7 +161,7 @@ def query_with_backoff(metric,
                 raise ex
     return None
 
-def aggEBSmetrics(volumes):
+def aggEBSmetrics(conn,volumes,consolidate,units,seconds):
     runtime = datetime.utcnow()
     readOps = 0
     writeOps = 0
@@ -171,7 +184,10 @@ def aggEBSmetrics(volumes):
                 elif m.name == 'VolumeWriteBytes':
                     writeBytes += ret[-1][consolidate]
     runtime = (datetime.utcnow() - runtime).total_seconds()
-    return (readOps,writeOps,readBytes,writeBytes,runtime)
+    return {'VolumeReadOps':readOps,
+            'VolumeWriteOps':writeOps,
+            'VolumeReadBytes':readBytes,
+            'VolumeWriteBytes':writeBytes,'EBSruntime':runtime}
 
 
 def getInstances( conn_kwargs ):
