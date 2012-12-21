@@ -29,21 +29,6 @@ if os.path.isdir(libDir):
 import boto
 logging.getLogger('boto').setLevel(logging.CRITICAL)
 
-ZENHOME = os.getenv('ZENHOME', '/opt/zenoss')
-CACHE_LIFE = 600
-CACHE_FILE = os.path.join(ZENHOME, 'var', '.ec2cache')
-STATS_FILE = os.path.join(ZENHOME, 'var', '.ec2stats')
-
-DP_NAMES = (
-    'CPUUtilization',
-    'NetworkIn',
-    'NetworkOut',
-    'DiskReadBytes',
-    'DiskWriteBytes',
-    'DiskReadOps',
-    'DiskWriteOps'
-)
-
 def getOpts():
     from optparse import OptionParser
     parser = OptionParser()
@@ -68,8 +53,6 @@ def getOpts():
     parser.add_option("-p","--privatekey", dest="privatekey",
                       default=os.environ.get('AWS_SECRET_ACCESS_KEY', None))
     parser.add_option("-i","--instance", dest="instance",default="")
-    parser.add_option("--cachefile", dest="cachefile", default=CACHE_FILE)
-
     return parser.parse_args()
 
 
@@ -104,7 +87,8 @@ def work(opts,targetType):
             metrics = conn.list_metrics(dimensions={'InstanceId':i.id})
             if len(metrics) == 0:
                 continue
-            for m in metrics:
+            for m in [m2 for m2 in metrics if m2.name 
+                      in ['CPUUtilization','NetworkIn','NetworkOut']]:
                 try:
                     ret = m.query(start, end, consolidate, units, seconds)
                     if len(ret) > 0:
@@ -122,13 +106,31 @@ def work(opts,targetType):
     elif targetType == 'InstanceType' or targetType == 'Manager':
         for t in instTypes:
             output = 'InstanceType:' + t
-            for m in conn.list_metrics(dimensions={'InstanceType':t}):
+            for m in [m2 for m2 in conn.list_metrics(dimensions={'InstanceType':t})
+                      if m2.name in ['CPUUtilization','NetworkIn','NetworkOut']]:
                 try:
                     ret = m.query(start, end, consolidate, units, seconds)
                     if len(ret) > 0:
                         output += " %s %0.2f" % (m.name,ret[-1][consolidate])
                 except:
                     continue
+            readOps = 0
+            writeOps = 0
+            readBytes = 0.0
+            writeBytes = 0.0
+            for i in [i2 for i2 in instances if i2.instance_type == t]:
+                try:
+                    volstats = aggEBSmetrics(conn,volumes[i.id],consolidate, units, seconds)
+                    readOps += volstats['DiskReadOps']
+                    writeOps += volstats['DiskWriteOps']
+                    readBytes += volstats['DiskRadBytes']
+                    writeBytes += volstats['DiskWriteBytes']
+                except:
+                    continue
+            output += " DiskReadOps %0.2f" % readOps
+            output += " DiskWriteOps %0.2f" % writeOps
+            output += " DiskReadBytes %0.2f" % readBytes
+            output += " DiskWriteBytes %0.2f" % writeBytes
             print output
 
 def getEBSVols(ec2conn):
@@ -184,10 +186,10 @@ def aggEBSmetrics(conn,volumes,consolidate,units,seconds):
                 elif m.name == 'VolumeWriteBytes':
                     writeBytes += ret[-1][consolidate]
     runtime = (datetime.utcnow() - runtime).total_seconds()
-    return {'VolumeReadOps':readOps,
-            'VolumeWriteOps':writeOps,
-            'VolumeReadBytes':readBytes,
-            'VolumeWriteBytes':writeBytes,'EBSruntime':runtime}
+    return {'DiskReadOps':readOps,
+            'DiskWriteOps':writeOps,
+            'DiskReadBytes':readBytes,
+            'DiskWriteBytes':writeBytes,'EBSruntime':runtime}
 
 
 def getInstances( conn_kwargs ):
