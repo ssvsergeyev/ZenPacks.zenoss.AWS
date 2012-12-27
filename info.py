@@ -83,3 +83,11 @@ class EC2InstanceInfo(ComponentInfo):
     @info
     def state(self):
         return self._object.state
+
+    @property
+    @info
+    def private_ip_addresses(self):
+        pv_ip = self._object.private_ip_addresses 
+        if not pv_ip:
+            pv_ip = []
+        return pv_ip

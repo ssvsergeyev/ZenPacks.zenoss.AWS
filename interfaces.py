@@ -50,3 +50,4 @@ class IEC2InstanceInfo(IComponentInfo):
     placement = schema.TextLine(title=u"Placement", readonly=True)
     instance_type = schema.Entity(title=u"Instance Type", readonly=True)
     state = schema.TextLine(title=u"state", readonly=True)
+    private_ip_addresses = schema.List(title=u"Private IP Addresses", readonly=True)

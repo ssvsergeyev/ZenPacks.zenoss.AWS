@@ -112,6 +112,10 @@ class CWMonitorDataSource(ZenPackPersistence,
             ('DiskReadBytes', 'GAUGE'),
             ('DiskWriteOps', 'GAUGE'),
             ('DiskReadOps', 'GAUGE'),
+            ('VolumeReadOps', 'GAUGE'),
+            ('VolumeWriteOps', 'GAUGE'),
+            ('VolumeReadBytes', 'GAUGE'),
+            ('VolumeWriteBytes', 'GAUGE')
         )
         for dpd in dps:
             dp = self.manage_addRRDDataPoint(dpd[0])

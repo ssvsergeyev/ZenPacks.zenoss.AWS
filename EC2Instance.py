@@ -39,6 +39,7 @@ class EC2Instance(DeviceComponent, ManagedEntity):
     state = ""
     region = ""
     platform = ""
+    private_ip_addresses = []
     _discoveryState = 10
     _discoveryJobId = None
     _deviceProdStatePreStop = 1000
@@ -50,6 +51,7 @@ class EC2Instance(DeviceComponent, ManagedEntity):
         {'id':'public_dns_name',    'type':'string', 'mode':'w'},
         {'id':'private_dns_name',   'type':'string', 'mode':'w'},
         {'id':'private_ip',         'type':'string', 'mode':'w'},
+        {'id':'private_ip_addresses',         'type':'list', 'mode':'w'},
         {'id':'image_id',           'type':'string', 'mode':'w'},
         {'id':'instance_type',      'type':'string', 'mode':'w'},
         {'id':'kernel_id',          'type':'string', 'mode':'w'},
