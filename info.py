@@ -91,3 +91,4 @@ class EC2InstanceInfo(ComponentInfo):
         if not pv_ip:
             pv_ip = []
         return pv_ip
+
