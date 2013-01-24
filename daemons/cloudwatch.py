@@ -40,6 +40,7 @@ conn_kwargs = {
 cwconn = boto.connect_cloudwatch(**conn_kwargs)
 ec2conn = boto.connect_ec2(**conn_kwargs)
 
+_rrd_path = '/opt/zenoss/perf/Devices/EC2Manager'
 _instances = []
 _instTypes = {}
 
@@ -74,17 +75,16 @@ def update_instance_data():
 
 
 def check_rrds():
-    rrd_path = '/opt/zenoss/perf/Devices/EC2Manager'
-    if not os.path.exists(rrd_path):
-        os.makedirs(rrd_path)
+    if not os.path.exists(_rrd_path):
+        os.makedirs(_rrd_path)
     # check file for each field
-    check_rrd_2(rrd_path)
+    check_rrd_2(_rrd_path)
     # directories for instanceTypes
     for itype in _instTypes:
-        check_rrd_2(os.path.join(rrd_path,"instanceTypes",itype))
+        check_rrd_2(os.path.join(_rrd_path,"instanceTypes",itype))
     # directories for instances
     for inst in _instances:
-        check_rrd_2(os.path.join(rrd_path,"instances",inst.id))
+        check_rrd_2(os.path.join(_rrd_path,"instances",inst.id))
 
 rrdtuples = []
 
@@ -121,7 +121,7 @@ def buildData(conn, units='', consolidate='Average', seconds=300):
     return mdict
 
 def update_rrd(field,subdir,value):
-    os.system("rrdtool update %s N:%f" % (os.path.join(subdir,field + ".rrd"),value))
+    os.system("rrdtool update %s N:%f" % (os.path.join(_rrd_path,subdir,field + ".rrd"),value))
 
 def collect_instances():
     volumes = getEBSVols(boto.connect_ec2(**conn_kwargs))
@@ -149,7 +149,7 @@ def collect_instances():
 def collect_types():
     for t in _instTypes:
         output = 'InstanceType:' + t
-        for m in [m2 for m2 in conn.list_metrics(dimensions={'InstanceType':t})
+        for m in [m2 for m2 in cwconn.list_metrics(dimensions={'InstanceType':t})
                       if m2.name in ['CPUUtilization','NetworkIn','NetworkOut']]:
             try:
                 ret = m.query(start, end, consolidate, units, seconds)
@@ -161,7 +161,7 @@ def collect_types():
         writeOps = 0
         readBytes = 0.0
         writeBytes = 0.0
-        for i in [i2 for i2 in instances if i2.instance_type == t]:
+        for i in [i2 for i2 in _instances if i2.instance_type == t]:
             try:
                     volstats = aggEBSmetrics(conn,volumes[i.id],consolidate, units, seconds)
                     readOps += volstats['DiskReadOps']
@@ -255,6 +255,15 @@ def main():
     #_instances,_instTypes = update_instance_data()
     return
 
+def server_loop():
+    while(True):
+        nexttime = datetime.utcnow() + timedelta(seconds=300)
+        collect_instances()
+        collect_types()
+        waittime = nexttime - datetime.utcnow()
+        print waittime
+        time.sleep(waittime.total_seconds())
+        
 
 if __name__ == '__main__':
     try:
@@ -263,3 +272,11 @@ if __name__ == '__main__':
         log.exception(e)
         sys.stdout.write("CW FAIL: %s\n" % e)
         raise SystemExit(3)
+
+
+##### TODO
+#store metrics (not the values, the metrics)
+#remove old instances
+##subprocess out by region
+#merge type & instance and thereby cut out repeat queries
+#class it up (tuxedos as needed)
