@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import operator
 import logging
 import rrdtool
+from subprocess import call
 logging.basicConfig()
 log = logging.getLogger('ec2')
 libDir = os.path.join(os.path.dirname(__file__), '../lib')
@@ -106,8 +107,10 @@ def create_rrd(path,field):
     rrdtype = 'GAUGE'
     rrdspec = 'DS:%s:%s:5:U:U' % (field,rrdtype)
     #(agg_type of AVERAGE, MIN, MAX, ?)
-    aggspecs = ['RRA:AVERAGE:0.5:1:50' #,'RRA:AVERAGE:0.5:6:50']
-    rrdtool.create('"%s"' % filename,"--step","300",rrdspec,aggspecs)
+    aggspecs = ['RRA:AVERAGE:0.5:1:50','RRA:AVERAGE:0.5:6:50']
+    #rrdtool.create(filename,"--step","300",rrdspec,aggspecs)
+    os.system("rrdtool create %s" % " ".join(filename,"--step","300",rrdspec,aggspecs))
+    #call(['rrdtool', "create %s" % " ".join(filename,"--step","300",rrdspec,aggspecs)])
 
 def buildData(conn, units='', consolidate='Average', seconds=300):
     metlist = conn.list_metrics(namespace='AWS/EC2')
@@ -123,6 +126,9 @@ def buildData(conn, units='', consolidate='Average', seconds=300):
         	instvalues.append((met.name, ret[-1][consolidate]))
     return mdict
 
+def update_rrd(field,subdir,value):
+    os.system("rrdtool update %s N:%f" % (os.path.join(subdir,field + ".rrd"),value))
+
 def collect_instances():
     volumes = getEBSVols(boto.connect_ec2(**conn_kwargs))
     for i in instances:
@@ -135,17 +141,16 @@ def collect_instances():
             try:
                 ret = m.query(start, end, consolidate, units, seconds)
                 if len(ret) > 0:
-                        output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+                    update_rrd(m.name,"instances/%s" % i.id,ret[-1][consolidate])
             except:
                 continue
         # get ebs metrics
         try:
             volstats = aggEBSmetrics(conn,volumes[i.id],consolidate, units, seconds)
             for mname in volstats.keys():
-                    output += " %s %0.2f" % (mname,volstats[mname])
+               update_rrd(mname,"instances/%s" % i.id,volstats[mname])
         except:
                 pass
-        print output
 
 def collect_types():
     for t in instTypes:
@@ -153,9 +158,9 @@ def collect_types():
         for m in [m2 for m2 in conn.list_metrics(dimensions={'InstanceType':t})
                       if m2.name in ['CPUUtilization','NetworkIn','NetworkOut']]:
             try:
-                    ret = m.query(start, end, consolidate, units, seconds)
-                    if len(ret) > 0:
-                        output += " %s %0.2f" % (m.name,ret[-1][consolidate])
+                ret = m.query(start, end, consolidate, units, seconds)
+                if len(ret) > 0:
+                    update_rrd(m.name,"instanceTypes/%s" % t,ret[-1][consolidate])
             except:
                 continue
         readOps = 0
@@ -171,11 +176,10 @@ def collect_types():
                     writeBytes += volstats['DiskWriteBytes']
             except:
                     continue
-        output += " DiskReadOps %0.2f" % readOps
-        output += " DiskWriteOps %0.2f" % writeOps
-        output += " DiskReadBytes %0.2f" % readBytes
-        output += " DiskWriteBytes %0.2f" % writeBytes
-        print output
+        update_rrd("DiskReadOps","instanceTypes/%s" % t,readOps)
+        update_rrd("DiskWriteOps","instanceTypes/%s" % t,writeOps)
+        update_rrd("DiskReadBytes","instanceTypes/%s" % t,readBytes)
+        update_rrd("DiskWriteBytes","instanceTypes/%s" % t,writeBytes)
 
 def aggEBSmetrics(conn,volumes,consolidate,units,seconds):
     runtime = datetime.utcnow()
@@ -234,7 +238,6 @@ def getEBSVols(ec2conn):
         k=v.attach_data.instance_id
         byInst[k] = byInst.get(k,[]) + [v]
     return byInst
-
 
 class cloudwatch():
     instances = []
