@@ -28,10 +28,10 @@ FIELD_NAMES = (
     'DiskWriteBytes',
     'DiskReadOps',
     'DiskWriteOps',
-    'EphReadBytes',
-    'EphWriteBytes',
-    'EphReadOps',
-    'EphWriteOps',
+    'EBSReadBytes',
+    'EBSWriteBytes',
+    'EBSReadOps',
+    'EBSWriteOps',
     'EBSruntime'
 )
 
@@ -188,10 +188,10 @@ class Cloudwatch():
                     elif m.name == 'VolumeWriteBytes':
                         writeBytes += ret[-1][consolidate]
         runtime = (datetime.utcnow() - runtime).total_seconds()
-        return {'DiskReadOps':readOps,
-            'DiskWriteOps':writeOps,
-            'DiskReadBytes':readBytes,
-            'DiskWriteBytes':writeBytes,'EBSruntime':runtime}
+        return {'EBSReadOps':readOps,
+            'EBSWriteOps':writeOps,
+            'EBSReadBytes':readBytes,
+            'EBSWriteBytes':writeBytes,'EBSruntime':runtime}
     
     def collect_instances(self,start=datetime.utcnow() - timedelta(seconds=305),
                           end=datetime.utcnow() - timedelta(seconds=5),
@@ -203,7 +203,8 @@ class Cloudwatch():
             if len(metrics) == 0:
                 continue
             for m in [m2 for m2 in metrics if m2.name 
-                  in ['CPUUtilization','NetworkIn','NetworkOut']]:  # add the disk metrics
+                  in ['CPUUtilization','NetworkIn','NetworkOut','DiskReadOps',
+                      'DiskWriteOps','DiskReadBytes','DiskWriteBytes']]: 
                 try:
                     ret = m.query(start, end, consolidate, units, seconds)
                     if len(ret) > 0:
@@ -224,7 +225,8 @@ class Cloudwatch():
         for t in self._instTypes:
             output = 'InstanceType:' + t
             for m in [m2 for m2 in self.cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceType':t})
-                      if m2.name in ['CPUUtilization','NetworkIn','NetworkOut']]:
+                      if m2.name in ['CPUUtilization','NetworkIn','NetworkOut','DiskReadOps',
+                      'DiskWriteOps','DiskReadBytes','DiskWriteBytes']]:
                 try:
                     ret = m.query(start, end, consolidate, units, seconds)
                     if len(ret) > 0:
@@ -244,10 +246,10 @@ class Cloudwatch():
                     writeBytes += volstats['DiskWriteBytes']
                 except:
                     continue
-            update_rrd("DiskReadOps","instanceTypes/%s" % t,readOps)
-            update_rrd("DiskWriteOps","instanceTypes/%s" % t,writeOps)
-            update_rrd("DiskReadBytes","instanceTypes/%s" % t,readBytes)
-            update_rrd("DiskWriteBytes","instanceTypes/%s" % t,writeBytes)
+            update_rrd("EBSReadOps","instanceTypes/%s" % t,readOps)
+            update_rrd("EBSWriteOps","instanceTypes/%s" % t,writeOps)
+            update_rrd("EBSReadBytes","instanceTypes/%s" % t,readBytes)
+            update_rrd("EBSWriteBytes","instanceTypes/%s" % t,writeBytes)
 
 
 
