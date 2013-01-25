@@ -31,19 +31,16 @@ FIELD_NAMES = (
     'EphReadBytes',
     'EphWriteBytes',
     'EphReadOps',
-    'EphWriteOps'
+    'EphWriteOps',
+    'EBSruntime'
 )
 
 conn_kwargs = {
     'aws_access_key_id': os.environ.get('AWS_ACCESS_KEY_ID', None),
     'aws_secret_access_key': os.environ.get('AWS_SECRET_ACCESS_KEY', None),
 }
-cwconn = boto.connect_cloudwatch(**conn_kwargs)
-ec2conn = boto.connect_ec2(**conn_kwargs)
 
 _rrd_path = '/opt/zenoss/perf/Devices/EC2Manager'
-_instances = []
-_instTypes = {}
 
 def getInstances():
     '''
@@ -74,27 +71,12 @@ def update_instance_data():
     _instTypes=instTypes.keys()
     return (_instances,_instTypes)
 
-
-def check_rrds():
-    if not os.path.exists(_rrd_path):
-        os.makedirs(_rrd_path)
-    # check file for each field
-    check_rrd_2(_rrd_path)
-    # directories for instanceTypes
-    for itype in _instTypes:
-        check_rrd_2(os.path.join(_rrd_path,"instanceTypes",itype))
-    # directories for instances
-    for inst in _instances:
-        check_rrd_2(os.path.join(_rrd_path,"instances",inst.id))
-
-rrdtuples = []
-
-def check_rrd_2(path):
+def check_rrd_fields(path):
     if not os.path.exists(path):
         os.makedirs(path)
     for field in FIELD_NAMES:
         if not os.path.exists(os.path.join(path,field + '.rrd')):
-            rrdtuples.append(create_rrd(path,field))
+            create_rrd(path,field)
 
 def create_rrd(path,field):
     filename = os.path.join(path,field + ".rrd")
@@ -112,85 +94,7 @@ def update_rrd(field,subdir,value):
     print cmd
     os.system(cmd)
 
-def collect_instances(start=datetime.utcnow() - timedelta(seconds=305),end=datetime.utcnow() - timedelta(seconds=5),consolidate='Average',units="",seconds=300):
-    volumes = getEBSVols(boto.connect_ec2(**conn_kwargs))
-    for i in _instances:
-        print( 'InstanceId:' + i.id)
-        metrics = cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceId':i.id})
-        if len(metrics) == 0:
-            continue
-        for m in [m2 for m2 in metrics if m2.name 
-                  in ['CPUUtilization','NetworkIn','NetworkOut']]:  # add the disk metrics
-            try:
-                ret = m.query(start, end, consolidate, units, seconds)
-                if len(ret) > 0:
-                    update_rrd(m.name,"instances/%s" % i.id,ret[-1][consolidate])
-            except:
-                raise
-        # get ebs metrics
-        try:
-            volstats = aggEBSmetrics(conn,volumes[i.id],consolidate, units, seconds)
-            for mname in volstats.keys():
-               update_rrd(mname,"instances/%s" % i.id,volstats[mname])
-        except:
-            raise
 
-def collect_types(start=datetime.utcnow() - timedelta(seconds=305),end=datetime.utcnow() - timedelta(seconds=5),consolidate='Average',units="",seconds=300):
-    for t in _instTypes:
-        output = 'InstanceType:' + t
-        for m in [m2 for m2 in cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceType':t})
-                      if m2.name in ['CPUUtilization','NetworkIn','NetworkOut']]:
-            try:
-                ret = m.query(start, end, consolidate, units, seconds)
-                if len(ret) > 0:
-                    update_rrd(m.name,"instanceTypes/%s" % t,ret[-1][consolidate])
-            except:
-                continue
-        readOps = 0
-        writeOps = 0
-        readBytes = 0.0
-        writeBytes = 0.0
-        for i in [i2 for i2 in _instances if i2.instance_type == t]:
-            try:
-                    volstats = aggEBSmetrics(conn,volumes[i.id],consolidate, units, seconds)
-                    readOps += volstats['DiskReadOps']
-                    writeOps += volstats['DiskWriteOps']
-                    readBytes += volstats['DiskRadBytes']
-                    writeBytes += volstats['DiskWriteBytes']
-            except:
-                    continue
-        update_rrd("DiskReadOps","instanceTypes/%s" % t,readOps)
-        update_rrd("DiskWriteOps","instanceTypes/%s" % t,writeOps)
-        update_rrd("DiskReadBytes","instanceTypes/%s" % t,readBytes)
-        update_rrd("DiskWriteBytes","instanceTypes/%s" % t,writeBytes)
-
-def aggEBSmetrics(conn,volumes,consolidate,units,seconds):
-    runtime = datetime.utcnow()
-    readOps = 0
-    writeOps = 0
-    readBytes = 0.0
-    writeBytes = 0.0
-    end = datetime.utcnow()
-    start = end - timedelta(seconds=600+5)
-    for v in volumes:
-        mets=[m for m in conn.list_metrics(dimensions={'VolumeId':v.id})
-              if m.name in ['VolumeReadOps','VolumeWriteBytes','VolumeReadBytes','VolumeWriteOps']]
-        for m in mets:
-            ret=query_with_backoff(m,start,end,consolidate,units,seconds)
-            if len(ret)>0:
-                if m.name == 'VolumeReadOps':
-                    readOps += ret[-1][consolidate]
-                elif m.name == 'VolumeWriteOps':
-                    writeOps += ret[-1][consolidate]
-                elif m.name == 'VolumeReadBytes':
-                    readBytes += ret[-1][consolidate]
-                elif m.name == 'VolumeWriteBytes':
-                    writeBytes += ret[-1][consolidate]
-    runtime = (datetime.utcnow() - runtime).total_seconds()
-    return {'DiskReadOps':readOps,
-            'DiskWriteOps':writeOps,
-            'DiskReadBytes':readBytes,
-            'DiskWriteBytes':writeBytes,'EBSruntime':runtime}
 
 def query_with_backoff(metric,
                        start,
@@ -213,52 +117,140 @@ def query_with_backoff(metric,
                 raise ex
     return None
 
-def getEBSVols(ec2conn):
-    vols=ec2conn.get_all_volumes()
-    vols=[v for v in vols if v.attachment_state() == 'attached']
-    byInst = {}
-    for v in vols:
-        k=v.attach_data.instance_id
-        byInst[k] = byInst.get(k,[]) + [v]
-    return byInst
 
-class cloudwatch():
+class Cloudwatch():
     _instances = []
     _metrics = []
     _instTypes = []
+    cwonn,ec2conn = None,None
 
-    def __init__():
+    def __init__(self):
         self._instances,self._instTypes = update_instance_data()
-        self.update()
+        self.cwconn = boto.connect_cloudwatch(**conn_kwargs)
+        self.ec2conn = boto.connect_ec2(**conn_kwargs)
+        self.check_rrds()
 
-    def update():
-        instances = self.getInstances()
-        metrics = self.getMetrics()
+    def server_loop(self):
+        while(True):
+            nexttime = datetime.utcnow() + timedelta(seconds=300)
+            self.collect_instances()
+            collect_types()
+            waittime = nexttime - datetime.utcnow()
+            print waittime
+            if waittime.total_seconds() > 0:
+                time.sleep(waittime.total_seconds())
 
-    def getInstances():
-        return []
+    def check_rrds(self):
+        if not os.path.exists(_rrd_path):
+            os.makedirs(_rrd_path)
+        # check file for each field
+        check_rrd_fields(_rrd_path)
+        # directories for instanceTypes
+        for itype in self._instTypes:
+            check_rrd_fields(os.path.join(_rrd_path,"instanceTypes",itype))
+        # directories for instances
+        for inst in self._instances:
+            check_rrd_fields(os.path.join(_rrd_path,"instances",inst.id))
 
-    def getMetrics():
-        return []
+    def getEBSVols(self):
+        vols=self.ec2conn.get_all_volumes()
+        vols=[v for v in vols if v.attachment_state() == 'attached']
+        byInst = {}
+        for v in vols:
+            k=v.attach_data.instance_id
+            byInst[k] = byInst.get(k,[]) + [v]
+        return byInst
+
+    def aggEBSmetrics(self,volumes,consolidate,units,seconds):
+        runtime = datetime.utcnow()
+        readOps = 0
+        writeOps = 0
+        readBytes = 0.0
+        writeBytes = 0.0
+        end = datetime.utcnow()
+        start = end - timedelta(seconds=300+5)
+        for v in volumes:
+            mets=[m for m in self.cwconn.list_metrics(dimensions={'VolumeId':v.id})
+                  if m.name in ['VolumeReadOps','VolumeWriteBytes','VolumeReadBytes','VolumeWriteOps']]
+            for m in mets:
+                ret=query_with_backoff(m,start,end,consolidate,units,seconds)
+                if len(ret)>0:
+                    if m.name == 'VolumeReadOps':
+                        readOps += ret[-1][consolidate]
+                    elif m.name == 'VolumeWriteOps':
+                        writeOps += ret[-1][consolidate]
+                    elif m.name == 'VolumeReadBytes':
+                        readBytes += ret[-1][consolidate]
+                    elif m.name == 'VolumeWriteBytes':
+                        writeBytes += ret[-1][consolidate]
+        runtime = (datetime.utcnow() - runtime).total_seconds()
+        return {'DiskReadOps':readOps,
+            'DiskWriteOps':writeOps,
+            'DiskReadBytes':readBytes,
+            'DiskWriteBytes':writeBytes,'EBSruntime':runtime}
+    
+    def collect_instances(self,start=datetime.utcnow() - timedelta(seconds=305),
+                          end=datetime.utcnow() - timedelta(seconds=5),
+                          consolidate='Average',units="",seconds=300):
+        volumes = self.getEBSVols()
+        for i in self._instances:
+            print( 'InstanceId:' + i.id)
+            metrics = self.cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceId':i.id})
+            if len(metrics) == 0:
+                continue
+            for m in [m2 for m2 in metrics if m2.name 
+                  in ['CPUUtilization','NetworkIn','NetworkOut']]:  # add the disk metrics
+                try:
+                    ret = m.query(start, end, consolidate, units, seconds)
+                    if len(ret) > 0:
+                        update_rrd(m.name,"instances/%s" % i.id,ret[-1][consolidate])
+                except:
+                        raise
+                # get ebs metrics
+                try:
+                    volstats = self.aggEBSmetrics(volumes[i.id],consolidate, units, seconds)
+                    for mname in volstats.keys():
+                        update_rrd(mname,"instances/%s" % i.id,volstats[mname])
+                except:
+                        raise
+    
+    def collect_types(self,start=datetime.utcnow() - timedelta(seconds=305),
+                      end=datetime.utcnow() - timedelta(seconds=5),
+                      consolidate='Average',units="",seconds=300):
+        for t in self._instTypes:
+            output = 'InstanceType:' + t
+            for m in [m2 for m2 in self.cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceType':t})
+                      if m2.name in ['CPUUtilization','NetworkIn','NetworkOut']]:
+                try:
+                    ret = m.query(start, end, consolidate, units, seconds)
+                    if len(ret) > 0:
+                        update_rrd(m.name,"instanceTypes/%s" % t,ret[-1][consolidate])
+                except:
+                        raise
+            readOps = 0
+            writeOps = 0
+            readBytes = 0.0
+            writeBytes = 0.0
+            for i in [i2 for i2 in self._instances if i2.instance_type == t]:
+                try:
+                    volstats = self.aggEBSmetrics(volumes[i.id],consolidate, units, seconds)
+                    readOps += volstats['DiskReadOps']
+                    writeOps += volstats['DiskWriteOps']
+                    readBytes += volstats['DiskRadBytes']
+                    writeBytes += volstats['DiskWriteBytes']
+                except:
+                    continue
+            update_rrd("DiskReadOps","instanceTypes/%s" % t,readOps)
+            update_rrd("DiskWriteOps","instanceTypes/%s" % t,writeOps)
+            update_rrd("DiskReadBytes","instanceTypes/%s" % t,readBytes)
+            update_rrd("DiskWriteBytes","instanceTypes/%s" % t,writeBytes)
 
 
-def main():
-    #_instances,_instTypes = update_instance_data()
-    return
-
-def server_loop():
-    while(True):
-        nexttime = datetime.utcnow() + timedelta(seconds=300)
-        collect_instances()
-        collect_types()
-        waittime = nexttime - datetime.utcnow()
-        print waittime
-        time.sleep(waittime.total_seconds())
-        
 
 if __name__ == '__main__':
     try:
-        main()
+        cw = Cloudwatch()
+        cw.server_loop()
     except Exception, e:
         log.exception(e)
         sys.stdout.write("CW FAIL: %s\n" % e)
