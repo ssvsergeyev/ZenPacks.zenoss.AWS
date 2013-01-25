@@ -82,9 +82,13 @@ def create_rrd(path,field):
     filename = os.path.join(path,field + ".rrd")
     #(rrdtype of COUNTER, GAUGE, DERIVE, ABSOLUTE)
     rrdtype = 'GAUGE'
-    rrdspec = 'DS:%s:%s:5:U:U' % (field,rrdtype)
+    rrdspec = 'DS:%s:%s:900:U:U' % (field,rrdtype)
     #(agg_type of AVERAGE, MIN, MAX, ?)
-    aggspecs = " ".join(['RRA:AVERAGE:0.5:1:50','RRA:AVERAGE:0.5:6:50'])
+    aggspecs = " ".join(['RRA:AVERAGE:0.5:1:600',
+                         'RRA:AVERAGE:0.5:6:600',
+                         'RRA:AVERAGE:0.5:24:600',
+                         'RRA:AVERAGE:0.5:288:600',
+                         'RRA:MAX:0.5:1:600'])
     #rrdtool.create(filename,"--step","300",rrdspec,aggspecs)
     os.system("rrdtool create %s" % " ".join([filename,"--step","300",rrdspec,aggspecs]))
     #call(['rrdtool', "create %s" % " ".join(filename,"--step","300",rrdspec,aggspecs)])
@@ -258,8 +262,11 @@ if __name__ == '__main__':
 
 
 ##### TODO
+#more closely match RRDUtil norms in rrdcreate (datasources, average defs)
+#logging - debug logging & always log throttles
+#error recovery -- lost connections, rrd missing, etc
+#package into the zenpack (have zencw2 call it?  remove stuff that setupsup zencw2 and the rrds?)
 #store metrics (not the values, the metrics)
 #remove old instances
 ##subprocess out by region
 #merge type & instance and thereby cut out repeat queries
-#class it up (tuxedos as needed)
