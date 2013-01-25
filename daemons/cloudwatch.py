@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import operator
 import logging
 import rrdtool
+import pdb
 from subprocess import call
 logging.basicConfig()
 log = logging.getLogger('ec2')
@@ -106,50 +107,38 @@ def create_rrd(path,field):
     os.system("rrdtool create %s" % " ".join([filename,"--step","300",rrdspec,aggspecs]))
     #call(['rrdtool', "create %s" % " ".join(filename,"--step","300",rrdspec,aggspecs)])
 
-def buildData(conn, units='', consolidate='Average', seconds=300):
-    metlist = conn.list_metrics(namespace='AWS/EC2')
-    end = datetime.utcnow()
-    start = end - timedelta(seconds=seconds+5)
-    mdict = dict()
-
-    for met in metlist:
-        mid = getMetricId(met)
-        instvalues = mdict.setdefault(mid, [])
-        ret = met.query(start, end, consolidate, units, seconds)
-	if len(ret) > 0:
-        	instvalues.append((met.name, ret[-1][consolidate]))
-    return mdict
-
 def update_rrd(field,subdir,value):
-    os.system("rrdtool update %s N:%f" % (os.path.join(_rrd_path,subdir,field + ".rrd"),value))
+    cmd = "rrdtool update %s N:%f" % (os.path.join(_rrd_path,subdir,field + ".rrd"),value)
+    print cmd
+    os.system(cmd)
 
-def collect_instances():
+def collect_instances(start=datetime.utcnow() - timedelta(seconds=305),end=datetime.utcnow() - timedelta(seconds=5),consolidate='Average',units="",seconds=300):
     volumes = getEBSVols(boto.connect_ec2(**conn_kwargs))
     for i in _instances:
         print( 'InstanceId:' + i.id)
-        metrics = cwconn.list_metrics(dimensions={'InstanceId':i.id})
+        metrics = cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceId':i.id})
         if len(metrics) == 0:
             continue
         for m in [m2 for m2 in metrics if m2.name 
-                  in ['CPUUtilization','NetworkIn','NetworkOut']]:
+                  in ['CPUUtilization','NetworkIn','NetworkOut']]:  # add the disk metrics
             try:
                 ret = m.query(start, end, consolidate, units, seconds)
                 if len(ret) > 0:
-                    print update_rrd(m.name,"instances/%s" % i.id,ret[-1][consolidate])
+                    update_rrd(m.name,"instances/%s" % i.id,ret[-1][consolidate])
             except:
-                continue
+                raise
         # get ebs metrics
         try:
             volstats = aggEBSmetrics(conn,volumes[i.id],consolidate, units, seconds)
             for mname in volstats.keys():
-               print update_rrd(mname,"instances/%s" % i.id,volstats[mname])
+               update_rrd(mname,"instances/%s" % i.id,volstats[mname])
         except:
-                pass
+            raise
 
-def collect_types():
+def collect_types(start=datetime.utcnow() - timedelta(seconds=305),end=datetime.utcnow() - timedelta(seconds=5),consolidate='Average',units="",seconds=300):
     for t in _instTypes:
         output = 'InstanceType:' + t
-        for m in [m2 for m2 in cwconn.list_metrics(dimensions={'InstanceType':t})
+        for m in [m2 for m2 in cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceType':t})
                       if m2.name in ['CPUUtilization','NetworkIn','NetworkOut']]:
             try:
                 ret = m.query(start, end, consolidate, units, seconds)
@@ -234,10 +223,12 @@ def getEBSVols(ec2conn):
     return byInst
 
 class cloudwatch():
-    instances = []
-    metrics = []
+    _instances = []
+    _metrics = []
+    _instTypes = []
 
     def __init__():
+        self._instances,self._instTypes = update_instance_data()
         self.update()
 
     def update():
