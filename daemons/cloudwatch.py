@@ -75,14 +75,14 @@ def check_rrd_fields(path):
     if not os.path.exists(path):
         os.makedirs(path)
     for field in FIELD_NAMES:
-        if not os.path.exists(os.path.join(path,field + '.rrd')):
+        if not os.path.exists(os.path.join(path,"zencw2_" + field + '.rrd')):
             create_rrd(path,field)
 
 def create_rrd(path,field):
-    filename = os.path.join(path,field + ".rrd")
+    filename = os.path.join(path,"zencw2_" + field + ".rrd")
     #(rrdtype of COUNTER, GAUGE, DERIVE, ABSOLUTE)
     rrdtype = 'GAUGE'
-    rrdspec = 'DS:%s:%s:900:U:U' % (field,rrdtype)
+    rrdspec = 'DS:ds0:%s:900:U:U' % rrdtype
     #(agg_type of AVERAGE, MIN, MAX, ?)
     aggspecs = " ".join(['RRA:AVERAGE:0.5:1:600',
                          'RRA:AVERAGE:0.5:6:600',
@@ -94,7 +94,7 @@ def create_rrd(path,field):
     #call(['rrdtool', "create %s" % " ".join(filename,"--step","300",rrdspec,aggspecs)])
 
 def update_rrd(field,subdir,value):
-    cmd = "rrdtool update %s N:%f" % (os.path.join(_rrd_path,subdir,field + ".rrd"),value)
+    cmd = "rrdtool update %s N:%f" % (os.path.join(_rrd_path,subdir,"zencw2_" + field + ".rrd"),value)
     print cmd
     os.system(cmd)
 
@@ -138,7 +138,7 @@ class Cloudwatch():
         while(True):
             nexttime = datetime.utcnow() + timedelta(seconds=300)
             self.collect_instances()
-            collect_types()
+            #self.collect_types()
             waittime = nexttime - datetime.utcnow()
             print waittime
             if waittime.total_seconds() > 0:
@@ -178,7 +178,7 @@ class Cloudwatch():
                   if m.name in ['VolumeReadOps','VolumeWriteBytes','VolumeReadBytes','VolumeWriteOps']]
             for m in mets:
                 ret=query_with_backoff(m,start,end,consolidate,units,seconds)
-                if len(ret)>0:
+                if ret and len(ret)>0:
                     if m.name == 'VolumeReadOps':
                         readOps += ret[-1][consolidate]
                     elif m.name == 'VolumeWriteOps':
@@ -200,24 +200,24 @@ class Cloudwatch():
         for i in self._instances:
             print( 'InstanceId:' + i.id)
             metrics = self.cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceId':i.id})
-            if len(metrics) == 0:
+            if metrics and len(metrics) == 0:
                 continue
             for m in [m2 for m2 in metrics if m2.name 
                   in ['CPUUtilization','NetworkIn','NetworkOut','DiskReadOps',
                       'DiskWriteOps','DiskReadBytes','DiskWriteBytes']]: 
                 try:
-                    ret = m.query(start, end, consolidate, units, seconds)
-                    if len(ret) > 0:
+                    ret = query_with_backoff(m, start, end, consolidate, units, seconds)
+                    if ret and len(ret) > 0:
                         update_rrd(m.name,"instances/%s" % i.id,ret[-1][consolidate])
                 except:
                         raise
                 # get ebs metrics
-                try:
-                    volstats = self.aggEBSmetrics(volumes[i.id],consolidate, units, seconds)
-                    for mname in volstats.keys():
-                        update_rrd(mname,"instances/%s" % i.id,volstats[mname])
-                except:
-                        raise
+            try:
+                volstats = self.aggEBSmetrics(volumes[i.id],consolidate, units, seconds)
+                for mname in volstats.keys():
+                    update_rrd(mname,"instances/%s" % i.id,volstats[mname])
+            except:
+                    raise
     
     def collect_types(self,start=datetime.utcnow() - timedelta(seconds=305),
                       end=datetime.utcnow() - timedelta(seconds=5),
@@ -228,8 +228,8 @@ class Cloudwatch():
                       if m2.name in ['CPUUtilization','NetworkIn','NetworkOut','DiskReadOps',
                       'DiskWriteOps','DiskReadBytes','DiskWriteBytes']]:
                 try:
-                    ret = m.query(start, end, consolidate, units, seconds)
-                    if len(ret) > 0:
+                    ret = query_with_backoff(m, start, end, consolidate, units, seconds)
+                    if ret and len(ret) > 0:
                         update_rrd(m.name,"instanceTypes/%s" % t,ret[-1][consolidate])
                 except:
                         raise
