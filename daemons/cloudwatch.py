@@ -264,7 +264,7 @@ if __name__ == '__main__':
 
 
 ##### TODO
-#more closely match RRDUtil norms in rrdcreate (datasources, average defs)
+# sum for totals
 #logging - debug logging & always log throttles
 #error recovery -- lost connections, rrd missing, etc
 #package into the zenpack (have zencw2 call it?  remove stuff that setupsup zencw2 and the rrds?)
