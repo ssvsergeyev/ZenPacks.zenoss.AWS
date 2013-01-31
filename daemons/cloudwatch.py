@@ -98,8 +98,6 @@ def update_rrd(field,subdir,value):
     print cmd
     os.system(cmd)
 
-
-
 def query_with_backoff(metric,
                        start,
                        end,
@@ -121,24 +119,70 @@ def query_with_backoff(metric,
                 raise ex
     return None
 
+def get_all_metrics(conn):
+    tmp = conn.list_metrics(namespace='AWS/EC2')
+    metlist = tmp
+    nt = metlist.next_token
+    delay = 1
+    tries = 5
+    while nt and (tries>0):
+        try:
+            tmp = conn.list_metrics(next_token=nt)
+            metlist += tmp
+            nt = tmp.next_token
+            delay /= 2
+        except boto.exception.BotoServerError as ex:
+            if ex.body.find('Throttling') > -1:
+                time.sleep(delay)
+                tries -= 1
+                delay *= 2
+            else:
+                raise ex
+    return metlist
+
+def categorize_metrics(metrics):
+    totals = []
+    insts = {}
+    types = {}
+    for m in metrics:
+        if not m.dimensions or m.dimensions == {}:
+            totals.append(m)
+            continue
+        if m.dimensions.has_key('InstanceId'):
+            insts[m.dimensions['InstanceId'][0]] = insts.get(m.dimensions['InstanceId'][0],[]) + [m]
+            continue
+        if m.dimensions.has_key('InstanceType'):
+            types[m.dimensions['InstanceType'][0]] = types.get(m.dimensions['InstanceType'][0],[]) + [m]
+            continue
+    return totals,insts,types
 
 class Cloudwatch():
     _instances = []
     _metrics = []
+    _total_metrics = []
+    _instance_metrics = []
+    _type_metrics = []
+    _ebs_metrics = []
     _instTypes = []
-    cwonn,ec2conn = None,None
+    cwconn,ec2conn = None,None
 
     def __init__(self):
         self._instances,self._instTypes = update_instance_data()
         self.cwconn = boto.connect_cloudwatch(**conn_kwargs)
         self.ec2conn = boto.connect_ec2(**conn_kwargs)
+        print "checkin rrds"
         self.check_rrds()
+        print "gettin metrics"
+        self._metrics = get_all_metrics(self.cwconn)
+        print "sortin metrics"
+        (self._total_metrics,self._instance_metrics,self._type_metrics) = categorize_metrics(self._metrics)
 
     def server_loop(self):
         while(True):
             nexttime = datetime.utcnow() + timedelta(seconds=300)
+            self.collect_totals()
             self.collect_instances()
-            #self.collect_types()
+            self.collect_types()
             waittime = nexttime - datetime.utcnow()
             print waittime
             if waittime.total_seconds() > 0:
@@ -199,7 +243,9 @@ class Cloudwatch():
         volumes = self.getEBSVols()
         for i in self._instances:
             print( 'InstanceId:' + i.id)
-            metrics = self.cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceId':i.id})
+            if not self._instance_metrics.has_key(i.id):
+                continue
+            metrics = self._instance_metrics[i.id]
             if metrics and len(metrics) == 0:
                 continue
             for m in [m2 for m2 in metrics if m2.name 
@@ -218,13 +264,27 @@ class Cloudwatch():
                     update_rrd(mname,"instances/%s" % i.id,volstats[mname])
             except:
                     raise
-    
+
+    def collect_totals(self,start=datetime.utcnow() - timedelta(seconds=305),
+                          end=datetime.utcnow() - timedelta(seconds=5),
+                          consolidate='Average',units="",seconds=300):
+        volumes = self.getEBSVols()
+        for m in [m2 for m2 in self._total_metrics if m2.name 
+                  in ['CPUUtilization','NetworkIn','NetworkOut','DiskReadOps',
+                      'DiskWriteOps','DiskReadBytes','DiskWriteBytes']]: 
+                try:
+                    ret = query_with_backoff(m, start, end, consolidate, units, seconds)
+                    if ret and len(ret) > 0:
+                        update_rrd(m.name,"",ret[-1][consolidate])
+                except:
+                        raise
+
     def collect_types(self,start=datetime.utcnow() - timedelta(seconds=305),
                       end=datetime.utcnow() - timedelta(seconds=5),
                       consolidate='Average',units="",seconds=300):
-        for t in self._instTypes:
+        for t in self._type_metrics.keys():
             output = 'InstanceType:' + t
-            for m in [m2 for m2 in self.cwconn.list_metrics(namespace='AWS/EC2',dimensions={'InstanceType':t})
+            for m in [m2 for m2 in self._type_metrics[t]
                       if m2.name in ['CPUUtilization','NetworkIn','NetworkOut','DiskReadOps',
                       'DiskWriteOps','DiskReadBytes','DiskWriteBytes']]:
                 try:
@@ -252,7 +312,6 @@ class Cloudwatch():
             update_rrd("EBSWriteBytes","instanceTypes/%s" % t,writeBytes)
 
 
-
 if __name__ == '__main__':
     try:
         cw = Cloudwatch()
@@ -264,11 +323,8 @@ if __name__ == '__main__':
 
 
 ##### TODO
-# sum for totals
 #logging - debug logging & always log throttles
 #error recovery -- lost connections, rrd missing, etc
-#package into the zenpack (have zencw2 call it?  remove stuff that setupsup zencw2 and the rrds?)
-#store metrics (not the values, the metrics)
+#package into the zenpack
 #remove old instances
 ##subprocess out by region
-#merge type & instance and thereby cut out repeat queries
