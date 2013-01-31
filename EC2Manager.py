@@ -53,6 +53,8 @@ class EC2Manager(Device):
             "ZenPacks.zenoss.ZenAWS.EC2Instance", "manager")),
         ('instanceTypes', ToManyCont(ToOne,
             "ZenPacks.zenoss.ZenAWS.EC2InstanceType", "manager")),
+        ('zones', ToManyCont(ToOne,
+            "ZenPacks.zenoss.ZenAWS.EC2Zone", "manager")),
         )
 
     factory_type_information = (
@@ -73,6 +75,11 @@ class EC2Manager(Device):
                 { 'id'            : 'instanceTypes'
                 , 'name'          : 'Instance Types'
                 , 'action'        : 'viewInstanceTypes'
+                , 'permissions'   : (ZEN_VIEW, )
+                },
+                { 'id'            : 'zones'
+                , 'name'          : 'Zones'
+                , 'action'        : 'viewZones'
                 , 'permissions'   : (ZEN_VIEW, )
                 },
                 { 'id'            : 'events'

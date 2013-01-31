@@ -39,6 +39,14 @@ class IEC2InstanceTypeInfo(IComponentInfo):
     """
     name = schema.TextLine(title=u"Name", readonly=True)
 
+class IEC2ZoneInfo(IComponentInfo):
+    """
+    Info adapter for EC2InstanceType components.
+    """
+    name = schema.TextLine(title=u"Name", readonly=True)
+    state = schema.TextLine(title=u"State", readonly=True)
+    region_name = schema.TextLine(title=u"Region", readonly=True)
+
 class IEC2InstanceInfo(IComponentInfo):
     """
     Info adapter for C2Instance components.
