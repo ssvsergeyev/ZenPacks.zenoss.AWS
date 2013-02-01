@@ -34,7 +34,7 @@ class ZenPack(ZenPackBase):
         ZenPackBase.install(self, app)
         dc = app.dmd.Devices.createOrganizer('/AWS/EC2')
         dc.setZenProperty('zCollectorPlugins', 
-                            ('zenoss.aws.EC2InstanceMap',))
+                            ('zenoss.aws.EC2InstanceMap','zenoss.aws.EC2ZoneMap',))
         dc.setZenProperty('zPythonClass', 'ZenPacks.zenoss.ZenAWS.EC2Manager')
         if dc.devices._getOb('EC2Manager', None): return
         ec2m = dc.createInstance('EC2Manager')

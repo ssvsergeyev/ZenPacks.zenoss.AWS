@@ -107,6 +107,10 @@ class ZenEC2Modeler(object):
                     except boto.exception.EC2ResponseError, ex:
                         print "ERROR:%s" % ex.error_message
                         sys.exit(1)
+                try:
+                    ec2instance['publicIp'] = instance.publicIp
+                except:
+                    pass
                 if ec2instance.has_key('private_ip_address') and ec2instance['private_ip_address']:
                     private_ips.add(ec2instance['private_ip_address'])
                 ec2instance['private_ip_addresses'] = list(private_ips)
