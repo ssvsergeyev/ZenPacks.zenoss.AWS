@@ -16,7 +16,8 @@ from Products.Zuul.decorators import info
 
 from ZenPacks.zenoss.ZenAWS.interfaces import ICWMonitorDataSourceInfo, \
                                               IEC2InstanceInfo, \
-                                              IEC2InstanceTypeInfo
+                                              IEC2InstanceTypeInfo, \
+						IEC2ZoneInfo
 
 
 class CWMonitorDataSourceInfo(RRDDataSourceInfo):

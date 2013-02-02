@@ -18,6 +18,11 @@
         factory=".info.EC2InstanceTypeInfo"
         />
 
+    <adapter provides=".interfaces.IEC2ZoneInfo"
+        for=".EC2Zone.EC2Zone"
+        factory=".info.EC2ZoneInfo"
+        />
+
   <!-- Define the router/facade for this zenpack -->
   <adapter factory=".awsfacade.AWSFacade"
            provides=".interfaces.IAWSFacade"
