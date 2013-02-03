@@ -15,7 +15,7 @@ Model Amazon WS EC2 information
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.ZenUtils.Utils import zenPath
 from twisted.internet.utils import getProcessOutput
-import re, os
+import re, os, pdb
 
 
 class EC2InstanceMap(PythonPlugin):
@@ -41,9 +41,11 @@ class EC2InstanceMap(PythonPlugin):
         os.environ['AWS_ACCESS_KEY_ID'] = device.access_id
         os.environ['AWS_SECRET_ACCESS_KEY'] = device.zEC2Secret
         ret = getProcessOutput(py, args, os.environ)
+	#pdb.set_trace()
         return ret
 
     def process(self, device, results, log):
+	#pdb.set_trace()
         om = self.objectMap()
         if results.startswith('ERROR:'):
             log.warn(results.replace('ERROR:', ''))

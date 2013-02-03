@@ -1,12 +1,19 @@
+__doc__="""EC2ZoneMap
+Model Amazon WS EC2 information
+"""
+
+from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.ZenUtils.Utils import zenPath
 from twisted.internet.utils import getProcessOutput
-import re, os
+import re, os, pdb, pickle
 
 
 class EC2ZoneMap(PythonPlugin):
     
     transport = "python"
     maptype = "EC2ZoneMap"
+    relname = 'zones'
+    modname = 'ZenPacks.zenoss.ZenAWS.EC2Zone'
 
     deviceProperties = PythonPlugin.deviceProperties + ('access_id', 'zEC2Secret')
     
@@ -29,9 +36,11 @@ class EC2ZoneMap(PythonPlugin):
         return ret
 
     def process(self, device, results, log):
-        om = self.objectMap()
+	#pdb.set_trace()
         if results.startswith('ERROR:'):
             log.warn(results.replace('ERROR:', ''))
-        else:
-            om.setInstances = results
-        return om
+	results = pickle.loads(results)
+        rm = self.relMap()
+	for r in results:
+	    rm.append(self.objectMap({'id':r['name'],'name':r['name'],'state':r['state'],'messages':r['messages']}))
+        return rm

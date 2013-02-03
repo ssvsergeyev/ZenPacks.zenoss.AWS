@@ -108,13 +108,26 @@ class EC2Manager(Device):
         instances = pickle.loads(instPickle)
         self._setInstances(instances)
 
+    def setZones(self, instPickle):
+        """
+        This method is called by the modeler.
+        """
+        self._my_pickle_data = instPickle
+
     def _setInstances(self, instances):
         """
         Use this method if tests are ever written.
         """
         instids = self.instances.objectIdsAll()
         for instdict in instances:
-            instid = str(instdict['id'])
+            instid = ""
+	    if instdict.has_key('id'):
+		instid = str(instdict['id'])
+	    else:
+		try:
+			instid = str(instdict['instance_id'])
+		except:
+			raise NameError(str(instdict))
             deviceId = "aws-" + instid
             if instid in instids: instids.remove(instid)
             inst = self._createOrUpdateInstance(instid, instdict)
