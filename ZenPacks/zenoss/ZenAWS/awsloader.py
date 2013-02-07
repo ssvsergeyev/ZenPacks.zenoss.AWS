@@ -1,10 +1,10 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -16,6 +16,7 @@ from transaction import commit
 
 from Products.Zuul import getFacade
 from Products.ZenModel.interfaces import IDeviceLoader
+
 
 class AWSLoader(object):
     implements(IDeviceLoader)

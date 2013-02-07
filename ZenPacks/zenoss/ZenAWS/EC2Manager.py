@@ -1,10 +1,10 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -28,6 +28,7 @@ COMPLETED = 30
 
 isWindowsPlatform = re.compile(r"\bwindows\b", re.IGNORECASE).search
 
+
 class EC2Manager(Device):
     """
     A DMD Device that represents a group of VMware hosts
@@ -43,9 +44,9 @@ class EC2Manager(Device):
     _my_pickle_data = ''
 
     _properties = Device._properties + (
-        {'id':'access_id',  'type':'string', 'mode':'w'},
-        {'id':'devicePath', 'type':'string', 'mode':'w'},
-        {'id':'devicePathForWindows', 'type':'string', 'mode':'w'},
+        {'id': 'access_id',  'type': 'string', 'mode': 'w'},
+        {'id': 'devicePath', 'type': 'string', 'mode': 'w'},
+        {'id': 'devicePathForWindows', 'type': 'string', 'mode': 'w'},
     )
 
     _relations = Device._relations + (
@@ -59,38 +60,38 @@ class EC2Manager(Device):
 
     factory_type_information = (
         {
-            'immediate_view' : 'devicedetail',
-            'actions'        :
+            'immediate_view': 'devicedetail',
+            'actions':
             (
-                { 'id'            : 'editEC2Manager'
-                , 'name'          : 'Configure EC2'
-                , 'action'        : 'editEC2Manager'
-                , 'permissions'   : ("Change Device",)
+                {'id': 'editEC2Manager',
+                'name': 'Configure EC2',
+                'action': 'editEC2Manager',
+                'permissions': ("Change Device",)
                 },
-                { 'id'            : 'instances'
-                , 'name'          : 'Instances'
-                , 'action'        : 'viewInstances'
-                , 'permissions'   : (ZEN_VIEW, )
+                {'id': 'instances',
+                'name': 'Instances',
+                'action': 'viewInstances',
+                'permissions': (ZEN_VIEW, )
                 },
-                { 'id'            : 'instanceTypes'
-                , 'name'          : 'Instance Types'
-                , 'action'        : 'viewInstanceTypes'
-                , 'permissions'   : (ZEN_VIEW, )
+                {'id': 'instanceTypes',
+                'name': 'Instance Types',
+                'action': 'viewInstanceTypes',
+                'permissions': (ZEN_VIEW, )
                 },
-                { 'id'            : 'zones'
-                , 'name'          : 'Zones'
-                , 'action'        : 'viewZones'
-                , 'permissions'   : (ZEN_VIEW, )
+                {'id': 'zones',
+                'name': 'Zones',
+                'action': 'viewZones',
+                'permissions': (ZEN_VIEW, )
                 },
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
-                , 'action'        : 'viewEvents'
-                , 'permissions'   : (ZEN_VIEW, )
+                {'id': 'events',
+                'name': 'Events',
+                'action': 'viewEvents',
+                'permissions': (ZEN_VIEW, )
                 },
-                { 'id'            : 'perfServer'
-                , 'name'          : 'Graphs'
-                , 'action'        : 'viewDevicePerformance'
-                , 'permissions'   : (ZEN_VIEW, )
+                {'id': 'perfServer',
+                'name': 'Graphs',
+                'action': 'viewDevicePerformance',
+                'permissions': (ZEN_VIEW, )
                 }
             )
          },
@@ -98,7 +99,6 @@ class EC2Manager(Device):
 
     def __init__(self, id, buildRelations=True):
         super(EC2Manager, self).__init__(id, buildRelations)
-
 
     def setInstances(self, instPickle):
         """
@@ -121,15 +121,18 @@ class EC2Manager(Device):
         instids = self.instances.objectIdsAll()
         for instdict in instances:
             instid = ""
-	    if instdict.has_key('id'):
-		instid = str(instdict['id'])
-	    else:
-		try:
-			instid = str(instdict['instance_id'])
-		except:
-			raise NameError(str(instdict))
+        if instdict.has_key('id'):
+            instid = str(instdict['id'])
+        else:
+
+        try:
+            instid = str(instdict['instance_id'])
+        except:
+            raise NameError(str(instdict))
             deviceId = "aws-" + instid
-            if instid in instids: instids.remove(instid)
+
+            if instid in instids:
+                instids.remove(instid)
             inst = self._createOrUpdateInstance(instid, instdict)
             itype = self._createOrUpdateInstanceTypes(inst, instdict)
             if inst.instanceType() != itype:
@@ -141,7 +144,7 @@ class EC2Manager(Device):
                 devicePath = self._getDevicePath(instdict)
 
                 if inst._discoveryState == DISCOVER and inst.dns_name:
-                    
+
                     if devicePath:
                         # see if device already exists
                         if self.findDeviceByIdExact(deviceId):
@@ -188,7 +191,7 @@ class EC2Manager(Device):
                                 self.getPerformanceServerName(),
                                 background=True).id
                             log.debug('restarted auto-discovery for %s', inst.id)
-                            
+
                 elif inst._discoveryState == COMPLETED and devicePath and \
                     self.findDeviceByIdExact(deviceId) is None:
 
@@ -201,7 +204,6 @@ class EC2Manager(Device):
                     log.debug('started auto-discovery for %s. ' +
                               'Device was deleted or got new mapping', inst.id)
                     inst._discoveryState = LINK
-
 
             elif inst.state == 'stopped' and inst._discoveryState != LINK:
                 rdev = self.findDeviceByIdExact(deviceId)
@@ -221,19 +223,18 @@ class EC2Manager(Device):
                 rdev.deleteDevice()
             self.instances._delObject(instid)
 
-
     def getInstances(self):
         """
         return the last pickle sent to see if anything actually changed.
         """
-        return [] # return None for now until we debug the optimization below
+        return []  # return None for now until we debug the optimization below
         #if [ inst for inst in self.instances() \
         #    if inst._discoveryState == COMPLETED ]:
         #    return self._my_pickle_data
 
-
     def _linkInstancesToDevices(self, inst, deviceId):
-        if not inst.id.startswith('i-'): return
+        if not inst.id.startswith('i-'):
+            return
 
         try:
             import socket
@@ -255,12 +256,10 @@ class EC2Manager(Device):
                                                 inst.id)
                 rdev.setZenProperty('zLinks', rlink)
                 rdev.renameDevice(deviceId)
-                rdev.setLocation("/"+str(inst.placement.replace('-','/')))
+                rdev.setLocation("/" + str(inst.placement.replace('-', '/')))
                 rdev.title = inst.dns_name
                 inst.deviceId = rdev.id
         return rdev
-
-
 
     def _createOrUpdateInstance(self, instid, properties):
         inst = self.instances._getOb(instid, None)
@@ -269,9 +268,8 @@ class EC2Manager(Device):
             self.instances._setObject(instid, inst)
             inst = self.instances._getOb(instid)
         inst.updateFromDict(properties)
-        inst.index_object() # reindex because updateFromDict will have set state
+        inst.index_object()  # reindex because updateFromDict will have set state
         return inst
-
 
     def _createOrUpdateInstanceTypes(self, instance, instdict):
         itypename = str(instdict['instance_type'])
@@ -282,8 +280,6 @@ class EC2Manager(Device):
             itype = self.instanceTypes._getOb(itypename)
         return itype
 
-
-
     def manage_editEC2Manager(self, access_id, secret, devicePath="", devicePathForWindows="", **kwargs):
         """edit a ec2manager"""
         self.access_id = access_id
@@ -293,7 +289,7 @@ class EC2Manager(Device):
             self.setZenProperty('zEC2Secret', secret)
         return super(EC2Manager, self).manage_editDevice(
             REQUEST=self.REQUEST, **kwargs)
-        
+
     def manage_resetInstancesState(self):
         instids = self.instances.objectIdsAll()
         for instid in instids:
@@ -301,7 +297,7 @@ class EC2Manager(Device):
             if inst:
                 inst._discoveryState = DISCOVER
                 inst.index_object()
-            
+
     def _getDevicePath(self, instdict):
         # determine platform
         devicePath = None

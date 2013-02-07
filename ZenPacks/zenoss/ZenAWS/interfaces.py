@@ -1,10 +1,10 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -24,9 +24,10 @@ class IAWSFacade(IFacade):
         """
         @param access_id: AWS id
         @param secret: AWS secret for authentication
-        @param devicePath: 
-        @param devicePathForWindows: 
+        @param devicePath:
+        @param devicePathForWindows:
         """
+
 
 class ICWMonitorDataSourceInfo(IRRDDataSourceInfo):
     timeout = schema.Int(title=_t(u'Timeout (seconds)'))
@@ -39,6 +40,7 @@ class IEC2InstanceTypeInfo(IComponentInfo):
     """
     name = schema.TextLine(title=u"Name", readonly=True)
 
+
 class IEC2ZoneInfo(IComponentInfo):
     """
     Info adapter for EC2Zone components.
@@ -46,6 +48,7 @@ class IEC2ZoneInfo(IComponentInfo):
     name = schema.TextLine(title=u"Name", readonly=True)
     state = schema.TextLine(title=u"State", readonly=True)
     region_name = schema.TextLine(title=u"Region", readonly=True)
+
 
 class IEC2InstanceInfo(IComponentInfo):
     """

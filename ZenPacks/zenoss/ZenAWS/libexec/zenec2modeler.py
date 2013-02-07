@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -23,8 +23,9 @@ if os.path.isdir(libDir):
 import boto
 import boto.exception
 
+
 class ZenEC2Modeler(object):
-    
+
     keys = (
         "id",
         "dns_name",
@@ -60,7 +61,7 @@ class ZenEC2Modeler(object):
                 }
             conn = boto.connect_ec2(**self.conn_kwargs)
             self.regions = conn.get_all_regions()
-            
+
             # create ami platform lookup
             self._amiPlatforms = {}
             for region in self.regions:
@@ -79,25 +80,27 @@ class ZenEC2Modeler(object):
         if self._amiPlatforms[region][image_id]:
             return self._amiPlatforms[region][image_id].platform
         return None
-    
+
     def makeMaps(self):
         ec2instances = []
         try:
             conn = boto.connect_ec2(**self.conn_kwargs)
             amiPlatforms = {}
-            import pdb
+
             # each reservation only one real instance
             reservations = conn.get_all_instances()
             for reservation in reservations:
                 ec2instance = {}
                 private_ips = set()
                 for instance in reservation.instances:
-                    if not instance.id: 
+                    if not instance.id:
                         if instance.private_ip_address:
                             private_ips.add(instance.private_ip_address)
                         continue
-                    if instance.state == 'terminated': continue
-                    if not instance.monitored: instance.monitor()
+                    if instance.state == 'terminated':
+                        continue
+                    if not instance.monitored:
+                        instance.monitor()
                     try:
                         ec2instance = self.buildProxyDict(instance)
                         ec2instance['aws_name'] = instance.tags['Name']
@@ -125,18 +128,16 @@ class ZenEC2Modeler(object):
                 pickle.dump(ec2instances, sys.stdout)
         #pdb.set_trace()
 
-
     def buildProxyDict(self, inst):
         d = dict()
         for k in self.keys:
             d[k] = getattr(inst, k)
         # We need the id to be a String-type string, not unicode
         if d.has_key('id'):
-            d['id'] = str( d['id'] )
+            d['id'] = str(d['id'])
         if d.has_key('region'):
-            d['region'] = str( d['region'].name )
+            d['region'] = str(d['region'].name)
         return d
-
 
     def getopts(self):
         from optparse import OptionParser
@@ -145,9 +146,9 @@ class ZenEC2Modeler(object):
             help="use the boto config file for authentication")
         parser.add_option("-s", "--show", action="store_true", dest="show",
             help="use the boto config file for authentication")
-        parser.add_option("-u","--userkey", dest="userkey",
+        parser.add_option("-u", "--userkey", dest="userkey",
                           default=os.environ.get('AWS_ACCESS_KEY_ID', None))
-        parser.add_option("-p","--privatekey", dest="privatekey",
+        parser.add_option("-p", "--privatekey", dest="privatekey",
                           default=os.environ.get('AWS_SECRET_ACCESS_KEY', None))
         self.opts, self.args = parser.parse_args()
 

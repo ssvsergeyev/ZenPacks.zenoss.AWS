@@ -1,3 +1,12 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
 # check rrd files; create/delete
 # query metrics, update rrd
 # sleep?
@@ -42,10 +51,11 @@ conn_kwargs = {
 
 _rrd_path = '/opt/zenoss/perf/Devices/EC2Manager'
 
+
 def getInstances():
     '''
     Collect all the instances across all the
-    systems (east, west, etc.). Leave out 
+    systems (east, west, etc.). Leave out
     terminated instances and None instances
     '''
     ec2conn = boto.connect_ec2(**conn_kwargs)
@@ -60,26 +70,30 @@ def getInstances():
         except boto.exception.EC2ResponseError, ex:
             #print "ERROR:%s" % ex.error_message
             continue
-    return reduce(lambda x,y:x+y, ec2instances)
+
+    return reduce(lambda x, y: x + y, ec2instances)
+
 
 def update_instance_data():
     _instances = getInstances()
     instTypes = {}
     for i in _instances:
         if not instTypes.has_key(i.instance_type):
-            instTypes[i.instance_type]=None
-    _instTypes=instTypes.keys()
-    return (_instances,_instTypes)
+            instTypes[i.instance_type] = None
+    _instTypes = instTypes.keys()
+    return (_instances, _instTypes)
+
 
 def check_rrd_fields(path):
     if not os.path.exists(path):
         os.makedirs(path)
     for field in FIELD_NAMES:
-        if not os.path.exists(os.path.join(path,"zencw2_" + field + '.rrd')):
-            create_rrd(path,field)
+        if not os.path.exists(os.path.join(path, "zencw2_" + field + '.rrd')):
+            create_rrd(path, field)
 
-def create_rrd(path,field):
-    filename = os.path.join(path,"zencw2_" + field + ".rrd")
+
+def create_rrd(path, field):
+    filename = os.path.join(path, "zencw2_" + field + ".rrd")
     #(rrdtype of COUNTER, GAUGE, DERIVE, ABSOLUTE)
     rrdtype = 'GAUGE'
     rrdspec = 'DS:ds0:%s:900:U:U' % rrdtype
@@ -90,13 +104,15 @@ def create_rrd(path,field):
                          'RRA:AVERAGE:0.5:288:600',
                          'RRA:MAX:0.5:1:600'])
     #rrdtool.create(filename,"--step","300",rrdspec,aggspecs)
-    os.system("rrdtool create %s" % " ".join([filename,"--step","300",rrdspec,aggspecs]))
+    os.system("rrdtool create %s" % " ".join([filename, "--step", "300", rrdspec, aggspecs]))
     #call(['rrdtool', "create %s" % " ".join(filename,"--step","300",rrdspec,aggspecs)])
 
-def update_rrd(field,subdir,value):
-    cmd = "rrdtool update %s N:%f" % (os.path.join(_rrd_path,subdir,"zencw2_" + field + ".rrd"),value)
+
+def update_rrd(field, subdir, value):
+    cmd = "rrdtool update %s N:%f" % (os.path.join(_rrd_path, subdir, "zencw2_" + field + ".rrd"), value)
     print cmd
     os.system(cmd)
+
 
 def query_with_backoff(metric,
                        start,
@@ -106,9 +122,9 @@ def query_with_backoff(metric,
                        seconds):
     delay = 1
     tries = 4
-    while(tries>0):
+    while(tries > 0):
         try:
-            ret=metric.query(start,end,consolidate,units,seconds)
+            ret = metric.query(start, end, consolidate, units, seconds)
             return ret
         except boto.exception.BotoServerError as ex:
             if ex.body.find('Throttling') > -1:
@@ -119,13 +135,14 @@ def query_with_backoff(metric,
                 raise ex
     return None
 
+
 def get_all_metrics(conn):
     tmp = conn.list_metrics(namespace='AWS/EC2')
     metlist = tmp
     nt = metlist.next_token
     delay = 1
     tries = 5
-    while nt and (tries>0):
+    while nt and (tries > 0):
         try:
             tmp = conn.list_metrics(next_token=nt)
             metlist += tmp
@@ -140,6 +157,7 @@ def get_all_metrics(conn):
                 raise ex
     return metlist
 
+
 def categorize_metrics(metrics):
     totals = []
     insts = {}
@@ -149,12 +167,13 @@ def categorize_metrics(metrics):
             totals.append(m)
             continue
         if m.dimensions.has_key('InstanceId'):
-            insts[m.dimensions['InstanceId'][0]] = insts.get(m.dimensions['InstanceId'][0],[]) + [m]
+            insts[m.dimensions['InstanceId'][0]] = insts.get(m.dimensions['InstanceId'][0], []) + [m]
             continue
         if m.dimensions.has_key('InstanceType'):
-            types[m.dimensions['InstanceType'][0]] = types.get(m.dimensions['InstanceType'][0],[]) + [m]
+            types[m.dimensions['InstanceType'][0]] = types.get(m.dimensions['InstanceType'][0], []) + [m]
             continue
-    return totals,insts,types
+    return totals, insts, types
+
 
 class Cloudwatch():
     _instances = []
@@ -164,10 +183,10 @@ class Cloudwatch():
     _type_metrics = []
     _ebs_metrics = []
     _instTypes = []
-    cwconn,ec2conn = None,None
+    cwconn, ec2conn = None, None
 
     def __init__(self):
-        self._instances,self._instTypes = update_instance_data()
+        self._instances, self._instTypes = update_instance_data()
         self.cwconn = boto.connect_cloudwatch(**conn_kwargs)
         self.ec2conn = boto.connect_ec2(**conn_kwargs)
         print "checkin rrds"
@@ -175,7 +194,7 @@ class Cloudwatch():
         print "gettin metrics"
         self._metrics = get_all_metrics(self.cwconn)
         print "sortin metrics"
-        (self._total_metrics,self._instance_metrics,self._type_metrics) = categorize_metrics(self._metrics)
+        (self._total_metrics, self._instance_metrics, self._type_metrics) = categorize_metrics(self._metrics)
 
     def server_loop(self):
         while(True):
@@ -195,34 +214,34 @@ class Cloudwatch():
         check_rrd_fields(_rrd_path)
         # directories for instanceTypes
         for itype in self._instTypes:
-            check_rrd_fields(os.path.join(_rrd_path,"instanceTypes",itype))
+            check_rrd_fields(os.path.join(_rrd_path, "instanceTypes", itype))
         # directories for instances
         for inst in self._instances:
-            check_rrd_fields(os.path.join(_rrd_path,"instances",inst.id))
+            check_rrd_fields(os.path.join(_rrd_path, "instances", inst.id))
 
     def getEBSVols(self):
-        vols=self.ec2conn.get_all_volumes()
-        vols=[v for v in vols if v.attachment_state() == 'attached']
+        vols = self.ec2conn.get_all_volumes()
+        vols = [v for v in vols if v.attachment_state() == 'attached']
         byInst = {}
         for v in vols:
-            k=v.attach_data.instance_id
-            byInst[k] = byInst.get(k,[]) + [v]
+            k = v.attach_data.instance_id
+            byInst[k] = byInst.get(k, []) + [v]
         return byInst
 
-    def aggEBSmetrics(self,volumes,consolidate,units,seconds):
+    def aggEBSmetrics(self, volumes, consolidate, units, seconds):
         runtime = datetime.utcnow()
         readOps = 0
         writeOps = 0
         readBytes = 0.0
         writeBytes = 0.0
         end = datetime.utcnow()
-        start = end - timedelta(seconds=300+5)
+        start = end - timedelta(seconds=300 + 5)
         for v in volumes:
-            mets=[m for m in self.cwconn.list_metrics(dimensions={'VolumeId':v.id})
-                  if m.name in ['VolumeReadOps','VolumeWriteBytes','VolumeReadBytes','VolumeWriteOps']]
+            mets = [m for m in self.cwconn.list_metrics(dimensions={'VolumeId': v.id})
+                  if m.name in ['VolumeReadOps', 'VolumeWriteBytes', 'VolumeReadBytes', 'VolumeWriteOps']]
             for m in mets:
-                ret=query_with_backoff(m,start,end,consolidate,units,seconds)
-                if ret and len(ret)>0:
+                ret = query_with_backoff(m, start, end, consolidate, units, seconds)
+                if ret and len(ret) > 0:
                     if m.name == 'VolumeReadOps':
                         readOps += ret[-1][consolidate]
                     elif m.name == 'VolumeWriteOps':
@@ -232,65 +251,65 @@ class Cloudwatch():
                     elif m.name == 'VolumeWriteBytes':
                         writeBytes += ret[-1][consolidate]
         runtime = (datetime.utcnow() - runtime).total_seconds()
-        return {'EBSReadOps':readOps,
-            'EBSWriteOps':writeOps,
-            'EBSReadBytes':readBytes,
-            'EBSWriteBytes':writeBytes,'EBSruntime':runtime}
-    
-    def collect_instances(self,start=datetime.utcnow() - timedelta(seconds=305),
+        return {'EBSReadOps': readOps,
+            'EBSWriteOps': writeOps,
+            'EBSReadBytes': readBytes,
+            'EBSWriteBytes': writeBytes, 'EBSruntime': runtime}
+
+    def collect_instances(self, start=datetime.utcnow() - timedelta(seconds=305),
                           end=datetime.utcnow() - timedelta(seconds=5),
-                          consolidate='Average',units="",seconds=300):
+                          consolidate='Average', units="", seconds=300):
         volumes = self.getEBSVols()
         for i in self._instances:
-            print( 'InstanceId:' + i.id)
+            print('InstanceId:' + i.id)
             if not self._instance_metrics.has_key(i.id):
                 continue
             metrics = self._instance_metrics[i.id]
             if metrics and len(metrics) == 0:
                 continue
-            for m in [m2 for m2 in metrics if m2.name 
-                  in ['CPUUtilization','NetworkIn','NetworkOut','DiskReadOps',
-                      'DiskWriteOps','DiskReadBytes','DiskWriteBytes']]: 
+            for m in [m2 for m2 in metrics if m2.name
+                  in ['CPUUtilization', 'NetworkIn', 'NetworkOut', 'DiskReadOps',
+                      'DiskWriteOps', 'DiskReadBytes', 'DiskWriteBytes']]:
                 try:
                     ret = query_with_backoff(m, start, end, consolidate, units, seconds)
                     if ret and len(ret) > 0:
-                        update_rrd(m.name,"instances/%s" % i.id,ret[-1][consolidate])
+                        update_rrd(m.name, "instances/%s" % i.id, ret[-1][consolidate])
                 except:
                         raise
                 # get ebs metrics
             try:
-                volstats = self.aggEBSmetrics(volumes[i.id],consolidate, units, seconds)
+                volstats = self.aggEBSmetrics(volumes[i.id], consolidate, units, seconds)
                 for mname in volstats.keys():
-                    update_rrd(mname,"instances/%s" % i.id,volstats[mname])
+                    update_rrd(mname, "instances/%s" % i.id, volstats[mname])
             except:
                     raise
 
-    def collect_totals(self,start=datetime.utcnow() - timedelta(seconds=305),
+    def collect_totals(self, start=datetime.utcnow() - timedelta(seconds=305),
                           end=datetime.utcnow() - timedelta(seconds=5),
-                          consolidate='Average',units="",seconds=300):
+                          consolidate='Average', units="", seconds=300):
         volumes = self.getEBSVols()
-        for m in [m2 for m2 in self._total_metrics if m2.name 
-                  in ['CPUUtilization','NetworkIn','NetworkOut','DiskReadOps',
-                      'DiskWriteOps','DiskReadBytes','DiskWriteBytes']]: 
+        for m in [m2 for m2 in self._total_metrics if m2.name
+                  in ['CPUUtilization', 'NetworkIn', 'NetworkOut', 'DiskReadOps',
+                      'DiskWriteOps', 'DiskReadBytes', 'DiskWriteBytes']]:
                 try:
                     ret = query_with_backoff(m, start, end, consolidate, units, seconds)
                     if ret and len(ret) > 0:
-                        update_rrd(m.name,"",ret[-1][consolidate])
+                        update_rrd(m.name, "", ret[-1][consolidate])
                 except:
                         raise
 
-    def collect_types(self,start=datetime.utcnow() - timedelta(seconds=305),
+    def collect_types(self, start=datetime.utcnow() - timedelta(seconds=305),
                       end=datetime.utcnow() - timedelta(seconds=5),
-                      consolidate='Average',units="",seconds=300):
+                      consolidate='Average', units="", seconds=300):
         for t in self._type_metrics.keys():
             output = 'InstanceType:' + t
             for m in [m2 for m2 in self._type_metrics[t]
-                      if m2.name in ['CPUUtilization','NetworkIn','NetworkOut','DiskReadOps',
-                      'DiskWriteOps','DiskReadBytes','DiskWriteBytes']]:
+                      if m2.name in ['CPUUtilization', 'NetworkIn', 'NetworkOut', 'DiskReadOps',
+                      'DiskWriteOps', 'DiskReadBytes', 'DiskWriteBytes']]:
                 try:
                     ret = query_with_backoff(m, start, end, consolidate, units, seconds)
                     if ret and len(ret) > 0:
-                        update_rrd(m.name,"instanceTypes/%s" % t,ret[-1][consolidate])
+                        update_rrd(m.name, "instanceTypes/%s" % t, ret[-1][consolidate])
                 except:
                         raise
             readOps = 0
@@ -299,17 +318,17 @@ class Cloudwatch():
             writeBytes = 0.0
             for i in [i2 for i2 in self._instances if i2.instance_type == t]:
                 try:
-                    volstats = self.aggEBSmetrics(volumes[i.id],consolidate, units, seconds)
+                    volstats = self.aggEBSmetrics(volumes[i.id], consolidate, units, seconds)
                     readOps += volstats['DiskReadOps']
                     writeOps += volstats['DiskWriteOps']
                     readBytes += volstats['DiskRadBytes']
                     writeBytes += volstats['DiskWriteBytes']
                 except:
                     continue
-            update_rrd("EBSReadOps","instanceTypes/%s" % t,readOps)
-            update_rrd("EBSWriteOps","instanceTypes/%s" % t,writeOps)
-            update_rrd("EBSReadBytes","instanceTypes/%s" % t,readBytes)
-            update_rrd("EBSWriteBytes","instanceTypes/%s" % t,writeBytes)
+            update_rrd("EBSReadOps", "instanceTypes/%s" % t, readOps)
+            update_rrd("EBSWriteOps", "instanceTypes/%s" % t, writeOps)
+            update_rrd("EBSReadBytes", "instanceTypes/%s" % t, readBytes)
+            update_rrd("EBSWriteBytes", "instanceTypes/%s" % t, writeBytes)
 
 
 if __name__ == '__main__':

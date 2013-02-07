@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -22,6 +22,7 @@ if os.path.isdir(libDir):
 
 import boto
 import boto.exception
+
 
 class EC2ZoneModeler(object):
     def __init__(self):
@@ -53,11 +54,11 @@ class EC2ZoneModeler(object):
             #pdb.set_trace()
             zones = []
             for region in self.regions:
-                conn=boto.ec2.connect_to_region(region.name,**self.conn_kwargs)
+                conn = boto.ec2.connect_to_region(region.name, **self.conn_kwargs)
                 zones += conn.get_all_zones()
             for z in zones:
-                ec2zones.append({'name':z.name,'region_name':z.region_name,
-                                'state':z.state,'messages':z.messages})
+                ec2zones.append({'name': z.name, 'region_name': z.region_name,
+                                'state': z.state, 'messages': z.messages})
         except boto.exception.EC2ResponseError, ex:
             print "ERROR:%s" % ex.error_message
             sys.exit(1)
@@ -73,9 +74,9 @@ class EC2ZoneModeler(object):
             d[k] = getattr(inst, k)
         # We need the id to be a String-type string, not unicode
         if d.has_key('id'):
-            d['id'] = str( d['id'] )
+            d['id'] = str(d['id'])
         if d.has_key('region'):
-            d['region'] = str( d['region'].name )
+            d['region'] = str(d['region'].name)
         return d
 
     def getopts(self):
@@ -85,9 +86,9 @@ class EC2ZoneModeler(object):
             help="use the boto config file for authentication")
         parser.add_option("-s", "--show", action="store_true", dest="show",
             help="use the boto config file for authentication")
-        parser.add_option("-u","--userkey", dest="userkey",
+        parser.add_option("-u", "--userkey", dest="userkey",
                           default=os.environ.get('AWS_ACCESS_KEY_ID', None))
-        parser.add_option("-p","--privatekey", dest="privatekey",
+        parser.add_option("-p", "--privatekey", dest="privatekey",
                           default=os.environ.get('AWS_SECRET_ACCESS_KEY', None))
         self.opts, self.args = parser.parse_args()
 
