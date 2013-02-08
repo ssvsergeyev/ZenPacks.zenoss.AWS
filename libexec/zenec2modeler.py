@@ -83,48 +83,44 @@ class ZenEC2Modeler(object):
     def makeMaps(self):
         ec2instances = []
         try:
-            conn = boto.connect_ec2(**self.conn_kwargs)
-            amiPlatforms = {}
-            import pdb
-            # each reservation only one real instance
-            reservations = conn.get_all_instances()
-            for reservation in reservations:
-                ec2instance = {}
-                private_ips = set()
-                for instance in reservation.instances:
-                    if not instance.id: 
-                        if instance.private_ip_address:
-                            private_ips.add(instance.private_ip_address)
-                        continue
-                    if instance.state == 'terminated': continue
-                    if not instance.monitored: instance.monitor()
+            for region in boto.ec2.regions():
+                conn = region.connect(**self.conn_kwargs)
+                # each reservation only one real instance
+                reservations = conn.get_all_instances()
+                for reservation in reservations:
+                    ec2instance = {}
+                    private_ips = set()
+                    for instance in reservation.instances:
+                        if not instance.id: 
+                            if instance.private_ip_address:
+                                private_ips.add(instance.private_ip_address)
+                            continue
+                        if instance.state == 'terminated': continue
+                        if not instance.monitored: instance.monitor()
+                        try:
+                            if not instance.tags.has_key('Name'):
+                                continue
+                            ec2instance = self.buildProxyDict(instance)
+                            ec2instance['aws_name'] = instance.tags['Name']
+                            ec2instance['platform'] = ""
+                        except boto.exception.EC2ResponseError, ex:
+                            print "ERROR:%s" % ex.error_message
+                            sys.exit(1)
                     try:
-                        ec2instance = self.buildProxyDict(instance)
-                        ec2instance['aws_name'] = instance.tags['Name']
-                        ec2instance['platform'] = ""
-                        #    self.getAmiPlatform(str(instance.image_id),
-                        #                   region.name, conn)
-                    except boto.exception.EC2ResponseError, ex:
-                        print "ERROR:%s" % ex.error_message
-                        sys.exit(1)
-                try:
-                    ec2instance['publicIp'] = instance.publicIp
-                except:
-                    pass
-                if ec2instance.has_key('private_ip_address') and ec2instance['private_ip_address']:
-                    private_ips.add(ec2instance['private_ip_address'])
-                ec2instance['private_ip_addresses'] = list(private_ips)
-                ec2instances.append(ec2instance)
+                        ec2instance['publicIp'] = instance.publicIp
+                    except:
+                        pass
+                    if ec2instance.has_key('private_ip_address') and ec2instance['private_ip_address']:
+                        private_ips.add(ec2instance['private_ip_address'])
+                    ec2instance['private_ip_addresses'] = list(private_ips)
+                    ec2instances.append(ec2instance)
         except boto.exception.EC2ResponseError, ex:
             print "ERROR:%s" % ex.error_message
-            sys.exit(1)
         else:
             if self.opts.show:
                 pprint.pprint(ec2instances)
             else:
                 pickle.dump(ec2instances, sys.stdout)
-        #pdb.set_trace()
-
 
     def buildProxyDict(self, inst):
         d = dict()
