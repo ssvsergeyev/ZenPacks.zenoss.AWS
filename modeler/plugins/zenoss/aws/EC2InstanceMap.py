@@ -41,11 +41,9 @@ class EC2InstanceMap(PythonPlugin):
         os.environ['AWS_ACCESS_KEY_ID'] = device.access_id
         os.environ['AWS_SECRET_ACCESS_KEY'] = device.zEC2Secret
         ret = getProcessOutput(py, args, os.environ)
-	#pdb.set_trace()
         return ret
 
     def process(self, device, results, log):
-	#pdb.set_trace()
         om = self.objectMap()
         if results.startswith('ERROR:'):
             log.warn(results.replace('ERROR:', ''))

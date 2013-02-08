@@ -40,7 +40,7 @@ class EC2ZoneMap(PythonPlugin):
         if results.startswith('ERROR:'):
             log.warn(results.replace('ERROR:', ''))
 	results = pickle.loads(results)
-        rm = self.relMap()
-	for r in results:
-	    rm.append(self.objectMap({'id':r['name'],'name':r['name'],'state':r['state'],'messages':r['messages']}))
-        return rm
+        #rm = self.relMap()
+	#for r in results:
+	#    rm.append(self.objectMap({'id':r['name'],'name':r['name'],'state':r['state'],'messages':r['messages']}))
+        #return rm

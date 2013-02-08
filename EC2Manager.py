@@ -118,16 +118,11 @@ class EC2Manager(Device):
         """
         Use this method if tests are ever written.
         """
-        instids = self.instances.objectIdsAll()
-        for instdict in instances:
-            instid = ""
-	    if instdict.has_key('id'):
-		instid = str(instdict['id'])
-	    else:
-		try:
-			instid = str(instdict['instance_id'])
-		except:
-			raise NameError(str(instdict))
+        #instids = self.instances.objectIdsAll()
+        instids = [i['id'] for i in instances if i.has_key('id')]
+	#raise NameError(str(len(instances)) + " also " + str(instids))
+        for instdict in [i for i in instances if i.has_key('id')]:
+	    instid = str(instdict['id'])
             deviceId = "aws-" + instid
             if instid in instids: instids.remove(instid)
             inst = self._createOrUpdateInstance(instid, instdict)
