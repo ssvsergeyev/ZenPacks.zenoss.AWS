@@ -41,6 +41,7 @@ class EC2Manager(Device):
     devicePathForWindows = ''
 
     _my_pickle_data = ''
+    _zone_pickle_data = ''
 
     _properties = Device._properties + (
         {'id':'access_id',  'type':'string', 'mode':'w'},
@@ -99,7 +100,6 @@ class EC2Manager(Device):
     def __init__(self, id, buildRelations=True):
         super(EC2Manager, self).__init__(id, buildRelations)
 
-
     def setInstances(self, instPickle):
         """
         This method is called by the modeler.
@@ -108,19 +108,12 @@ class EC2Manager(Device):
         instances = pickle.loads(instPickle)
         self._setInstances(instances)
 
-    def setZones(self, instPickle):
-        """
-        This method is called by the modeler.
-        """
-        self._my_pickle_data = instPickle
-
     def _setInstances(self, instances):
         """
         Use this method if tests are ever written.
         """
         #instids = self.instances.objectIdsAll()
         instids = [i['id'] for i in instances if i.has_key('id')]
-	#raise NameError(str(len(instances)) + " also " + str(instids))
         for instdict in [i for i in instances if i.has_key('id')]:
 	    instid = str(instdict['id'])
             deviceId = "aws-" + instid
@@ -221,11 +214,22 @@ class EC2Manager(Device):
         """
         return the last pickle sent to see if anything actually changed.
         """
-        return [] # return None for now until we debug the optimization below
-        #if [ inst for inst in self.instances() \
-        #    if inst._discoveryState == COMPLETED ]:
-        #    return self._my_pickle_data
+        return self._my_pickle_data
 
+    def getZones(self):
+        return self._zone_pickle_data
+
+    def setZones(self, zonePk):
+        self._zone_pickle_data = zonePk
+        for zone in pickle.loads(zonePk):
+            zoneid = zone['name']
+            zone = self.zones._getOb(zoneid, None)
+            if zone is None:
+                zone = EC2Zone(zoneid)
+                self.zones._setObject(zoneid, zone)
+                zone = self.instances._getOb(zoneid)
+            zone.updateFromDict(zone)
+            zone.index_object() # reindex because updateFromDict will have set state        
 
     def _linkInstancesToDevices(self, inst, deviceId):
         if not inst.id.startswith('i-'): return
@@ -254,8 +258,6 @@ class EC2Manager(Device):
                 rdev.title = inst.dns_name
                 inst.deviceId = rdev.id
         return rdev
-
-
 
     def _createOrUpdateInstance(self, instid, properties):
         inst = self.instances._getOb(instid, None)

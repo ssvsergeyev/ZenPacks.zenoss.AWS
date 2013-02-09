@@ -36,11 +36,10 @@ class EC2ZoneMap(PythonPlugin):
         return ret
 
     def process(self, device, results, log):
-	#pdb.set_trace()
+        om = self.objectMap()
         if results.startswith('ERROR:'):
             log.warn(results.replace('ERROR:', ''))
-	results = pickle.loads(results)
-        #rm = self.relMap()
-	#for r in results:
-	#    rm.append(self.objectMap({'id':r['name'],'name':r['name'],'state':r['state'],'messages':r['messages']}))
-        #return rm
+        else:
+            om.setZones = results
+        return om
+
