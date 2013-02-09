@@ -56,7 +56,7 @@ class EC2ZoneModeler(object):
                 conn=boto.ec2.connect_to_region(region.name,**self.conn_kwargs)
                 zones += conn.get_all_zones()
             for z in zones:
-                ec2zones.append({'name':z.name,'region_name':z.region_name,
+                ec2zones.append({'zone_name':z.name,'region_name':z.region_name,
                                 'state':z.state,'messages':z.messages})
         except boto.exception.EC2ResponseError, ex:
             print "ERROR:%s" % ex.error_message
@@ -66,17 +66,6 @@ class EC2ZoneModeler(object):
                 pprint.pprint(ec2zones)
             else:
                 pickle.dump(ec2zones, sys.stdout)
-
-    def buildProxyDict(self, inst):
-        d = dict()
-        for k in self.keys:
-            d[k] = getattr(inst, k)
-        # We need the id to be a String-type string, not unicode
-        if d.has_key('id'):
-            d['id'] = str( d['id'] )
-        if d.has_key('region'):
-            d['region'] = str( d['region'].name )
-        return d
 
     def getopts(self):
         from optparse import OptionParser

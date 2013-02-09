@@ -45,18 +45,23 @@ class EC2ZoneInfo(ComponentInfo):
     
     @property
     @info
-    def name(self):
-        return self._object.name()
+    def zone_name(self):
+        return self._object.zone_name()
     
     @property
     @info
-    def name(self):
+    def state(self):
         return self._object.state()
     
     @property
     @info
-    def name(self):
+    def region_name(self):
         return self._object.region_name()
+    
+    @property
+    @info
+    def messages(self):
+        return self._object.messages()
 
 class EC2InstanceInfo(ComponentInfo):
     implements(IEC2InstanceInfo)
