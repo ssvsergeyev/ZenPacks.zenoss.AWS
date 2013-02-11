@@ -62,7 +62,7 @@ def getInstances():
             continue
     return reduce(lambda x,y:x+y, ec2instances)
 
-def update_instance_data():
+def collect_instance_data():
     _instances = getInstances()
     instTypes = {}
     for i in _instances:
@@ -95,6 +95,7 @@ def create_rrd(path,field):
 
 def update_rrd(field,subdir,value):
     cmd = "rrdtool update %s N:%f" % (os.path.join(_rrd_path,subdir,"zencw2_" + field + ".rrd"),value)
+    #rrdtool.update(os.path.join(_rrd_path,subdir,"zencw2_" + field + ".rrd"),value)
     print cmd
     os.system(cmd)
 
@@ -167,7 +168,7 @@ class Cloudwatch():
     cwconn,ec2conn = None,None
 
     def __init__(self):
-        self._instances,self._instTypes = update_instance_data()
+        self._instances,self._instTypes = collect_instance_data()
         self.cwconn = boto.connect_cloudwatch(**conn_kwargs)
         self.ec2conn = boto.connect_ec2(**conn_kwargs)
         print "checkin rrds"
@@ -185,8 +186,20 @@ class Cloudwatch():
             self.collect_types()
             waittime = nexttime - datetime.utcnow()
             print waittime
+            self.update_instance_data()
             if waittime.total_seconds() > 0:
                 time.sleep(waittime.total_seconds())
+
+    def update_instance_data():
+        # time this
+        instances = getInstances()
+        new_insts = instances - _instances
+        removed_insts = _instances - instances
+        for i in new_insts:
+            _metrics.append(get_metrics_for_instance(i))
+        for i in removed_insts:
+            _metrics.remove(i.id)
+        _instances = instances
 
     def check_rrds(self):
         if not os.path.exists(_rrd_path):
