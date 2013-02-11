@@ -22,22 +22,20 @@ class EC2Zone(DeviceComponent, ManagedEntity):
 
     meta_type = "EC2Zone"
     
-    name = ""
+    zone_name = ""
     state = ""
     region_name = ""
     messages = []
 
     _properties = (
-        {'id':'name',        'type':'string', 'mode':'w'},
+        {'id':'zone_name',        'type':'string', 'mode':'w'},
         {'id':'state',           'type':'string', 'mode':'w'},
         {'id':'region_name',           'type':'string', 'mode':'w'},
         {'id':'messages',    'type':'list', 'mode':'w'})
 
     _relations = (
         ('manager', ToOne(ToManyCont, 
-            "ZenPacks.zenoss.ZenAWS.EC2Manager", "instances")),
-        ('instanceType', ToOne(ToMany, 
-            "ZenPacks.zenoss.ZenAWS.EC2Zone", "instances")),
+            "ZenPacks.zenoss.ZenAWS.EC2Manager", "zones")),
     )
     
     def device(self):

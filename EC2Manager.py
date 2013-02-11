@@ -20,6 +20,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 
 from ZenPacks.zenoss.ZenAWS.EC2Instance import EC2Instance
+from ZenPacks.zenoss.ZenAWS.EC2Zone import EC2Zone
 from ZenPacks.zenoss.ZenAWS.EC2InstanceType import EC2InstanceType
 
 DISCOVER = 10
@@ -221,14 +222,17 @@ class EC2Manager(Device):
 
     def setZones(self, zonePk):
         self._zone_pickle_data = zonePk
-        for zone in pickle.loads(zonePk):
-            zoneid = zone['name']
+        for zoneD in pickle.loads(zonePk):
+            zoneid = str(zoneD['zone_name'])
             zone = self.zones._getOb(zoneid, None)
             if zone is None:
                 zone = EC2Zone(zoneid)
                 self.zones._setObject(zoneid, zone)
-                zone = self.instances._getOb(zoneid)
-            zone.updateFromDict(zone)
+                zone = self.zones._getOb(zoneid)
+            #zone.updateFromDict(zoneD)
+            zone.zone_name = zoneD['zone_name']
+            zone.state = zoneD['state']
+            zone.region_name = zoneD['region_name']
             zone.index_object() # reindex because updateFromDict will have set state        
 
     def _linkInstancesToDevices(self, inst, deviceId):
