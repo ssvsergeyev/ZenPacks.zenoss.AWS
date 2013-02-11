@@ -94,10 +94,8 @@ def create_rrd(path,field):
     #call(['rrdtool', "create %s" % " ".join(filename,"--step","300",rrdspec,aggspecs)])
 
 def update_rrd(field,subdir,value):
-    cmd = "rrdtool update %s N:%f" % (os.path.join(_rrd_path,subdir,"zencw2_" + field + ".rrd"),value)
-    #rrdtool.update(os.path.join(_rrd_path,subdir,"zencw2_" + field + ".rrd"),value)
-    print cmd
-    os.system(cmd)
+    print field + " N:" + str(value)
+    rrdtool.update(str(os.path.join(_rrd_path,subdir,"zencw2_" + field + ".rrd")),str("N:") + str(value)))
 
 def query_with_backoff(metric,
                        start,
