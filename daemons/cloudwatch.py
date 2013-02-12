@@ -94,8 +94,7 @@ def create_rrd(path,field):
     #call(['rrdtool', "create %s" % " ".join(filename,"--step","300",rrdspec,aggspecs)])
 
 def update_rrd(field,subdir,value):
-    print field + " N:" + str(value)
-    rrdtool.update(str(os.path.join(_rrd_path,subdir,"zencw2_" + field + ".rrd")),str("N:") + str(value)))
+    rrdtool.update(str(os.path.join(_rrd_path,subdir,"zencw2_" + field + ".rrd")),str("N:") + str(value))
 
 def query_with_backoff(metric,
                        start,
@@ -184,7 +183,7 @@ class Cloudwatch():
             self.collect_types()
             waittime = nexttime - datetime.utcnow()
             print waittime
-            self.update_instance_data()
+            #self.update_instance_data()
             if waittime.total_seconds() > 0:
                 time.sleep(waittime.total_seconds())
 
