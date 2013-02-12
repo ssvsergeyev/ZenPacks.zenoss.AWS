@@ -47,6 +47,12 @@ daemon = os.path.join(ddir,'cloudwatch.py')
 
 def main():
     opts, myargs = getOpts()
+    targetType = myargs[0][3:]
+    # i chopped this down so that there wouldn't be a race condition with CWMonitor calling 4 at once
+    if targetType not in ('Manager', 'Daemon'):
+        print "zencw2.py command [options] command must be of type " \
+              "EC2Manager, EC2Instance, EC2InstanceType or EC2ImageId"
+        raise SystemExit(3)
     # if pid file exists and process running exit
     if os.path.exists(pidfile):
         # skip pid handling and all that
@@ -57,8 +63,14 @@ def main():
             sys.exit(0)
         else:  # pid left behind, unclean shutdown
             os.unlink(pidfile)
+	    fh=open(pidfile,'w')
+            fh.write('pid')
+	    fh.close()
             os.system("python %s &" % daemon)
     else:
+	fh=open(pidfile,'w')
+	fh.write('pid')
+	fh.close()
         os.system("python %s &" % daemon)
 
 
