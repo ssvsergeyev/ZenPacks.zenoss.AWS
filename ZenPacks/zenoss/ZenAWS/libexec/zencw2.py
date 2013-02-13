@@ -48,14 +48,18 @@ daemon = os.path.join(ddir,'cloudwatch.py')
 def main():
     opts, myargs = getOpts()
     targetType = myargs[0][3:]
+    os.environ['AWS_ACCESS_KEY_ID'] = opts.userkey
+    os.environ['AWS_SECRET_ACCESS_KEY'] = opts.privatekey
     # i chopped this down so that there wouldn't be a race condition with CWMonitor calling 4 at once
     if targetType not in ('Manager', 'Daemon'):
         print "zencw2.py command [options] command must be of type " \
               "EC2Manager, EC2Instance, EC2InstanceType or EC2ImageId"
         raise SystemExit(3)
     # if pid file exists and process running exit
+    #for region in boto.ec2.regions():
+    #    regionpidfile = pidfile + "-" + str(region)
     if os.path.exists(pidfile):
-        # skip pid handling and all that
+        # skip pid handling and all that -- going to run seperate processes for each region
         pass
         # Popen.pid
         pid = open(pidfile).read()
