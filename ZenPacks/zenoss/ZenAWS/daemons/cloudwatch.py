@@ -68,9 +68,7 @@ def getInstances():
                 ec2instances.append([i for i in reservation.instances
                                      if i.id and i.state != 'terminated'])
         except boto.exception.EC2ResponseError, ex:
-            #print "ERROR:%s" % ex.error_message
             continue
-
     return reduce(lambda x, y: x + y, ec2instances)
 
 
@@ -188,7 +186,10 @@ class Cloudwatch():
         print "checkin rrds"
         self.check_rrds()
         print "gettin metrics"
-        self._metrics = get_all_metrics(self.cwconn)
+        for r in boto.ec2.regions():
+            cw = boto.ec2.cloudwatch.connect_to_region(r.name,**conn_kwargs)
+            if cw:
+                self._metrics += get_all_metrics(cw)
         print "sortin metrics"
         (self._total_metrics, self._instance_metrics, self._type_metrics) = categorize_metrics(self._metrics)
 
@@ -228,12 +229,18 @@ class Cloudwatch():
             check_rrd_fields(os.path.join(_rrd_path, "instances", inst.id))
 
     def getEBSVols(self):
-        vols = self.ec2conn.get_all_volumes()
-        vols = [v for v in vols if v.attachment_state() == 'attached']
         byInst = {}
-        for v in vols:
-            k = v.attach_data.instance_id
-            byInst[k] = byInst.get(k, []) + [v]
+        for region in boto.ec2.regions():
+            try:
+                conn = region.connect(**conn_kwargs)
+                vols = conn.get_all_volumes()
+                vols = [v for v in vols if v.attachment_state() == 'attached']
+                for v in vols:
+                    k = v.attach_data.instance_id
+                    byInst[k] = byInst.get(k, []) + [v]
+            except boto.exception.EC2ResponseError, ex:
+                # log
+                continue
         return byInst
 
     def aggEBSmetrics(self, volumes, consolidate, units, seconds):
