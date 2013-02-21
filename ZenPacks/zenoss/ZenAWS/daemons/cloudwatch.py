@@ -241,6 +241,8 @@ class Cloudwatch():
             except boto.exception.EC2ResponseError, ex:
                 # log
                 continue
+	    except:
+		print "500 error at %s" % region.name
         return byInst
 
     def aggEBSmetrics(self, volumes, consolidate, units, seconds):
@@ -251,9 +253,14 @@ class Cloudwatch():
         writeBytes = 0.0
         end = datetime.utcnow()
         start = end - timedelta(seconds=300 + 5)
+	conn = None
         for v in volumes:
-            mets = [m for m in self.cwconn.list_metrics(dimensions={'VolumeId': v.id})
+	    if not conn:
+		conn = boto.ec2.cloudwatch.connect_to_region(v.region.name,**conn_kwargs)
+            mets = [m for m in conn.list_metrics(dimensions={'VolumeId': v.id})
                   if m.name in ['VolumeReadOps', 'VolumeWriteBytes', 'VolumeReadBytes', 'VolumeWriteOps']]
+	    #if str(v.id) == str("vol-af28438e"):
+	    #	pdb.set_trace()
             for m in mets:
                 ret = query_with_backoff(m, start, end, consolidate, units, seconds)
                 if ret and len(ret) > 0:
@@ -265,11 +272,10 @@ class Cloudwatch():
                         readBytes += ret[-1][consolidate]
                     elif m.name == 'VolumeWriteBytes':
                         writeBytes += ret[-1][consolidate]
-        runtime = (datetime.utcnow() - runtime).total_seconds()
-        return {'EBSReadOps': readOps,
-            'EBSWriteOps': writeOps,
-            'EBSReadBytes': readBytes,
-            'EBSWriteBytes': writeBytes, 'EBSruntime': runtime}
+        return {'DiskReadOps': readOps,
+            'DiskWriteOps': writeOps,
+            'DiskReadBytes': readBytes,
+            'DiskWriteBytes': writeBytes}
 
     def collect_instances(self, start=datetime.utcnow() - timedelta(seconds=305),
                           end=datetime.utcnow() - timedelta(seconds=5),
@@ -283,8 +289,7 @@ class Cloudwatch():
             if metrics and len(metrics) == 0:
                 continue
             for m in [m2 for m2 in metrics if m2.name
-                  in ['CPUUtilization', 'NetworkIn', 'NetworkOut', 'DiskReadOps',
-                      'DiskWriteOps', 'DiskReadBytes', 'DiskWriteBytes']]:
+                  in ['CPUUtilization', 'NetworkIn', 'NetworkOut']]:
                 try:
                     ret = query_with_backoff(m, start, end, consolidate, units, seconds)
                     if ret and len(ret) > 0:
@@ -297,21 +302,20 @@ class Cloudwatch():
                 for mname in volstats.keys():
                     update_rrd(mname, "instances/%s" % i.id, volstats[mname])
             except:
-                    raise
+                    continue
 
     def collect_totals(self, start=datetime.utcnow() - timedelta(seconds=305),
                           end=datetime.utcnow() - timedelta(seconds=5),
                           consolidate='Average', units="", seconds=300):
         volumes = self.getEBSVols()
         for m in [m2 for m2 in self._total_metrics if m2.name
-                  in ['CPUUtilization', 'NetworkIn', 'NetworkOut', 'DiskReadOps',
-                      'DiskWriteOps', 'DiskReadBytes', 'DiskWriteBytes']]:
+                  in ['CPUUtilization', 'NetworkIn', 'NetworkOut']]:
                 try:
                     ret = query_with_backoff(m, start, end, consolidate, units, seconds)
                     if ret and len(ret) > 0:
                         update_rrd(m.name, "", ret[-1][consolidate])
                 except:
-                        raise
+                        continue
 
     def collect_types(self, start=datetime.utcnow() - timedelta(seconds=305),
                       end=datetime.utcnow() - timedelta(seconds=5),
@@ -319,14 +323,13 @@ class Cloudwatch():
         for t in self._type_metrics.keys():
             output = 'InstanceType:' + t
             for m in [m2 for m2 in self._type_metrics[t]
-                      if m2.name in ['CPUUtilization', 'NetworkIn', 'NetworkOut', 'DiskReadOps',
-                      'DiskWriteOps', 'DiskReadBytes', 'DiskWriteBytes']]:
+                      if m2.name in ['CPUUtilization', 'NetworkIn', 'NetworkOut']]:
                 try:
                     ret = query_with_backoff(m, start, end, consolidate, units, seconds)
                     if ret and len(ret) > 0:
                         update_rrd(m.name, "instanceTypes/%s" % t, ret[-1][consolidate])
                 except:
-                        raise
+                        continue
             readOps = 0
             writeOps = 0
             readBytes = 0.0
@@ -340,10 +343,10 @@ class Cloudwatch():
                     writeBytes += volstats['DiskWriteBytes']
                 except:
                     continue
-            update_rrd("EBSReadOps", "instanceTypes/%s" % t, readOps)
-            update_rrd("EBSWriteOps", "instanceTypes/%s" % t, writeOps)
-            update_rrd("EBSReadBytes", "instanceTypes/%s" % t, readBytes)
-            update_rrd("EBSWriteBytes", "instanceTypes/%s" % t, writeBytes)
+            update_rrd("DiskReadOps", "instanceTypes/%s" % t, readOps)
+            update_rrd("DiskWriteOps", "instanceTypes/%s" % t, writeOps)
+            update_rrd("DiskReadBytes", "instanceTypes/%s" % t, readBytes)
+            update_rrd("DiskWriteBytes", "instanceTypes/%s" % t, writeBytes)
 
 
 if __name__ == '__main__':
