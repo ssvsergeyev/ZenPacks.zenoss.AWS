@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configure 
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    >
+
+    <include package=".browser"/>
+    
+    <!-- Import directRouter Directive -->
+    <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
+    
+    <!-- Define the Router and Facade -->
+    <browser:directRouter
+        name="ec2manager_router"
+        for="*"
+        class=".routers.EC2ManagerRouter"
+        namespace="Zenoss.remote"
+        permission="zenoss.View"
+        />
+    
+    <adapter
+        name="ec2manager"
+        provides=".interfaces.IEC2ManagerFacade"
+        for="*"
+        factory=".facades.EC2ManagerFacade"
+        />
+
+    <!-- API Info Adapters -->
+
+    <adapter
+        factory=".info.EC2ManagerInfo"
+        for=".EC2Manager.EC2Manager"
+        provides=".interfaces.IEC2ManagerInfo"
+        />
+
+    <adapter
+        factory=".info.EC2InstanceInfo"
+        for=".EC2Instance.EC2Instance"
+        provides=".interfaces.IEC2InstanceInfo"
+        />
+
+</configure>
