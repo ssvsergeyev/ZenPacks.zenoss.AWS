@@ -1,32 +1,38 @@
-###########################################################################
+##############################################################################
 #
-# This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2013 Zenoss Inc.
+# Copyright (C) Zenoss, Inc. 2012, all rights reserved.
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 or (at your
-# option) any later version as published by the Free Software Foundation.
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
 #
-# For complete information please visit: http://www.zenoss.com/oss/
-#
-###########################################################################
-
-import logging
-LOG = logging.getLogger('zen.AWS')
+##############################################################################
 
 from Products.ZenModel.ZenPack import ZenPackBase
 
+# Modules containing model classes. Used by zenchkschema to validate
+# bidirectional integrity of defined relationships.
+productNames = (
+    'EC2Account',
+    'EC2Instance',
+    'EC2Region',
+    'EC2Volume',
+    'EC2VPC',
+    'EC2VPCSubnet',
+    'EC2Zone',
+    )
+
+# Useful to avoid making literal string references to module and class names
+# throughout the rest of the ZenPack.
+MODULE_NAME = {}
+CLASS_NAME = {}
+for product_name in productNames:
+    ZP_NAME = 'ZenPacks.zenoss.AWS'
+    MODULE_NAME[product_name] = '.'.join([ZP_NAME, product_name])
+    CLASS_NAME[product_name] = '.'.join([ZP_NAME, product_name, product_name])
+
 
 class ZenPack(ZenPackBase):
-    "ZenPack Loader that loads zProperties used by ZenAWS"
-
-    def install(self, app):
-        ZenPackBase.install(self, app)
-        dc = app.dmd.Devices.createOrganizer('/AWS/EC2')
-
-        dc.setZenProperty('zCollectorPlugins',
-                            ('aws.EC2',))
-        dc.setZenProperty('zPingMonitorIgnore',
-                            True)
-
-        dc.setZenProperty('zPythonClass', 'ZenPacks.zenoss.AWS.EC2Manager')
+    '''
+    ZenPack loader.
+    '''
+    pass

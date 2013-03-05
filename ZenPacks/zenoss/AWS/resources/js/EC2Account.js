@@ -1,17 +1,11 @@
-/*
-###########################################################################
-#
-# This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2013 Zenoss Inc.
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 or (at your
-# option) any later version as published by the Free Software Foundation.
-#
-# For complete information please visit: http://www.zenoss.com/oss/
-#
-###########################################################################
-*/
+/*****************************************************************************
+ *
+ * Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+ *
+ * This content is made available according to terms specified in
+ * License.zenoss under the directory where your Zenoss product is installed.
+ *
+ ****************************************************************************/
 
 (function(){
 
@@ -20,7 +14,7 @@ var ZC = Ext.ns('Zenoss.component');
 ZC.EC2ComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
     subComponentGridPanel: false,
 
-    jumpToEntity: function(uid, meta_type) {
+    aws_jumpToEntity: function(uid, meta_type) {
         var tree = Ext.getCmp('deviceDetailNav').treepanel;
         var tree_selection_model = tree.getSelectionModel();
         var components_node = tree.getRootNode().findChildBy(
@@ -60,7 +54,6 @@ ZC.EC2ComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-ZC.registerName('EC2Instance', _t('Instance'), _t('Instances'));
 
 ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
     subComponentGridPanel: false,
@@ -146,7 +139,6 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 
 Ext.reg('EC2InstancePanel', ZC.EC2InstancePanel);
 
-ZC.registerName('EC2VPC', _t('VPC'), _t('VPCs'));
 
 ZC.EC2VPCPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
     subComponentGridPanel: false,
@@ -218,7 +210,6 @@ ZC.EC2VPCPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 
 Ext.reg('EC2VPCPanel', ZC.EC2VPCPanel);
 
-ZC.registerName('EC2Zone', _t('Zone'), _t('Zones'));
 
 ZC.EC2ZonePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
     subComponentGridPanel: false,
@@ -276,7 +267,6 @@ ZC.EC2ZonePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 
 Ext.reg('EC2ZonePanel', ZC.EC2ZonePanel);
 
-ZC.registerName('EC2Volume', _t('Volume'), _t('Volumes'));
 
 ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
     subComponentGridPanel: false,
@@ -376,36 +366,25 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 
 Ext.reg('EC2VolumePanel', ZC.EC2VolumePanel);
 
-})();
 
 /* Overview Panel Override */
 Ext.onReady(function(){
+    var REMOTE = Zenoss.remote.AWSRouter;
 
-    var REMOTE = Zenoss.remote.EC2ManagerRouter;
-
-
-    function editDevicePathInfo(values, uid, className){
-
+    function editDevicePathInfo(values, uid, className) {
         function name(uid) {
             if (!uid) {
                 return 'Unknown';
             }
+
             if (!Ext.isString(uid)) {
                 uid = uid.uid;
             }
+
             return uid.split('/').reverse()[0];
         }
 
         var FIELDWIDTH = 300;
-        /*
-        var linuxDeviceClass = {
-            xtype: 'textfield',
-            width: FIELDWIDTH,
-            name: 'linuxdeviceclass',
-            id: 'linuxdeviceclasscombo',
-            fieldLabel: _t('Linux Device Class')
-        };
-        */
         var deviceClassCombo = {
             xtype: 'combo',
             ref: '../deviceClass',
@@ -445,7 +424,6 @@ Ext.onReady(function(){
                 handler: function(btn){
                     var vals = btn.refOwner.deviceClass.getValue();
                     if (vals){
-                        /*Ext.getCmp('linuxDeviceClass').setValue(vals);*/
                         Ext.getCmp(className).setValue(vals);
                         win.destroy();
                     }
@@ -461,8 +439,6 @@ Ext.onReady(function(){
         });
         win.show();
         win.doLayout();
-        
-        
     }
 
     var DEVICE_SUMMARY_PANEL = 'deviceoverviewpanel_summary';
@@ -563,3 +539,5 @@ Ext.onReady(function(){
         });
 
 });
+
+})();

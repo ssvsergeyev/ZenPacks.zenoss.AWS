@@ -1,0 +1,30 @@
+// Region-containment variation.
+// Most closely resembles boto API calls.
+// http://yuml.me/bf0c6f7a
+[note: ZenPacks.zenoss.AWS Model ERD{bg:cornsilk}]
+[EC2Account{bg:green}]<>1-0..*[EC2Region]
+[EC2Region]<>1-0..*[EC2Zone]
+[EC2Region]<>1-0..*[EC2VPC]
+[EC2Region]<>1-0..*[EC2Instance]
+[EC2Region]<>1-0..*[EC2Volume]
+[EC2Region]<>1-0..*[EC2VPCSubnet]
+[EC2Zone]1-0..*[EC2Instance]
+[EC2Zone]1-0..*[EC2Volume]
+[EC2VPC]1-0..*[EC2VPCSubnet]
+[EC2Zone]1-0..*[EC2VPCSubnet]
+[EC2Instance]0..1-0..*[EC2Volume]
+[EC2Instance]0..*-0..1[EC2VPCSubnet]
+
+// Impact
+// http://yuml.me/6dd62c79
+[note: ZenPacks.zenoss.AWS Impact ERD{bg:cornsilk}]
+[EC2Account{bg:green}]1-1..*>[EC2Region]
+[EC2Region]1-0..*>[EC2Zone]
+[EC2Region]1-0..*>[EC2VPC]
+[EC2Zone]1-0..*>[EC2Instance]
+[EC2Zone]1-0..*>[EC2Volume]
+[EC2Zone]1-0..*>[EC2VPCSubnet]
+[EC2VPC]1-0..*>[EC2VPCSubnet]
+[EC2Volume]0..*-1>[EC2Instance]
+[EC2VPCSubnet]0..1-1>[EC2Instance]
+[EC2Instance]0..1-1>[Device]

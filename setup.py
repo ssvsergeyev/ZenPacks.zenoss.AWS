@@ -3,8 +3,8 @@
 # or saved.  Do not modify them directly here.
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.zenoss.AWS"
-VERSION = "3.0.0"
-AUTHOR = "Zenoss Labs"
+VERSION = "0.9.0dev1"
+AUTHOR = "Zenoss"
 LICENSE = "All Rights Reserved"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.zenoss']
 PACKAGES = ['ZenPacks', 'ZenPacks.zenoss', 'ZenPacks.zenoss.AWS']

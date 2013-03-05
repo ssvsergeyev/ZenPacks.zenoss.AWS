@@ -2,65 +2,107 @@
 <configure 
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
     >
 
-    <include package=".browser"/>
-    
-    <!-- Import directRouter Directive -->
-    <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
-    
-    <!-- Define the Router and Facade -->
+    <!-- Device Loaders -->
+    <utility
+        name="ec2account"
+        provides="Products.ZenModel.interfaces.IDeviceLoader"
+        component=".deviceloaders.EC2AccountLoader"
+        />
+
+    <!-- API: Routers -->
     <browser:directRouter
-        name="ec2manager_router"
+        name="aws_router"
         for="*"
-        class=".routers.EC2ManagerRouter"
+        class=".api.AWSRouter"
         namespace="Zenoss.remote"
         permission="zenoss.View"
         />
-    
+
+    <!-- API: Facades -->
     <adapter
-        name="ec2manager"
-        provides=".interfaces.IEC2ManagerFacade"
+        name="aws"
+        provides=".api.IAWSFacade"
         for="*"
-        factory=".facades.EC2ManagerFacade"
+        factory=".api.AWSFacade"
         />
 
-    <!-- API Info Adapters -->
-
-    <adapter
-        factory=".info.EC2ManagerInfo"
-        for=".EC2Manager.EC2Manager"
-        provides=".interfaces.IEC2ManagerInfo"
-        />
-
-    <adapter
-        factory=".info.EC2InstanceInfo"
-        for=".EC2Instance.EC2Instance"
-        provides=".interfaces.IEC2InstanceInfo"
-        />
-
-    <adapter
-        factory=".info.EC2VPCInfo"
-        for=".EC2VPC.EC2VPC"
-        provides=".interfaces.IEC2VPCInfo"
-        />
-
-    <adapter
-        factory=".info.EC2ZoneInfo"
-        for=".EC2Zone.EC2Zone"
-        provides=".interfaces.IEC2ZoneInfo"
-        />
-
-    <adapter
-        factory=".info.EC2VolumeInfo"
-        for=".EC2Volume.EC2Volume"
-        provides=".interfaces.IEC2VolumeInfo"
-        />
-
+    <!-- API: Infos -->
     <adapter
         provides=".datasources.AWSDataSource.IAWSDataSourceInfo"
         for=".datasources.AWSDataSource.AWSDataSource"
         factory=".datasources.AWSDataSource.AWSDataSourceInfo"
+        />
+
+    <adapter
+        provides=".EC2Account.IEC2AccountInfo"
+        for=".EC2Account.EC2Account"
+        factory=".EC2Account.EC2AccountInfo"
+        />
+
+    <adapter
+        provides=".EC2Instance.IEC2InstanceInfo"
+        for=".EC2Instance.EC2Instance"
+        factory=".EC2Instance.EC2InstanceInfo"
+        />
+
+    <adapter
+        provides=".EC2Region.IEC2RegionInfo"
+        for=".EC2Region.EC2Region"
+        factory=".EC2Region.EC2RegionInfo"
+        />
+
+    <adapter
+        provides=".EC2Volume.IEC2VolumeInfo"
+        for=".EC2Volume.EC2Volume"
+        factory=".EC2Volume.EC2VolumeInfo"
+        />
+
+    <adapter
+        provides=".EC2VPC.IEC2VPCInfo"
+        for=".EC2VPC.EC2VPC"
+        factory=".EC2VPC.EC2VPCInfo"
+        />
+
+    <adapter
+        provides=".EC2VPCSubnet.IEC2VPCSubnetInfo"
+        for=".EC2VPCSubnet.EC2VPCSubnet"
+        factory=".EC2VPCSubnet.EC2VPCSubnetInfo"
+        />
+
+    <adapter
+        provides=".EC2Zone.IEC2ZoneInfo"
+        for=".EC2Zone.EC2Zone"
+        factory=".EC2Zone.EC2ZoneInfo"
+        />
+
+    <!-- Browser -->
+    <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
+
+    <browser:resourceDirectory
+        name="aws"
+        directory="resources"
+        />
+    
+    <browser:viewlet
+        name="js-aws"
+        paths="/++resource++aws/js/AWS.js"
+        weight="10"
+        manager="Products.ZenUI3.browser.interfaces.IJavaScriptSrcManager"
+        class="Products.ZenUI3.browser.javascript.JavaScriptSrcBundleViewlet"
+        permission="zope2.Public"
+        />
+
+    <browser:viewlet
+        name="js-awsaccount"
+        paths="/++resource++aws/js/EC2Account.js"
+        weight="10"
+        for=".EC2Account.EC2Account"
+        manager="Products.ZenUI3.browser.interfaces.IJavaScriptSrcManager"
+        class="Products.ZenUI3.browser.javascript.JavaScriptSrcBundleViewlet"
+        permission="zope2.Public"
         />
 
 </configure>

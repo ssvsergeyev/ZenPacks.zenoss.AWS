@@ -1,7 +1,19 @@
 <?xml version="1.0"?>
 <objects>
-<!-- ('', 'zport', 'dmd', 'Devices', 'AWS', 'EC2', 'rrdTemplates', 'EC2Instance') -->
-<object id='/zport/dmd/Devices/AWS/EC2/rrdTemplates/EC2Instance' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<!-- ('', 'zport', 'dmd', 'Devices', 'AWS') -->
+<object id='/zport/dmd/Devices/AWS' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='EC2' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property visible="True" type="boolean" id="zPingMonitorIgnore" >
+True
+</property>
+<property visible="True" type="string" id="zPythonClass" >
+ZenPacks.zenoss.AWS.EC2Account
+</property>
+<property visible="True" type="lines" id="zCollectorPlugins" >
+['aws.EC2']
+</property>
+<tomanycont id='rrdTemplates'>
+<object id='EC2Instance' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
 Products.ZenModel.Device
 </property>
@@ -616,8 +628,7 @@ AVERAGE
 </object>
 </tomanycont>
 </object>
-<!-- ('', 'zport', 'dmd', 'Devices', 'AWS', 'EC2', 'rrdTemplates', 'EC2Volume') -->
-<object id='/zport/dmd/Devices/AWS/EC2/rrdTemplates/EC2Volume' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='EC2Volume' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
 Products.ZenModel.Device
 </property>
@@ -779,5 +790,8 @@ True
 </tomanycont>
 </object>
 </tomanycont>
+</object>
+</tomanycont>
+</object>
 </object>
 </objects>

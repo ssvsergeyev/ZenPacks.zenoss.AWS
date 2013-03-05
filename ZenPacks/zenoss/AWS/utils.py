@@ -1,15 +1,11 @@
-###########################################################################
+##############################################################################
 #
-# This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2013 Zenoss Inc.
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License version 2 or (at your
-# option) any later version as published by the Free Software Foundation.
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
 #
-# For complete information please visit: http://www.zenoss.com/oss/
-#
-###########################################################################
+##############################################################################
 
 import logging
 log = logging.getLogger('zen.AWS')
@@ -17,11 +13,14 @@ log = logging.getLogger('zen.AWS')
 import hashlib
 import hmac
 import base64
-import json
 import urllib
 import datetime
 
 from twisted.internet.error import ConnectionRefusedError, TimeoutError
+
+from Products.AdvancedQuery import Eq, Or
+from Products.ZenUtils.Utils import prepId
+from Products.Zuul.interfaces import ICatalogTool
 
 
 def addLocalLibPath():
@@ -34,11 +33,12 @@ def addLocalLibPath():
     site.addsitedir(os.path.join(os.path.dirname(__file__), 'lib'))
 
 
-def awsUrlSign(httpVerb='GET',
-                hostHeader=None,
-                uriRequest="/",
-                httpRequest=None,
-                awsKeys=None):
+def awsUrlSign(
+        httpVerb='GET',
+        hostHeader=None,
+        uriRequest="/",
+        httpRequest=None,
+        awsKeys=None):
 
     """
     Method that will take the URL requst and provide a signed
@@ -118,3 +118,59 @@ def result_errmsg(result):
         pass
 
     return str(result)
+
+
+def updateToMany(relationship, root, type_, ids):
+    '''
+    Update ToMany relationship given search root, type and ids.
+
+    This is a general-purpose function for efficiently building
+    non-containing ToMany relationships.
+    '''
+    root = root.primaryAq()
+
+    new_ids = set(map(prepId, ids))
+    current_ids = set(relationship.objectIds())
+    changed_ids = new_ids.symmetric_difference(current_ids)
+
+    query = Or(*(Eq('id', x) for x in changed_ids))
+
+    obj_map = {}
+    for result in ICatalogTool(root).search(types=[type_], query=query):
+        obj_map[result.id] = result.getObject()
+
+    for id_ in new_ids.symmetric_difference(current_ids):
+        obj = obj_map.get(id_)
+        if not obj:
+            continue
+
+        if id_ in new_ids:
+            relationship.addRelation(obj)
+        else:
+            relationship.removeRelation(obj)
+
+
+def updateToOne(relationship, root, type_, id_):
+    '''
+    Update ToOne relationship given search root, type and ids.
+
+    This is a general-purpose function for efficiently building
+    non-containing ToOne relationships.
+    '''
+    root = root.primaryAq()
+
+    id_ = prepId(id_)
+    if not id_:
+        return
+
+    obj = relationship()
+    if obj and obj.id == id_:
+        return
+
+    query = Eq('id', id_)
+
+    for result in ICatalogTool(root).search(types=[type_], query=query):
+        relationship.addRelation(result.getObject())
+        return
+
+    relationship.removeRelation()
