@@ -295,6 +295,9 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'create_time'},
                 {name: 'size'},
                 {name: 'zone'},
+                {name: 'status'},
+                {name: 'instance_id'},
+                {name: 'devicepath'},
                 {name: 'severity'},
                 {name: 'monitor'},
                 {name: 'monitored'}
@@ -338,6 +341,24 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'size',
                 dataIndex: 'size',
                 header: _t('Size'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'status',
+                dataIndex: 'status',
+                header: _t('Status'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'instance_id',
+                dataIndex: 'instance_id',
+                header: _t('Instance ID'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'devicepath',
+                dataIndex: 'devicepath',
+                header: _t('Device'),
                 sortable: true,
                 width: 110
             },{

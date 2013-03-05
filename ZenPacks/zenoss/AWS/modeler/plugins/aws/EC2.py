@@ -166,7 +166,7 @@ class EC2(PythonPlugin):
         om.region = instance.region.name
         om.platform = getattr(instance, 'platform', '')
         om.vpc_id = instance.vpc_id
-        #om.monitored = instance.monitored
+        om.monitor = instance.monitored
 
         return om
 
@@ -207,5 +207,8 @@ class EC2(PythonPlugin):
         om.region = volume.region.name
         om.size = str(volume.size)
         om.state = volume.status
+        om.status = volume.attach_data.status
+        om.instance_id = volume.attach_data.instance_id
+        om.devicepath = volume.attach_data.device
 
         return om

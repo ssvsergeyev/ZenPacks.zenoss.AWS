@@ -68,3 +68,6 @@ class EC2VolumeInfo(ComponentInfo):
     zone = ProxyProperty('zone')
     size = ProxyProperty('size')
     create_time = ProxyProperty('create_time')
+    status = ProxyProperty('status')
+    instance_id = ProxyProperty('instance_id')
+    devicepath = ProxyProperty('devicepath')

@@ -27,6 +27,9 @@ class EC2Volume(DeviceComponent, ManagedEntity):
     zone = ''
     create_time = ''
     size = ''
+    status = ''
+    instance_id = ''
+    devicepath = ''
 
     _properties = ManagedEntity._properties + (
         {'id': 'region',    'type': 'string', 'mode': 'w'},
@@ -34,6 +37,9 @@ class EC2Volume(DeviceComponent, ManagedEntity):
         {'id': 'zone',         'type': 'string', 'mode': 'w'},
         {'id': 'create_time',         'type': 'string', 'mode': 'w'},
         {'id': 'size',         'type': 'string', 'mode': 'w'},
+        {'id': 'status',         'type': 'string', 'mode': 'w'},
+        {'id': 'instance_id',         'type': 'string', 'mode': 'w'},
+        {'id': 'devicepath',         'type': 'string', 'mode': 'w'},
         )
 
     _relations = ManagedEntity._relations + (

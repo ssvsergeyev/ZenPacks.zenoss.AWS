@@ -62,3 +62,6 @@ class IEC2VolumeInfo(IComponentInfo):
     zone = schema.TextLine(title=_t(u'Zone'), readonly=True)
     size = schema.TextLine(title=_t(u'Size'), readonly=True)
     create_time = schema.TextLine(title=_t(u'Create Time'), readonly=True)
+    status = schema.TextLine(title=_t(u'Status'), readonly=True)
+    instance_id = schema.TextLine(title=_t(u'Instance ID'), readonly=True)
+    devicepath = schema.TextLine(title=_t(u'Device'), readonly=True)
