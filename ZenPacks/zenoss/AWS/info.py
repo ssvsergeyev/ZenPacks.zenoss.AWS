@@ -42,3 +42,29 @@ class EC2InstanceInfo(ComponentInfo):
     public_ip_address = ProxyProperty('public_ip_address')
     public_dns_name = ProxyProperty('public_dns_name')
     launch_time = ProxyProperty('launch_time')
+
+
+class EC2VPCInfo(ComponentInfo):
+    implements(IEC2VPCInfo)
+
+    region = ProxyProperty('region')
+    state = ProxyProperty('state')
+    cidr_block = ProxyProperty('cidr_block')
+    collector = ProxyProperty('collector')
+
+
+class EC2ZoneInfo(ComponentInfo):
+    implements(IEC2ZoneInfo)
+
+    region = ProxyProperty('region')
+    state = ProxyProperty('state')
+
+
+class EC2VolumeInfo(ComponentInfo):
+    implements(IEC2VolumeInfo)
+
+    region = ProxyProperty('region')
+    state = ProxyProperty('state')
+    zone = ProxyProperty('zone')
+    size = ProxyProperty('size')
+    create_time = ProxyProperty('create_time')

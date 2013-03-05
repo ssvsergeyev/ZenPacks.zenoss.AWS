@@ -36,6 +36,7 @@ class EC2ManagerFacade(ZuulFacade):
         dc = self._dmd.Devices.getOrganizer(devicePath)
 
         ec2m = dc.createInstance(accountname)
+        ec2m.setPerformanceMonitor('localhost')
 
         ec2m.ec2accesskey = accesskey
         ec2m.ec2secretkey = secretkey

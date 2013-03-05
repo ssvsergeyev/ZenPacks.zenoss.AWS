@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+from Globals import InitializeClass
 
 from Products.ZenModel.ManagedEntity import ManagedEntity
 from Products.ZenModel.DeviceComponent import DeviceComponent
@@ -52,5 +53,7 @@ class EC2Instance(DeviceComponent, ManagedEntity):
     def device(self):
         return self.manager()
 
-    #def name(self):
-    #    return self.titleOrID()
+    def getRRDTemplateName(self):
+        return 'EC2Instance'
+
+InitializeClass(EC2Instance)

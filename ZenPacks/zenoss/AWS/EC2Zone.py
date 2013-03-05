@@ -18,32 +18,28 @@ from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 
 
-class EC2VPC(DeviceComponent, ManagedEntity):
+class EC2Zone(DeviceComponent, ManagedEntity):
 
-    meta_type = portal_type = "EC2VPC"
+    meta_type = portal_type = "EC2Zone"
 
-    cidr_block = ''
     region = ''
     state = ''
-    collector = ''
 
     _properties = ManagedEntity._properties + (
-        {'id': 'cidr_block',        'type': 'string', 'mode': 'w'},
         {'id': 'region',    'type': 'string', 'mode': 'w'},
         {'id': 'state',         'type': 'string', 'mode': 'w'},
-        {'id': 'collector',           'type': 'string', 'mode': 'w'},
         )
 
     _relations = ManagedEntity._relations + (
         ('manager', ToOne(ToManyCont,
-            "ZenPacks.zenoss.AWS.EC2Manager", "vpcs")),
+            "ZenPacks.zenoss.AWS.EC2Manager", "zones")),
         )
 
     def device(self):
         return self.manager()
 
     def getRRDTemplateName(self):
-        return 'EC2VPC'
+        return 'EC2Zone'
 
 
-InitializeClass(EC2VPC)
+InitializeClass(EC2Zone)

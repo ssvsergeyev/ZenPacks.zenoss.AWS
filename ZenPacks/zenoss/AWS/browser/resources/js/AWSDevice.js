@@ -146,6 +146,215 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 
 Ext.reg('EC2InstancePanel', ZC.EC2InstancePanel);
 
+ZC.registerName('EC2VPC', _t('VPC'), _t('VPCs'));
+
+ZC.EC2VPCPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'EC2VPC',
+            fields: [
+                {name: 'uid'},
+                {name: 'meta_type'},
+                {name: 'name'},
+                {name: 'title'},
+                {name: 'region'},
+                {name: 'cidr_block'},
+                {name: 'state'},
+                {name: 'collector'},
+                {name: 'severity'},
+                {name: 'monitor'},
+                {name: 'monitored'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('State'),
+                width: 90
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                width: 110
+            },{
+                id: 'region',
+                dataIndex: 'region',
+                header: _t('Region'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'cidr_block',
+                dataIndex: 'cidr_block',
+                header: _t('CIDR Block'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'collector',
+                dataIndex: 'collector',
+                header: _t('Collector'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                sortable: true,
+                width: 65
+            }]
+        });
+        ZC.EC2VPCPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('EC2VPCPanel', ZC.EC2VPCPanel);
+
+ZC.registerName('EC2Zone', _t('Zone'), _t('Zones'));
+
+ZC.EC2ZonePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'EC2Zone',
+            fields: [
+                {name: 'uid'},
+                {name: 'meta_type'},
+                {name: 'name'},
+                {name: 'title'},
+                {name: 'region'},
+                {name: 'state'},
+                {name: 'severity'},
+                {name: 'monitor'},
+                {name: 'monitored'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('State'),
+                width: 90
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                width: 110
+            },{
+                id: 'region',
+                dataIndex: 'region',
+                header: _t('Region'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                sortable: true,
+                width: 65
+            }]
+        });
+        ZC.EC2ZonePanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('EC2ZonePanel', ZC.EC2ZonePanel);
+
+ZC.registerName('EC2Volume', _t('Volume'), _t('Volumes'));
+
+ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'EC2Volume',
+            fields: [
+                {name: 'uid'},
+                {name: 'meta_type'},
+                {name: 'name'},
+                {name: 'title'},
+                {name: 'region'},
+                {name: 'state'},
+                {name: 'create_time'},
+                {name: 'size'},
+                {name: 'zone'},
+                {name: 'severity'},
+                {name: 'monitor'},
+                {name: 'monitored'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('State'),
+                width: 90
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                width: 110
+            },{
+                id: 'region',
+                dataIndex: 'region',
+                header: _t('Region'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'zone',
+                dataIndex: 'zone',
+                header: _t('Zone'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'create_time',
+                dataIndex: 'create_time',
+                header: _t('Create Time'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'size',
+                dataIndex: 'size',
+                header: _t('Size'),
+                sortable: true,
+                width: 110
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                sortable: true,
+                width: 65
+            }]
+        });
+        ZC.EC2VolumePanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('EC2VolumePanel', ZC.EC2VolumePanel);
+
 })();
 
 /* Overview Panel Override */

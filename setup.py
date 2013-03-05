@@ -4,11 +4,11 @@
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.zenoss.AWS"
 VERSION = "3.0.0"
-AUTHOR = "Zenoss"
+AUTHOR = "Zenoss Labs"
 LICENSE = "All Rights Reserved"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.zenoss']
 PACKAGES = ['ZenPacks', 'ZenPacks.zenoss', 'ZenPacks.zenoss.AWS']
-INSTALL_REQUIRES = []
+INSTALL_REQUIRES = ['ZenPacks.zenoss.PythonCollector']
 COMPAT_ZENOSS_VERS = ">=4.2"
 PREV_ZENPACK_NAME = ""
 # STOP_REPLACEMENTS

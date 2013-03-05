@@ -35,6 +35,12 @@ class EC2Manager(baseDevice):
     _relations = baseDevice._relations + (
         ('instances', ToManyCont(ToOne,
             "ZenPacks.zenoss.AWS.EC2Instance", "manager")),
+        ('vpcs', ToManyCont(ToOne,
+            "ZenPacks.zenoss.AWS.EC2VPC", "manager")),
+        ('zones', ToManyCont(ToOne,
+            "ZenPacks.zenoss.AWS.EC2Zone", "manager")),
+        ('volumes', ToManyCont(ToOne,
+            "ZenPacks.zenoss.AWS.EC2Volume", "manager")),
         )
 
     factory_type_information = (

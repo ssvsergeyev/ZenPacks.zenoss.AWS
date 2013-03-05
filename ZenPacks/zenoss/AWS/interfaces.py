@@ -42,3 +42,23 @@ class IEC2InstanceInfo(IComponentInfo):
     public_ip_address = schema.TextLine(title=_t(u'Public IP Address'), readonly=True)
     public_dns_name = schema.TextLine(title=_t(u'Public DNS Name'), readonly=True)
     launch_time = schema.TextLine(title=_t(u'Launch Time'), readonly=True)
+
+
+class IEC2VPCInfo(IComponentInfo):
+    region = schema.TextLine(title=_t(u'Region'), readonly=True)
+    state = schema.TextLine(title=_t(u'State'), readonly=True)
+    cidr_block = schema.TextLine(title=_t(u'CIDR Block'), readonly=True)
+    collector = schema.TextLine(title=_t(u'Collector'), readonly=True)
+
+
+class IEC2ZoneInfo(IComponentInfo):
+    region = schema.TextLine(title=_t(u'Region'), readonly=True)
+    state = schema.TextLine(title=_t(u'State'), readonly=True)
+
+
+class IEC2VolumeInfo(IComponentInfo):
+    region = schema.TextLine(title=_t(u'Region'), readonly=True)
+    state = schema.TextLine(title=_t(u'State'), readonly=True)
+    zone = schema.TextLine(title=_t(u'Zone'), readonly=True)
+    size = schema.TextLine(title=_t(u'Size'), readonly=True)
+    create_time = schema.TextLine(title=_t(u'Create Time'), readonly=True)

@@ -11,26 +11,27 @@
 #
 ###########################################################################
 
-from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
+import logging
+LOG = logging.getLogger('zen.AWS')
 
+from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.DataCollector.plugins.DataMaps\
     import MultiArgs, ObjectMap, RelationshipMap
 
-from ZenPacks.zenoss.AWS.utils import addLocalLibPath, result_errmsg
+from ZenPacks.zenoss.AWS.utils \
+    import addLocalLibPath, result_errmsg
 
 addLocalLibPath()
 
 from boto.ec2.connection import EC2Connection as ec2
 from boto.vpc import VPCConnection as vpc
 
-import pdb
-
 
 class EC2(PythonPlugin):
 
     ec2Queries = {
-
         }
+
     deviceProperties = PythonPlugin.deviceProperties + (
         'ec2accesskey', 'ec2secretkey')
 
@@ -57,23 +58,32 @@ class EC2(PythonPlugin):
         filters = {'instance-state-name': ec2States}
         reservations = []
         vpcs = []
+        zones = []
+        volumes = []
 
         # Retrieve objects from all regions
         for region in regions:
             ec2regionconn = ec2(accesskey, secretkey, region=region)
-            vpcretionconn = vpc(accesskey, secretkey, region=region)
+            vpcregionconn = vpc(accesskey, secretkey, region=region)
 
             # Pull VPC Information
             vpcs.extend(
-                    vpcretionconn.get_all_vpcs()
+                    vpcregionconn.get_all_vpcs()
                 )
+
+            zones.extend(
+                    ec2regionconn.get_all_zones()
+                    )
+
+            volumes.extend(
+                    ec2regionconn.get_all_volumes()
+                    )
 
             # Pull Instance Information
             reservations.extend(
                             ec2regionconn.get_all_instances(
                             filters=filters)
                         )
-
         # Pull all instance object from reservations into dictionary list
         instanceList = {}
         for reservation in reservations:
@@ -83,8 +93,11 @@ class EC2(PythonPlugin):
         d = {}
         d['instances'] = instanceList
         d['regions'] = regions
+        d['zones'] = zones
         d['vpcs'] = vpcs
+        d['volumes'] = volumes
 
+        #import pdb; pdb.set_trace()
         return d
 
     def process(self, device, results, log):
@@ -97,11 +110,21 @@ class EC2(PythonPlugin):
 
         # ObjectMap lists
         instance_oms = []
+        vpc_oms = []
+        zone_oms = []
+        volume_oms = []
 
         for instance in results['instances']:
             instance_oms.append(self.get_instance_om(instance))
 
-        #ec2_manager_om.linuxDeviceClass = '/Server/SSH/Linux'
+        for vpc in results['vpcs']:
+            vpc_oms.append(self.get_vpc_om(vpc))
+
+        for zone in results['zones']:
+            zone_oms.append(self.get_zone_om(zone))
+
+        for volume in results['volumes']:
+            volume_oms.append(self.get_volume_om(volume))
 
         maps.extend([ec2_manager_om])
 
@@ -110,11 +133,29 @@ class EC2(PythonPlugin):
             modname="ZenPacks.zenoss.AWS.EC2Instance",
             objmaps=instance_oms))
 
+        maps.append(RelationshipMap(
+            relname="vpcs",
+            modname="ZenPacks.zenoss.AWS.EC2VPC",
+            objmaps=vpc_oms))
+
+        maps.append(RelationshipMap(
+            relname="zones",
+            modname="ZenPacks.zenoss.AWS.EC2Zone",
+            objmaps=zone_oms))
+
+        maps.append(RelationshipMap(
+            relname="volumes",
+            modname="ZenPacks.zenoss.AWS.EC2Volume",
+            objmaps=volume_oms))
+
+        #import pdb; pdb.set_trace()
         return maps
 
     def get_instance_om(self, instance):
+
         om = ObjectMap()
         om.id = self.prepId(instance.id)
+        om.instance_id = instance.id
         om.title = instance.tags['Name']
         om.public_dns_name = instance.public_dns_name
         om.private_ip_address = instance.private_ip_address
@@ -124,5 +165,47 @@ class EC2(PythonPlugin):
         om.state = instance.state
         om.region = instance.region.name
         om.platform = getattr(instance, 'platform', '')
+        om.vpc_id = instance.vpc_id
+        #om.monitored = instance.monitored
+
+        return om
+
+    def get_vpc_om(self, vpc):
+        om = ObjectMap()
+        om.id = self.prepId(vpc.id)
+        try:
+            om.title = vpc.tags['Name']
+        except:
+            om.title = vpc.id
+        om.cidr_block = vpc.cidr_block
+        om.state = vpc.state
+        om.region = vpc.region.name
+        try:
+            om.collector = self.prepId(vpc.tags['Collector'])
+        except:
+            om.collector = 'localhost'
+
+        return om
+
+    def get_zone_om(self, zone):
+        om = ObjectMap()
+        om.id = self.prepId(zone.name)
+        try:
+            om.title = zone.tags['Name']
+        except:
+            om.title = zone.name
+        om.region = zone.region.name
+        om.state = zone.state
+
+        return om
+
+    def get_volume_om(self, volume):
+        om = ObjectMap()
+        om.id = self.prepId(volume.id)
+        om.zone = volume.zone
+        om.create_time = volume.create_time
+        om.region = volume.region.name
+        om.size = str(volume.size)
+        om.state = volume.status
 
         return om

@@ -39,4 +39,28 @@
         provides=".interfaces.IEC2InstanceInfo"
         />
 
+    <adapter
+        factory=".info.EC2VPCInfo"
+        for=".EC2VPC.EC2VPC"
+        provides=".interfaces.IEC2VPCInfo"
+        />
+
+    <adapter
+        factory=".info.EC2ZoneInfo"
+        for=".EC2Zone.EC2Zone"
+        provides=".interfaces.IEC2ZoneInfo"
+        />
+
+    <adapter
+        factory=".info.EC2VolumeInfo"
+        for=".EC2Volume.EC2Volume"
+        provides=".interfaces.IEC2VolumeInfo"
+        />
+
+    <adapter
+        provides=".datasources.AWSDataSource.IAWSDataSourceInfo"
+        for=".datasources.AWSDataSource.AWSDataSource"
+        factory=".datasources.AWSDataSource.AWSDataSourceInfo"
+        />
+
 </configure>

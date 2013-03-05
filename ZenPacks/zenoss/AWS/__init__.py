@@ -26,6 +26,7 @@ class ZenPack(ZenPackBase):
 
         dc.setZenProperty('zCollectorPlugins',
                             ('aws.EC2',))
+        dc.setZenProperty('zPingMonitorIgnore',
+                            True)
 
         dc.setZenProperty('zPythonClass', 'ZenPacks.zenoss.AWS.EC2Manager')
-
