@@ -43,7 +43,6 @@ class EC2(PythonPlugin):
             'Modeler %s processing data for device %s',
             self.name(), device.id)
 
-        # TODO: Log and abort if accesskey or secretkey are missing.
         accesskey = getattr(device, 'ec2accesskey', None)
         if not accesskey:
             log.error('%s: EC2 access key not set. Not discovering.')
