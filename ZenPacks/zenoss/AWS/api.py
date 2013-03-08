@@ -31,6 +31,12 @@ class IAWSFacade(IFacade):
         Schedule the addition of an EC2 account.
         '''
 
+    def setDeviceClassInfo(self, uid, linux=None, windows=None):
+        '''
+        Set the device classes into which to discovery the guest device
+        devices from Linux and Windows instance platform respectively.
+        '''
+
 
 class AWSFacade(ZuulFacade):
     '''
@@ -59,21 +65,38 @@ class AWSFacade(ZuulFacade):
 
         return True
 
+    def setDeviceClassInfo(self, uid, linux=None, windows=None):
+        account = self._getObject(uid)
+
+        if not linux:
+            linux = None
+
+        if not windows:
+            windows = None
+
+        if account.linuxDeviceClass != linux:
+            account.linuxDeviceClass = linux
+
+        if account.windowsDeviceClass != windows:
+            account.windowsDeviceClass = windows
+
 
 class AWSRouter(DirectRouter):
     '''
     ExtJS DirectRouter API implementation.
     '''
 
+    def _getFacade(self):
+        return Zuul.getFacade('aws', self.context)
+
     def add_ec2account(self, accountname, accesskey, secretkey, collector):
-        '''
-        Schedule the addition of an EC2 account.
-        '''
-        facade = Zuul.getFacade('aws', self.context)
-        success = facade.add_ec2account(
+        success = self._getFacade().add_ec2account(
             accountname, accesskey, secretkey, collector)
 
         if success:
             return DirectResponse.succeed()
         else:
             return DirectResponse.fail("Failed to add EC2 account")
+
+    def setDeviceClassInfo(self, uid, linux=None, windows=None):
+        self._getFacade().setDeviceClassInfo(uid, linux=linux, windows=windows)

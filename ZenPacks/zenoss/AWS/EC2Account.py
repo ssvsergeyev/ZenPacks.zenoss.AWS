@@ -14,6 +14,7 @@ from Products.ZenModel.Device import Device
 
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 
+from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.infos.device import DeviceInfo
@@ -52,10 +53,10 @@ class IEC2AccountInfo(IDeviceInfo):
     API Info interface for EC2Account.
     '''
 
-    ec2accesskey = schema.TextLine(title=_t(u'EC2 Access Key'), readonly=True)
-    ec2secretkey = schema.TextLine(title=_t(u'EC2 Secret Key'), readonly=True)
-    linuxDeviceClass = schema.TextLine(title=_t(u'Linux Device Class'), readonly=True)
-    windowsDeviceClass = schema.TextLine(title=_t(u'Windows Device Class'), readonly=True)
+    ec2accesskey = schema.TextLine(title=_t(u'EC2 Access Key'))
+    ec2secretkey = schema.TextLine(title=_t(u'EC2 Secret Key'))
+    linuxDeviceClass = schema.Entity(title=_t(u'Linux Device Class'))
+    windowsDeviceClass = schema.Entity(title=_t(u'Windows Device Class'))
 
 
 class EC2AccountInfo(DeviceInfo):
@@ -68,5 +69,23 @@ class EC2AccountInfo(DeviceInfo):
 
     ec2accesskey = ProxyProperty('ec2accesskey')
     ec2secretkey = ProxyProperty('ec2secretkey')
-    linuxDeviceClass = ProxyProperty('linuxDeviceClass')
-    windowsDeviceClass = ProxyProperty('windowsDeviceClass')
+
+    @property
+    @info
+    def linuxDeviceClass(self):
+        try:
+            return self._object.getDmdRoot('Devices').getOrganizer(
+                self._object.linuxDeviceClass)
+
+        except Exception:
+            return None
+
+    @property
+    @info
+    def windowsDeviceClass(self):
+        try:
+            return self._object.getDmdRoot('Devices').getOrganizer(
+                self._object.windowsDeviceClass)
+
+        except Exception:
+            return None

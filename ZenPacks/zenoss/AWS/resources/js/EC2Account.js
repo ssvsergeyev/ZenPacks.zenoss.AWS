@@ -10,6 +10,7 @@
 (function(){
 
 var ZC = Ext.ns('Zenoss.component');
+var ZD = Ext.ns('Zenoss.devices');
 
 Ext.apply(Zenoss.render, {
     aws_entityLinkFromGrid: function(obj, col, record) {
@@ -723,7 +724,45 @@ Zenoss.nav.appendTo('Component', [{
 Ext.onReady(function(){
     var REMOTE = Zenoss.remote.AWSRouter;
 
-    function editDevicePathInfo(values, uid, className) {
+    Ext.define("Zenoss.devices.DeviceClassDataStore", {
+        extend:"Zenoss.NonPaginatedStore",
+        constructor: function(config) {
+            config = config || {};
+            var router = config.router || Zenoss.remote.DeviceRouter;
+            Ext.applyIf(config, {
+                root: 'deviceClasses',
+                totalProperty: 'totalCount',
+                model: 'Zenoss.model.Name',
+                directFn: Zenoss.remote.DeviceRouter.getDeviceClasses
+            });
+            this.callParent([config]);
+        }
+    });
+
+    Ext.define("Zenoss.devices.DeviceClassCombo", {
+        extend:"Zenoss.form.SmartCombo",
+        alias: ['widget.deviceclasscombo'],
+        constructor: function(config) {
+            var store = (config||{}).store || new ZD.DeviceClassDataStore();
+            config = Ext.applyIf(config||{}, {
+                displayField: 'name',
+                valueField: 'name',
+                store: store,
+                width: 300,
+                minListWidth: 250,
+                editable: true,
+                typeAhead: true,
+                forceSelection: true,
+                allowBlank: true,
+                listConfig: {
+                    resizable: true
+                }
+            });
+            this.callParent([config]);
+        }
+    });
+
+    function editDeviceClassInfo(vals, uid) {
         function name(uid) {
             if (!uid) {
                 return 'Unknown';
@@ -737,36 +776,31 @@ Ext.onReady(function(){
         }
 
         var FIELDWIDTH = 300;
-        var deviceClassCombo = {
-            xtype: 'combo',
-            ref: '../deviceClass',
-            minListWidth: 250,
-            width: 300,
-            name: 'deviceClass',
-            fieldLabel: _t('Device Class'),
-            id: 'setEC2Device_class',
-            typeAhead: true,
-            forceSelection: true,
-            valueField: 'name',
-            displayField: 'name',
-            allowBlank: false,
-            listConfig: {
-                resizable: true
-            },
-            store: new Ext.data.DirectStore({
-                id: 'deviceClassStore',
-                root: 'deviceClasses',
-                totalProperty: 'totalCount',
-                model: 'Zenoss.model.Name',
-                directFn: Zenoss.remote.DeviceRouter.getDeviceClasses
-            })
+
+        var linuxDeviceClass = {
+            id: 'linuxcombo',
+            xtype: 'deviceclasscombo',
+            name: 'linux',
+            fieldLabel: _t('Linux Device Class')
+        };
+
+        var windowsDeviceClass = {
+            id: 'windowscombo',
+            xtype: 'deviceclasscombo',
+            name: 'windows',
+            fieldLabel: _t('Windows Device Class')
         };
 
         var win = new Zenoss.FormDialog({
             autoHeight: true,
             width: FIELDWIDTH + 90,
-            title: _t('Edit Device Class Location'),
-            items: deviceClassCombo,
+            title: _t('Edit Device Classes for Discovered Instances'),
+            items: [{
+                xtype: 'container',
+                layout: 'anchor',
+                autoHeight: true,
+                items: [linuxDeviceClass, windowsDeviceClass]
+            }],
             buttons: [{
                 text: _t('Save'),
                 ref: '../savebtn',
@@ -774,11 +808,13 @@ Ext.onReady(function(){
                 id: 'win-save-button',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                 handler: function(btn){
-                    var vals = btn.refOwner.deviceClass.getValue();
-                    if (vals){
-                        Ext.getCmp(className).setValue(vals);
+                    var form = btn.refOwner.editForm.getForm(),
+                        vals = form.getValues();
+                    Ext.apply(vals, {uid:uid});
+                    REMOTE.setDeviceClassInfo(vals, function(r) {
+                        Ext.getCmp('device_overview').load();
                         win.destroy();
-                    }
+                    });
                 }
             },{
                 text: _t('Cancel'),
@@ -789,8 +825,19 @@ Ext.onReady(function(){
                 }
             }]
         });
+
         win.show();
         win.doLayout();
+
+        Ext.getCmp('linuxcombo').getStore().addListener('load', function fn(){
+            Ext.getCmp('linuxcombo').setValue(
+                vals.linuxDeviceClass ? vals.linuxDeviceClass.name : '');
+        });
+
+        Ext.getCmp('windowscombo').getStore().addListener('load', function fn(){
+            Ext.getCmp('windowscombo').setValue(
+                vals.windowsDeviceClass ? vals.windowsDeviceClass.name : '');
+        });
     }
 
     var DEVICE_SUMMARY_PANEL = 'deviceoverviewpanel_summary';
@@ -839,48 +886,33 @@ Ext.onReady(function(){
         descriptionpanel.removeField('osModel');
 
         descriptionpanel.addField({
-            xtype: 'clicktoeditnolink',
+            id: 'linuxDeviceClass-edit',
+            xtype: 'clicktoedit',
+            name: 'linuxDeviceClass',
+            fieldLabel: _t('Device Class for Discovered Linux Instances'),
             permission: 'Manage Device',
             listeners: {
                 labelclick: function(p){
-                    editDevicePathInfo(this.getValues(),
-                                        this.contextUid,
-                                        'linuxDeviceClass');
+                    overview = Ext.getCmp('device_overview');
+                    editDeviceClassInfo(overview.getValues(), overview.contextUid);
                 },
                 scope: this
-            },
-            name: 'linuxDeviceClass-edit',
-            id: 'linuxDeviceClass-edit',
-            fieldLabel: _t('Linux Device Class')
-            });
-
-        descriptionpanel.addField({
-            xtype: 'textfield',
-            name: 'linuxDeviceClass',
-            id: 'linuxDeviceClass'
+            }
         });
 
         descriptionpanel.addField({
-            xtype: 'clicktoeditnolink',
+            id: 'windowsDeviceClass-edit',
+            xtype: 'clicktoedit',
+            name: 'windowsDeviceClass',
+            fieldLabel: _t('Device Class for Discovered Windows Instances'),
             permission: 'Manage Device',
             listeners: {
                 labelclick: function(p){
-                    editDevicePathInfo(this.getValues(),
-                                            this.contextUid,
-                                            'windowsDeviceClass');
+                    overview = Ext.getCmp('device_overview');
+                    editDeviceClassInfo(overview.getValues(), overview.contextUid);
                 },
-
                 scope: this
-            },
-            name: 'windowsDeviceClass-edit',
-            id: 'windowsDeviceClass-edit',
-            fieldLabel: _t('Windows Device Class')
-            });
-
-        descriptionpanel.addField({
-            xtype: 'textfield',
-            name: 'windowsDeviceClass',
-            id: 'windowsDeviceClass'
+            }
         });
     });
 
@@ -888,7 +920,7 @@ Ext.onReady(function(){
     Ext.ComponentMgr.onAvailable(DEVICE_SNMP_PANEL, function(){
         var snmppanel = Ext.getCmp(DEVICE_SNMP_PANEL);
         snmppanel.hide();
-        });
+    });
 
 });
 
