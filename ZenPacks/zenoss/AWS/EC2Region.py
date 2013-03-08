@@ -74,11 +74,11 @@ class EC2RegionInfo(ComponentInfo):
 
     @property
     def instance_count(self):
-        return self._object.instance.countObjects()
+        return self._object.instances.countObjects()
 
     @property
     def volume_count(self):
-        return self._object.volume.countObjects()
+        return self._object.volumes.countObjects()
 
     @property
     def vpc_count(self):
@@ -86,4 +86,4 @@ class EC2RegionInfo(ComponentInfo):
 
     @property
     def vpc_subnet_count(self):
-        return self._object.vpc_subnet.countObjects()
+        return self._object.vpc_subnets.countObjects()

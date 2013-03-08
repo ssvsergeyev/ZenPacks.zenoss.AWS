@@ -109,6 +109,7 @@ class IEC2InstanceInfo(IComponentInfo):
     API Info interface for EC2Instance.
     '''
 
+    state = schema.TextLine(title=_t(u'State'))
     account = schema.Entity(title=_t(u'Account'))
     region = schema.Entity(title=_t(u'Region'))
     zone = schema.Entity(title=_t(u'Zone'))
@@ -116,7 +117,6 @@ class IEC2InstanceInfo(IComponentInfo):
     instance_id = schema.TextLine(title=_t(u'Instance ID'))
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
     image_id = schema.TextLine(title=_t(u'Image ID'))
-    state = schema.TextLine(title=_t(u'State'))
     platform = schema.TextLine(title=_t(u'Platform'))
     private_ip_address = schema.TextLine(title=_t(u'Private IP Address'))
     public_ip_address = schema.TextLine(title=_t(u'Public IP Address'))

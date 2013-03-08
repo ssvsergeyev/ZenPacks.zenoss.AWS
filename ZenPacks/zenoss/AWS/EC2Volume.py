@@ -89,7 +89,6 @@ class IEC2VolumeInfo(IComponentInfo):
     region = schema.Entity(title=_t(u'Region'))
     zone = schema.Entity(title=_t(u'Zone'))
     instance = schema.Entity(title=_t(u'Instance'))
-
     create_time = schema.TextLine(title=_t(u'Created Time'))
     size = schema.Int(title=_t(u'Size in Bytes'))
     iops = schema.Int(title=_t(u'Provisioned IOPS'))
@@ -106,10 +105,10 @@ class EC2VolumeInfo(ComponentInfo):
     implements(IEC2VolumeInfo)
     adapts(EC2Volume)
 
+    status = ProxyProperty('status')
     create_time = ProxyProperty('create_time')
     size = ProxyProperty('size')
     iops = ProxyProperty('iops')
-    status = ProxyProperty('status')
     attach_data_status = ProxyProperty('attach_data_status')
     attach_data_devicepath = ProxyProperty('attach_data_devicepath')
 

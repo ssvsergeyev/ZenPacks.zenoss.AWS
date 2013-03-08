@@ -93,16 +93,16 @@ class IEC2VPCSubnetInfo(IComponentInfo):
     API Info interface for EC2VPCSubnet.
     '''
 
+    state = schema.TextLine(title=_t(u'State'))
     account = schema.Entity(title=_t(u'Account'))
     region = schema.Entity(title=_t(u'Region'))
-    vpc = schema.Entity(title=_t(u'VPC'))
     zone = schema.Entity(title=_t(u'Zone'))
+    vpc = schema.Entity(title=_t(u'VPC'))
     instance_count = schema.Int(title=_t(u'Number of Instances'))
-    available_ip_address_count = schema.Int(title=_t(u'Number of Available IP Addresses'))
     cidr_block = schema.TextLine(title=_t(u'CIDR Block'))
+    available_ip_address_count = schema.Int(title=_t(u'Number of Available IP Addresses'))
     defaultForAz = schema.Bool(title=_t(u'Default for Zone'))
     mapPublicIpOnLaunch = schema.Bool(title=_t(u'Map Public IP on Launch'))
-    state = schema.TextLine(title=_t(u'State'))
 
 
 class EC2VPCSubnetInfo(ComponentInfo):
@@ -113,11 +113,11 @@ class EC2VPCSubnetInfo(ComponentInfo):
     implements(IEC2VPCSubnetInfo)
     adapts(EC2VPCSubnet)
 
-    available_ip_address_count = ProxyProperty('available_ip_address_count')
+    state = ProxyProperty('state')
     cidr_block = ProxyProperty('cidr_block')
+    available_ip_address_count = ProxyProperty('available_ip_address_count')
     defaultForAz = ProxyProperty('defaultForAz')
     mapPublicIpOnLaunch = ProxyProperty('mapPublicIpOnLaunch')
-    state = ProxyProperty('state')
 
     @property
     @info
@@ -131,13 +131,13 @@ class EC2VPCSubnetInfo(ComponentInfo):
 
     @property
     @info
-    def vpc(self):
-        return self._object.vpc()
+    def zone(self):
+        return self._object.zone()
 
     @property
     @info
-    def zone(self):
-        return self._object.zone()
+    def vpc(self):
+        return self._object.vpc()
 
     @property
     def instance_count(self):

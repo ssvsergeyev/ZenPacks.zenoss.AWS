@@ -63,9 +63,9 @@ class IEC2VPCInfo(IComponentInfo):
     API Info interface for EC2VPC.
     '''
 
+    state = schema.TextLine(title=_t(u'State'))
     account = schema.Entity(title=_t(u'Account'))
     region = schema.Entity(title=_t(u'Region'))
-    state = schema.TextLine(title=_t(u'State'))
     cidr_block = schema.TextLine(title=_t(u'CIDR Block'))
     collector = schema.TextLine(title=_t(u'Collector'))
     vpc_subnet_count = schema.Int(title=_t('Number of VPC Subnets'))

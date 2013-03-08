@@ -80,9 +80,9 @@ class IEC2ZoneInfo(IComponentInfo):
     API Info interface for EC2Zone.
     '''
 
+    state = schema.TextLine(title=_t(u'State'))
     account = schema.Entity(title=_t(u'Account'))
     region = schema.Entity(title=_t(u'Region'))
-    state = schema.TextLine(title=_t(u'State'))
     instance_count = schema.Int(title=_t(u'Number of Instances'))
     volume_count = schema.Int(title=_t(u'Number of Volumes'))
     vpc_subnet_count = schema.Int(title=_t(u'Number of VPC Subnets'))
