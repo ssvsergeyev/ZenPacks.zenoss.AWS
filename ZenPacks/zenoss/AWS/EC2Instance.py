@@ -12,6 +12,7 @@ from zope.interface import implements
 
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont, ToOne
 
+from Products.Zuul.catalog.paths import DefaultPathReporter, relPath
 from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
@@ -22,6 +23,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME
 from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
 from ZenPacks.zenoss.AWS.utils import updateToOne, updateToMany
+
 
 class EC2Instance(AWSComponent):
     '''
@@ -164,3 +166,26 @@ class EC2InstanceInfo(ComponentInfo):
     @property
     def volume_count(self):
         return self._object.volumes.countObjects()
+
+
+class EC2InstancePathReporter(DefaultPathReporter):
+    '''
+    Path reporter for EC2Instance.
+    '''
+
+    def getPaths(self):
+        paths = super(EC2InstancePathReporter, self).getPaths()
+
+        zone = self.context.zone()
+        if zone:
+            paths.extend(relPath(zone, 'region'))
+
+        vpc_subnet = self.context.vpc_subnet()
+        if vpc_subnet:
+            paths.extend(relPath(vpc_subnet, 'region'))
+
+            vpc = vpc_subnet.vpc()
+            if vpc:
+                paths.extend(relPath(vpc, 'region'))
+
+        return paths

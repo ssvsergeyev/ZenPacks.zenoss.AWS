@@ -12,6 +12,7 @@ from zope.interface import implements
 
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont, ToOne
 
+from Products.Zuul.catalog.paths import DefaultPathReporter, relPath
 from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
@@ -131,3 +132,22 @@ class EC2VolumeInfo(ComponentInfo):
     @info
     def instance(self):
         return self._object.instance()
+
+
+class EC2VolumePathReporter(DefaultPathReporter):
+    '''
+    Path reporter for EC2Volume.
+    '''
+
+    def getPaths(self):
+        paths = super(EC2VolumePathReporter, self).getPaths()
+
+        zone = self.context.zone()
+        if zone:
+            paths.extend(relPath(zone, 'region'))
+
+        instance = self.context.instance()
+        if instance:
+            paths.extend(relPath(instance, 'region'))
+
+        return paths

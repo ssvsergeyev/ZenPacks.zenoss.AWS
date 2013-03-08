@@ -78,6 +78,25 @@
         factory=".EC2Zone.EC2ZoneInfo"
         />
 
+    <!-- Path Reporters -->
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".EC2Instance.EC2Instance"
+        factory=".EC2Instance.EC2InstancePathReporter"
+        />
+
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".EC2Volume.EC2Volume"
+        factory=".EC2Volume.EC2VolumePathReporter"
+        />
+
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".EC2VPCSubnet.EC2VPCSubnet"
+        factory=".EC2VPCSubnet.EC2VPCSubnetPathReporter"
+        />
+
     <!-- Browser -->
     <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
 
