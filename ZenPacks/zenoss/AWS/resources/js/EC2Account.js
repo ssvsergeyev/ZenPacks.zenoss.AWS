@@ -367,6 +367,97 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 Ext.reg('EC2VolumePanel', ZC.EC2VolumePanel);
 
 
+/* Subcomponent Panels */
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_instances',
+    text: _t('Instances'),
+    xtype: 'EC2InstancePanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            case 'EC2Zone': return true;
+            case 'EC2VPC': return true;
+            case 'EC2VPCSubnet': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2InstancePanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_volumes',
+    text: _t('Volumes'),
+    xtype: 'EC2VolumePanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            case 'EC2Zone': return true;
+            case 'EC2Instance': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2VolumePanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_vpcs',
+    text: _t('VPCs'),
+    xtype: 'EC2VPCPanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            case 'EC2Zone': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2VPCPanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_vpc_subnets',
+    text: _t('VPC Subnets'),
+    xtype: 'EC2VPCSubnetPanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            case 'EC2Zone': return true;
+            case 'EC2VPC': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2VPCSubnetPanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_zones',
+    text: _t('Zones'),
+    xtype: 'EC2ZonePanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2ZonePanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+
 /* Overview Panel Override */
 Ext.onReady(function(){
     var REMOTE = Zenoss.remote.AWSRouter;
