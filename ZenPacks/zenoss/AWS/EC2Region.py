@@ -7,8 +7,15 @@
 #
 ##############################################################################
 
+import logging
+LOG = logging.getLogger('zen.AWS')
+
+import operator
+
 from zope.component import adapts
 from zope.interface import implements
+
+from ZODB.transact import transact
 
 from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 
@@ -29,6 +36,8 @@ class EC2Region(AWSComponent):
 
     meta_type = portal_type = 'EC2Region'
 
+    _instance_device_ids = None
+
     _properties = AWSComponent._properties
 
     _relations = AWSComponent._relations + (
@@ -40,6 +49,36 @@ class EC2Region(AWSComponent):
         ('vpc_subnets', ToManyCont(
             ToOne, MODULE_NAME['EC2VPCSubnet'], 'region')),
         )
+
+    @transact
+    def discover_guests(self):
+        '''
+        Attempt to discover and link instance guest devices.
+        '''
+        map(operator.methodcaller('discover_guest'), self.instances())
+
+        # First discovery. Initialize our instance device ids storage.
+        if self._instance_device_ids is None:
+            self._instance_device_ids = set(self.instances.objectIds())
+            return
+
+        instance_device_ids = set(self.instances.objectIds())
+        terminated_device_ids = self._instance_device_ids.difference(
+            instance_device_ids)
+
+        # Delete guest devices for terminated instances.
+        for device_id in terminated_device_ids:
+            guest_device = self.findDeviceByIdExact(device_id)
+            if guest_device:
+                LOG.info(
+                    'Deleting device %s after instance %s was terminated',
+                    guest_device.titleOrId(),
+                    guest_device.id)
+
+                guest_device.deleteDevice()
+
+        # Store instance device ids for next run.
+        self._instance_device_ids = instance_device_ids
 
 
 class IEC2RegionInfo(IComponentInfo):

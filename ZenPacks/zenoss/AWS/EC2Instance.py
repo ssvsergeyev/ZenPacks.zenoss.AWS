@@ -7,11 +7,16 @@
 #
 ##############################################################################
 
+import logging
+LOG = logging.getLogger('zen.AWS')
+
 from zope.component import adapts
+from zope.event import notify
 from zope.interface import implements
 
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont, ToOne
 
+from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.catalog.paths import DefaultPathReporter, relPath
 from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
@@ -41,6 +46,10 @@ class EC2Instance(AWSComponent):
     private_ip_address = None
     public_dns_name = None
     launch_time = None
+
+    # Used to restore user-defined production state when a stopped
+    # instance is resumed.
+    _running_prodstate = 1000
 
     _properties = AWSComponent._properties + (
         {'id': 'instance_id', 'type': 'string'},
@@ -102,6 +111,144 @@ class EC2Instance(AWSComponent):
             CLASS_NAME['EC2VPCSubnet'],
             id_)
 
+    def vpc(self):
+        '''
+        Return the VPC for this instance or None.
+        '''
+        subnet = self.vpc_subnet()
+        if subnet:
+            return subnet.vpc()
+
+    def guest_manage_ip(self):
+        '''
+        Return the best manageIp for this instance's guest device or
+        None if no good option is found.
+        '''
+        if self.vpc():
+            return self.private_ip_address
+
+        if self.public_dns_name:
+            try:
+                import socket
+                return socket.gethostbyname(self.public_dns_name)
+            except socket.gaierror:
+                pass
+
+    def guest_device(self):
+        '''
+        Return guest device object or None if not found.
+        '''
+        # OPTIMIZE: On systems with a large number of devices it might
+        # be more optimal to first try searching only within
+        # instance.guest_deviceclass()
+
+        device = self.findDeviceByIdExact(self.id)
+        if device:
+            return device
+
+        if self.title and self.title != self.id:
+            device = self.findDeviceByIdExact(self.title)
+            if device:
+                return device
+
+        ip_address = self.guest_manage_ip()
+        if ip_address:
+            device = self.findDeviceByIdOrIp(ip_address)
+            if device:
+                return device
+
+    def guest_deviceclass(self):
+        '''
+        Return destination device class for this instance's guest device
+        or None if not set.
+        '''
+        path = None
+        if self.platform and 'windows' in self.platform.lower():
+            path = self.device().windowsDeviceClass
+        else:
+            path = self.device().linuxDeviceClass
+
+        return self.getDmdRoot('Devices').createOrganizer(path)
+
+    def guest_collector(self):
+        '''
+        Return the best collector for this instance's guest device.
+        '''
+        vpc = self.vpc()
+        if vpc and vpc.collector:
+            collector = self.getDmdRoot('Monitors').Performance._getOb(
+                vpc.collector, None)
+
+            if collector:
+                return collector
+
+        return self.getPerformanceServer()
+
+    def create_guest(self):
+        '''
+        Create guest device for this instance if it doesn't already
+        exist.
+        '''
+        deviceclass = self.guest_deviceclass()
+        if not deviceclass:
+            return
+
+        manage_ip = self.guest_manage_ip()
+        if not manage_ip:
+            return
+
+        collector = self.guest_collector()
+        if not collector:
+            return
+
+        if self.guest_device():
+            return
+
+        LOG.info(
+            'instance %s running. Discovering guest device',
+            self.titleOrId())
+
+        device = deviceclass.createInstance(self.id)
+        device.title = self.title
+        device.setManageIp(manage_ip)
+        device.setPerformanceMonitor(collector.id)
+        device.setProdState(self._running_prodstate)
+        device.index_object()
+        notify(IndexingEvent(device))
+
+        # Schedule a modeling job for the new device.
+        device.collectDevice(setlog=False, background=True)
+
+    def discover_guest(self):
+        '''
+        Attempt to discover and link guest device.
+        '''
+        deviceclass = self.guest_deviceclass()
+        if not deviceclass:
+            return
+
+        if self.state.lower() == 'running':
+            guest_device = self.guest_device()
+            if guest_device:
+                if guest_device.productionState != self._running_prodstate:
+                    LOG.info(
+                        'instance %s running. Changing guest device (%s) '
+                        'to production',
+                        self.titleOrId(), guest_device.titleOrId())
+
+                    guest_device.setProdState(self._running_prodstate)
+            else:
+                self.create_guest()
+
+        elif self.state.lower() == 'stopped':
+            guest_device = self.guest_device()
+            if guest_device:
+                LOG.info(
+                    'instance %s stopped. Decomissioning guest device (%s)',
+                    self.titleOrId(), guest_device.titleOrId())
+
+                guest_device.setProdState(-1)
+
 
 class IEC2InstanceInfo(IComponentInfo):
     '''
@@ -112,6 +259,7 @@ class IEC2InstanceInfo(IComponentInfo):
     account = schema.Entity(title=_t(u'Account'))
     region = schema.Entity(title=_t(u'Region'))
     zone = schema.Entity(title=_t(u'Zone'))
+    vpc = schema.Entity(title=_t(u'VPC'))
     vpc_subnet = schema.Entity(title=_t(u'VPC Subnet'))
     instance_id = schema.TextLine(title=_t(u'Instance ID'))
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
@@ -121,6 +269,7 @@ class IEC2InstanceInfo(IComponentInfo):
     private_ip_address = schema.TextLine(title=_t(u'Private IP Address'))
     launch_time = schema.TextLine(title=_t(u'Launch Time'))
     volume_count = schema.Int(title=_t(u'Number of Volumes'))
+    guest_device = schema.Entity(title=_t(u'Guest Device'))
 
 
 class EC2InstanceInfo(ComponentInfo):
@@ -157,12 +306,22 @@ class EC2InstanceInfo(ComponentInfo):
 
     @property
     @info
+    def vpc(self):
+        return self._object.vpc()
+
+    @property
+    @info
     def vpc_subnet(self):
         return self._object.vpc_subnet()
 
     @property
     def volume_count(self):
         return self._object.volumes.countObjects()
+
+    @property
+    @info
+    def guest_device(self):
+        return self._object.guest_device()
 
 
 class EC2InstancePathReporter(DefaultPathReporter):

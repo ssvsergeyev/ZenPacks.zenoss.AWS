@@ -156,4 +156,8 @@ class EC2VPCSubnetPathReporter(DefaultPathReporter):
         if zone:
             paths.extend(relPath(zone, 'region'))
 
+        vpc = self.context.vpc()
+        if vpc:
+            paths.extend(relPath(vpc, 'region'))
+
         return paths

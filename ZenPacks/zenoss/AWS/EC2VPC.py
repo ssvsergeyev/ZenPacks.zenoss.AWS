@@ -69,6 +69,7 @@ class IEC2VPCInfo(IComponentInfo):
     cidr_block = schema.TextLine(title=_t(u'CIDR Block'))
     collector = schema.TextLine(title=_t(u'Collector'))
     vpc_subnet_count = schema.Int(title=_t('Number of VPC Subnets'))
+    instance_count = schema.Int(title=_t(u'Number of Instances'))
 
 
 class EC2VPCInfo(ComponentInfo):
@@ -96,3 +97,8 @@ class EC2VPCInfo(ComponentInfo):
     @property
     def vpc_subnet_count(self):
         return self._object.vpc_subnets.countObjects()
+
+    @property
+    def instance_count(self):
+        return sum(
+            x.instances.countObjects() for x in self._object.vpc_subnets())

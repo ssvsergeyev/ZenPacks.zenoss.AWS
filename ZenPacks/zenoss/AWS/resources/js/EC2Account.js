@@ -35,10 +35,35 @@ Ext.apply(Zenoss.render, {
                 isLink = true;
         }
 
+        var guest_suffix = '';
+        if (obj.meta_type == 'EC2Instance') {
+            var guest = record.data.guest_device;
+            if (guest !== null) {
+                guest_suffix = ' (' +
+                    '<a href="' + guest.uid + '">guest</a>)';
+            }
+        }
+
+        var link = null;
         if (isLink) {
-            return '<a href="javascript:Ext.getCmp(\'component_card\').componentgrid.jumpToEntity(\''+obj.uid+'\', \''+obj.meta_type+'\');">'+obj.title+'</a>';
+            link = '<a href="javascript:Ext.getCmp(\'component_card\').componentgrid.jumpToEntity(\''+obj.uid+'\', \''+obj.meta_type+'\');">'+obj.title+'</a>';
         } else {
-            return obj.title;
+            link = obj.title;
+        }
+
+        return link + guest_suffix;
+    },
+
+    aws_nameWithGuest: function(obj, col, record) {
+        var instance = Zenoss.render.aws_entityLinkFromGrid(
+            obj, col, record);
+
+        var guest = record.data.guest_device;
+        if (guest !== null) {
+            return instance + ' (' +
+                '<a href="' + guest.uid + '">guest</a>)';
+        } else {
+            return instance;
         }
     }
 });
@@ -262,8 +287,10 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'monitor'},
                 {name: 'monitored'},
                 {name: 'locking'},
+                {name: 'guest_device'},
                 {name: 'region'},
                 {name: 'zone'},
+                {name: 'vpc'},
                 {name: 'vpc_subnet'},
                 {name: 'instance_type'},
                 {name: 'platform'},
@@ -299,6 +326,12 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Zone'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 95
+            },{
+                id: 'vpc',
+                dataIndex: 'vpc',
+                header: _t('VPC'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 100
             },{
                 id: 'vpc_subnet',
                 dataIndex: 'vpc_subnet',
@@ -467,7 +500,8 @@ ZC.EC2VPCPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'state'},
                 {name: 'cidr_block'},
                 {name: 'collector'},
-                {name: 'vpc_subnet_count'}
+                {name: 'vpc_subnet_count'},
+                {name: 'instance_count'}
             ],
             columns: [{
                 id: 'severity',
@@ -507,6 +541,11 @@ ZC.EC2VPCPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 dataIndex: 'vpc_subnet_count',
                 header: _t('Subnets'),
                 width: 90
+            },{
+                id: 'instance_count',
+                dataIndex: 'instance_count',
+                header: _t('Instances'),
+                width: 75
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',

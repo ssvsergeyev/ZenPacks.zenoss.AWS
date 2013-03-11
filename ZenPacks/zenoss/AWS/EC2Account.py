@@ -47,6 +47,36 @@ class EC2Account(Device):
             ToOne, MODULE_NAME['EC2Region'], 'account')),
         )
 
+    def getDiscoverGuests(self):
+        '''
+        Attempt to discover and link instance guest devices.
+
+        The modeler plugin calls setDiscoverGuests which will cause
+        ApplyDataMap to call this getter method first to validate that
+        the setter even needs to be run. For this reason, this method
+        must actually perform the discovery logic.
+        '''
+        self.discover_guests()
+
+        return True
+
+    def setDiscoverGuests(self, value):
+        '''
+        Attempt to discover and link instance guest devices.
+
+        This method should typically never be called because the
+        getDiscoverGuests method will always return the same value that
+        the modeler plugin sets.
+        '''
+        self.discover_guests()
+
+    def discover_guests(self):
+        '''
+        Attempt to discover and link instance guest devices.
+        '''
+        for region in self.regions():
+            region.discover_guests()
+
 
 class IEC2AccountInfo(IDeviceInfo):
     '''

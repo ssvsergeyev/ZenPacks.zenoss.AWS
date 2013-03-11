@@ -61,6 +61,7 @@ class EC2(PythonPlugin):
             ('volumes', []),
             ('VPCs', []),
             ('VPC subnets', []),
+            ('account', []),
             ])
 
         instance_filters = {
@@ -123,6 +124,11 @@ class EC2(PythonPlugin):
             relname='regions',
             modname=MODULE_NAME['EC2Region'],
             objmaps=region_oms))
+
+        # Trigger discovery of instance guest devices.
+        maps['account'].append(ObjectMap(data={
+            'setDiscoverGuests': True,
+            }))
 
         return list(chain.from_iterable(maps.itervalues()))
 
