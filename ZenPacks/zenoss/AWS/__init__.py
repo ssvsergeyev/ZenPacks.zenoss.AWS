@@ -9,6 +9,7 @@
 
 from Products.ZenModel.ZenPack import ZenPackBase
 
+
 # Modules containing model classes. Used by zenchkschema to validate
 # bidirectional integrity of defined relationships.
 productNames = (

@@ -14,6 +14,8 @@ from zope.component import adapts
 from zope.event import notify
 from zope.interface import implements
 
+from Products.AdvancedQuery import Eq
+
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont, ToOne
 
 from Products.Zuul.catalog.events import IndexingEvent
@@ -22,6 +24,7 @@ from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.infos.component import ComponentInfo
+from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.interfaces.component import IComponentInfo
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
@@ -345,3 +348,37 @@ class EC2InstancePathReporter(DefaultPathReporter):
                 paths.extend(relPath(vpc, 'region'))
 
         return paths
+
+
+def ec2_instance_for_device(device):
+    '''
+    Return EC2 instance for device or None.
+    '''
+    try:
+        ec2_deviceclass = device.getDmdRoot('Devices').getOrganizer('/AWS/EC2')
+    except Exception:
+        return
+
+    results = ICatalogTool(ec2_deviceclass).search(
+        types=(CLASS_NAME['EC2Instance'],),
+        query=Eq('id', device.id))
+
+    for brain in results:
+        return brain.getObject()
+
+
+class DeviceLinkProvider(object):
+    '''
+    Provides a link on the device overview page to the EC2 instance the
+    device is running within.
+    '''
+    def __init__(self, device):
+        self._device = device
+
+    def getExpandedLinks(self):
+        instance = ec2_instance_for_device(self._device)
+        if instance:
+            return ['<a href="%s">EC2 Instance</a>' % (
+                instance.getPrimaryUrlPath())]
+
+        return []

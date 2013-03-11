@@ -97,6 +97,15 @@
         factory=".EC2VPCSubnet.EC2VPCSubnetPathReporter"
         />
 
+    <!-- Device Links -->
+    <configure zcml:condition="have zenoss:IExpandedLinkProvider">
+        <subscriber
+            provides='Products.ZenModel.interfaces.IExpandedLinkProvider'
+            for='Products.ZenModel.Device.Device'
+            factory='.EC2Instance.DeviceLinkProvider'
+            />
+    </configure>
+
     <!-- Browser -->
     <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
 
