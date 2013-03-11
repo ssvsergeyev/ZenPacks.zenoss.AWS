@@ -39,7 +39,6 @@ class EC2Instance(AWSComponent):
     state = None
     platform = None
     private_ip_address = None
-    public_ip_address = None
     public_dns_name = None
     launch_time = None
 
@@ -118,9 +117,8 @@ class IEC2InstanceInfo(IComponentInfo):
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
     image_id = schema.TextLine(title=_t(u'Image ID'))
     platform = schema.TextLine(title=_t(u'Platform'))
-    private_ip_address = schema.TextLine(title=_t(u'Private IP Address'))
-    public_ip_address = schema.TextLine(title=_t(u'Public IP Address'))
     public_dns_name = schema.TextLine(title=_t(u'Public DNS Name'))
+    private_ip_address = schema.TextLine(title=_t(u'Private IP Address'))
     launch_time = schema.TextLine(title=_t(u'Launch Time'))
     volume_count = schema.Int(title=_t(u'Number of Volumes'))
 
@@ -138,9 +136,8 @@ class EC2InstanceInfo(ComponentInfo):
     image_id = ProxyProperty('image_id')
     state = ProxyProperty('state')
     platform = ProxyProperty('platform')
-    private_ip_address = ProxyProperty('private_ip_address')
-    public_ip_address = ProxyProperty('public_ip_address')
     public_dns_name = ProxyProperty('public_dns_name')
+    private_ip_address = ProxyProperty('private_ip_address')
     launch_time = ProxyProperty('launch_time')
 
     @property
