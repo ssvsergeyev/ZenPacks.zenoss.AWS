@@ -181,6 +181,10 @@ def updateToOne(relationship, root, type_, id_):
         # Index old object. It might have a custom path reporter.
         notify(IndexingEvent(old_obj.primaryAq(), 'path', False))
 
+    # No need to find new object if id_ is empty.
+    if not id_:
+        return
+
     # Find and add new object to relationship.
     root = root.primaryAq()
     query = Eq('id', id_)

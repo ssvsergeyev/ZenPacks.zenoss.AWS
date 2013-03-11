@@ -173,6 +173,9 @@ def instances_rm(region_id, reservations):
     '''
     instance_data = []
     for instance in chain.from_iterable(r.instances for r in reservations):
+        zone_id = prepId(instance.placement) if instance.placement else None
+        subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
+
         instance_data.append({
             'id': prepId(instance.id),
             'title': name_or(instance.tags, instance.id),
@@ -185,8 +188,8 @@ def instances_rm(region_id, reservations):
             'state': instance.state,
             'platform': getattr(instance, 'platform', ''),
             'monitor': instance.monitored,
-            'setZoneId': instance.placement,
-            'setVPCSubnetId': instance.subnet_id,
+            'setZoneId': zone_id,
+            'setVPCSubnetId': subnet_id,
             })
 
     return RelationshipMap(
@@ -203,6 +206,11 @@ def volumes_rm(region_id, volumes):
     '''
     volume_data = []
     for volume in volumes:
+        if volume.attach_data.instance_id:
+            instance_id = prepId(volume.attach_data.instance_id)
+        else:
+            instance_id = None
+
         volume_data.append({
             'id': prepId(volume.id),
             'title': name_or(volume.tags, volume.id),
@@ -212,7 +220,7 @@ def volumes_rm(region_id, volumes):
             'status': volume.status,
             'attach_data_status': volume.attach_data.status,
             'attach_data_devicepath': volume.attach_data.device,
-            'setInstanceId': volume.attach_data.instance_id,
+            'setInstanceId': instance_id,
             'setZoneId': volume.zone,
             })
 
