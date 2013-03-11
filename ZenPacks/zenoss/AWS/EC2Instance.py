@@ -235,9 +235,9 @@ class EC2Instance(AWSComponent):
             if guest_device:
                 if guest_device.productionState != self._running_prodstate:
                     LOG.info(
-                        'instance %s running. Changing guest device (%s) '
+                        'instance %s running. Changing guest device '
                         'to production',
-                        self.titleOrId(), guest_device.titleOrId())
+                        self.titleOrId())
 
                     guest_device.setProdState(self._running_prodstate)
             else:
@@ -246,11 +246,12 @@ class EC2Instance(AWSComponent):
         elif self.state.lower() == 'stopped':
             guest_device = self.guest_device()
             if guest_device:
-                LOG.info(
-                    'instance %s stopped. Decomissioning guest device (%s)',
-                    self.titleOrId(), guest_device.titleOrId())
+                if guest_device.productionState != -1:
+                    LOG.info(
+                        'instance %s stopped. Decommissioning guest device',
+                        self.titleOrId())
 
-                guest_device.setProdState(-1)
+                    guest_device.setProdState(-1)
 
 
 class IEC2InstanceInfo(IComponentInfo):
