@@ -104,6 +104,62 @@
             for='Products.ZenModel.Device.Device'
             factory='.EC2Instance.DeviceLinkProvider'
             />
+
+    </configure>
+
+    <!-- Impact -->
+    <configure zcml:condition="installed ZenPacks.zenoss.Impact">
+        <include package="ZenPacks.zenoss.Impact" file="meta.zcml"/>
+
+        <!-- RelationshipDataProviders -->
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2Account.EC2Account"
+            factory=".impact.EC2AccountRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2Region.EC2Region"
+            factory=".impact.EC2RegionRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2Zone.EC2Zone"
+            factory=".impact.EC2ZoneRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2VPC.EC2VPC"
+            factory=".impact.EC2VPCRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2VPCSubnet.EC2VPCSubnet"
+            factory=".impact.EC2VPCSubnetRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2Instance.EC2Instance"
+            factory=".impact.EC2InstanceRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2Volume.EC2Volume"
+            factory=".impact.EC2VolumeRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for="Products.ZenModel.Device.Device"
+            factory=".impact.DeviceRelationsProvider"
+            />
+
     </configure>
 
     <!-- Browser -->
