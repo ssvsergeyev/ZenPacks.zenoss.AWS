@@ -11,11 +11,15 @@
 API interfaces and default implementations.
 '''
 
+from zope.event import notify
 from zope.interface import implements
+
+from ZODB.transact import transact
 
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 
 from Products import Zuul
+from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IFacade
 from Products.Zuul.utils import ZuulMessageFactory as _t
@@ -51,17 +55,26 @@ class AWSFacade(ZuulFacade):
         if device:
             return False, _t("A device named %s already exists." % accountname)
 
-        devicePath = "/Devices/AWS/EC2"
+        @transact
+        def create_device():
+            dc = self._dmd.Devices.getOrganizer('/Devices/AWS/EC2')
 
-        dc = self._dmd.Devices.getOrganizer(devicePath)
+            account = dc.createInstance(accountname)
+            account.setPerformanceMonitor(collector)
 
-        account = dc.createInstance(accountname)
-        account.setPerformanceMonitor(collector)
+            account.ec2accesskey = accesskey
+            account.ec2secretkey = secretkey
 
-        account.ec2accesskey = accesskey
-        account.ec2secretkey = secretkey
+            account.index_object()
+            notify(IndexingEvent(account))
 
-        # TODO: Create a model job.
+        # This must be committed before the following model can be
+        # scheduled.
+        create_device()
+
+        # Schedule a modeling job for the new account.
+        account = deviceRoot.findDeviceByIdExact(accountname)
+        account.collectDevice(setlog=False, background=True)
 
         return True
 

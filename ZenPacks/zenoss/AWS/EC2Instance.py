@@ -171,7 +171,8 @@ class EC2Instance(AWSComponent):
         else:
             path = self.device().linuxDeviceClass
 
-        return self.getDmdRoot('Devices').createOrganizer(path)
+        if path:
+            return self.getDmdRoot('Devices').createOrganizer(path)
 
     def guest_collector(self):
         '''
