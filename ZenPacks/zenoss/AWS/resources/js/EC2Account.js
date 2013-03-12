@@ -38,7 +38,7 @@ Ext.apply(Zenoss.render, {
         var guest_suffix = '';
         if (obj.meta_type == 'EC2Instance') {
             var guest = record.data.guest_device;
-            if (guest !== null) {
+            if (guest) {
                 guest_suffix = ' (' +
                     '<a href="' + guest.uid + '">guest</a>)';
             }
@@ -52,19 +52,6 @@ Ext.apply(Zenoss.render, {
         }
 
         return link + guest_suffix;
-    },
-
-    aws_nameWithGuest: function(obj, col, record) {
-        var instance = Zenoss.render.aws_entityLinkFromGrid(
-            obj, col, record);
-
-        var guest = record.data.guest_device;
-        if (guest !== null) {
-            return instance + ' (' +
-                '<a href="' + guest.uid + '">guest</a>)';
-        } else {
-            return instance;
-        }
     }
 });
 
