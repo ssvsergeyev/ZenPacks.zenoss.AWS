@@ -57,10 +57,10 @@ class EC2(PythonPlugin):
             ('regions', []),
             ('instance types', []),
             ('zones', []),
-            ('instances', []),
-            ('volumes', []),
             ('VPCs', []),
             ('VPC subnets', []),
+            ('instances', []),
+            ('volumes', []),
             ('account', []),
             ])
 
@@ -94,6 +94,18 @@ class EC2(PythonPlugin):
                     region_id,
                     ec2regionconn.get_all_zones()))
 
+            # VPCs
+            maps['VPCs'].append(
+                vpcs_rm(
+                    region_id,
+                    vpcregionconn.get_all_vpcs()))
+
+            # VPC Subnets
+            maps['VPC subnets'].append(
+                vpc_subnets_rm(
+                    region_id,
+                    vpcregionconn.get_all_subnets()))
+
             # Instances
             maps['instances'].append(
                 instances_rm(
@@ -106,18 +118,6 @@ class EC2(PythonPlugin):
                 volumes_rm(
                     region_id,
                     ec2regionconn.get_all_volumes()))
-
-            # VPCs
-            maps['VPCs'].append(
-                vpcs_rm(
-                    region_id,
-                    vpcregionconn.get_all_vpcs()))
-
-            # VPC Subnets
-            maps['VPC subnets'].append(
-                vpc_subnets_rm(
-                    region_id,
-                    vpcregionconn.get_all_subnets()))
 
         # Regions
         maps['regions'].append(RelationshipMap(
@@ -170,6 +170,58 @@ def zones_rm(region_id, zones):
         relname='zones',
         modname=MODULE_NAME['EC2Zone'],
         objmaps=zone_data)
+
+
+def vpcs_rm(region_id, vpcs):
+    '''
+    Return vpcs RelationshipMap given region_id and VPCInfo ResultSet.
+    '''
+    vpc_data = []
+    for vpc in vpcs:
+        if 'Collector' in vpc.tags:
+            collector = prepId(vpc.tags['Collector'])
+        else:
+            collector = None
+
+        vpc_data.append({
+            'id': prepId(vpc.id),
+            'title': name_or(vpc.tags, vpc.id),
+            'cidr_block': vpc.cidr_block,
+            'state': vpc.state,
+            'collector': collector,
+            })
+
+    return RelationshipMap(
+        compname='regions/%s' % region_id,
+        relname='vpcs',
+        modname=MODULE_NAME['EC2VPC'],
+        objmaps=vpc_data)
+
+
+def vpc_subnets_rm(region_id, subnets):
+    '''
+    Return vpc_subnets RelationshipMap given region_id and a SubnetInfo
+    ResultSet.
+    '''
+    vpc_subnet_data = []
+    for subnet in subnets:
+        vpc_subnet_data.append({
+            'id': prepId(subnet.id),
+            'title': name_or(subnet.tags, subnet.id),
+            'available_ip_address_count': subnet.available_ip_address_count,
+            'cidr_block': subnet.cidr_block,
+            'defaultForAz': to_boolean(subnet.defaultForAz),
+            'mapPublicIpOnLaunch': to_boolean(subnet.mapPublicIpOnLaunch),
+            'state': subnet.state,
+            'setVPCId': subnet.vpc_id,
+            'setZoneId': subnet.availability_zone,
+            })
+
+    return RelationshipMap(
+        compname='regions/%s' % region_id,
+        relname='vpc_subnets',
+        modname=MODULE_NAME['EC2VPCSubnet'],
+        objmaps=vpc_subnet_data)
 
 
 def instances_rm(region_id, reservations):
@@ -235,55 +287,3 @@ def volumes_rm(region_id, volumes):
         relname='volumes',
         modname=MODULE_NAME['EC2Volume'],
         objmaps=volume_data)
-
-
-def vpcs_rm(region_id, vpcs):
-    '''
-    Return vpcs RelationshipMap given region_id and VPCInfo ResultSet.
-    '''
-    vpc_data = []
-    for vpc in vpcs:
-        if 'Collector' in vpc.tags:
-            collector = prepId(vpc.tags['Collector'])
-        else:
-            collector = None
-
-        vpc_data.append({
-            'id': prepId(vpc.id),
-            'title': name_or(vpc.tags, vpc.id),
-            'cidr_block': vpc.cidr_block,
-            'state': vpc.state,
-            'collector': collector,
-            })
-
-    return RelationshipMap(
-        compname='regions/%s' % region_id,
-        relname='vpcs',
-        modname=MODULE_NAME['EC2VPC'],
-        objmaps=vpc_data)
-
-
-def vpc_subnets_rm(region_id, subnets):
-    '''
-    Return vpc_subnets RelationshipMap given region_id and a SubnetInfo
-    ResultSet.
-    '''
-    vpc_subnet_data = []
-    for subnet in subnets:
-        vpc_subnet_data.append({
-            'id': prepId(subnet.id),
-            'title': name_or(subnet.tags, subnet.id),
-            'available_ip_address_count': subnet.available_ip_address_count,
-            'cidr_block': subnet.cidr_block,
-            'defaultForAz': to_boolean(subnet.defaultForAz),
-            'mapPublicIpOnLaunch': to_boolean(subnet.mapPublicIpOnLaunch),
-            'state': subnet.state,
-            'setVPCId': subnet.vpc_id,
-            'setZoneId': subnet.availability_zone,
-            })
-
-    return RelationshipMap(
-        compname='regions/%s' % region_id,
-        relname='vpc_subnets',
-        modname=MODULE_NAME['EC2VPCSubnet'],
-        objmaps=vpc_subnet_data)
