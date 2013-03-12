@@ -51,3 +51,9 @@ class AWSComponent(DeviceComponent, ManagedEntity):
                         obj, exc, self))
 
         raise ValueError('Device not found for %s' % self)
+
+    def getIconPath(self):
+        '''
+        Return the path to an icon for this component.
+        '''
+        return '/++resource++aws/img/%s.png' % self.meta_type

@@ -80,6 +80,13 @@ class EC2Instance(AWSComponent):
             ToMany, MODULE_NAME['EC2VPCSubnet'], 'instances')),
         )
 
+    def getIconPath(self):
+        '''
+        Return the path to an icon for this component.
+        '''
+        img_name = 'EC2Instance-cw' if self.monitor else 'EC2Instance'
+        return '/++resource++aws/img/%s.png' % img_name
+
     def getZoneId(self):
         zone = self.zone()
         if zone:
