@@ -1,0 +1,159 @@
+This ZenPack provides support for monitoring Amazon Web Services (AWS).
+Monitoring for the following EC2 entities is provided through a combination of
+the AWS EC2 and CloudWatch APIs.
+
+== Features ==
+
+The features added by this ZenPack can be summarized as follows. They are each
+detailed further below.
+
+* Discovery of EC2 entities.
+* Monitoring of CloudWatch metrics.
+* Optional auto-discovery and monitoring of instance guest operating systems.
+* Optional service impact with addition of Zenoss Service Dynamic product.
+
+=== Discovery ===
+
+The following entities will be automatically discovered through an account
+name, access key and secret key you provide. The attributes, tags and
+collections will be updated on Zenoss' normal remodeling interval which
+defaults to every 12 hours.
+
+;Regions
+: Attributes: ID
+: Collections: VPCs, Subnets, Zones, Instances, Volumes
+
+;Zones
+: Attributes: ID, Region, State
+: Collections: Instances, Volumes, Subnets
+
+;VPCs
+: Attributes: ID, Region, CIDR Block
+: Tags: Name, Collector
+: Collections: Subnets, Instances
+
+;Subnets
+: Attributes: ID, Region, VPC, Zone, State, CIDR Block, Available IP Address Count, Zone Default, Auto-Public IP
+: Tags: Name
+: Collections: Instances
+
+;Instances
+: Attributes: ID, Region, VPC, Zone, Subnet, State, Instance Type, Image ID, Platform, Public DNS Name, Private IP Address, Launch Time, Guest Device
+: Tags: Name
+: Collections: Volumes
+: Other: Guest Device (if monitored by Zenoss)
+
+;Volumes
+: Attributes: ID, Region, Zone, Instance, Created Time, Size, IOPS, Status, Attach Data Status, Attach Data Device
+: Tags: Name
+
+=== Monitoring ===
+
+The following metrics will be collected every 5 minutes by default. Any other
+CloudWatch metrics can also be collected by adding them to the appropriate
+monitoring template.
+
+;Instances
+: Metrics: CPUUtilization, DiskReadBytes, DiskWriteBytes, DiskReadOps, DiskWriteOps, NetworkIn, NetworkOut
+
+;Volumes
+: Metrics: VolumeQueueLength, VolumeReadBytes, VolumeIdleTime, VolumeReadOps
+
+=== Guest Device Discovery ===
+
+You can optionally configure each monitored AWS account to attempt to discover
+and monitor the guest Linux or Windows operating systems running within each
+EC2 instance. This requires that your Zenoss system has the network and server
+access it needs to monitor the guest operating system. VPC and non-VPC modes
+are supported.
+
+The guest operating system devices' life-cycle are managed along with the
+instance. For example, the guest operating system device is set to a
+decommissioned production state when the EC2 instance is stopped, and the
+guest operating system device is deleted when the EC2 instance is destroyed.
+
+=== Service Impact ===
+
+When combined with the Zenoss Service Dynamics product, this ZenPack adds
+built-in service impact capability for services running on AWS. The following
+service impact relationships are automatically added. These will be included
+in any services that contain one or more of the explicitly mentioned entities.
+
+;Service Impact Relationships
+* Account access failure impacts all regions.
+* Region failure affects all VPCs and zones in affected region.
+* VPC failure affects all related subnets.
+* Zone failure affects all related subnets, instances and volumes.
+* Subnet failure affects all instances on affected subnet.
+* Volume failure affects any attached instance.
+* Instance failure affects the guest operating system device.
+
+== Usage ==
+
+=== Adding AWS Accounts ===
+
+Use the following steps to start monitoring EC2 using the Zenoss web interface.
+
+# Navigate to the Infrastructure page.
+# Choose ''Add EC2 Account'' from the add device button.
+# Enter your AWS account name, access key and secret key.
+# Optionally choose a collector other than the default ''localhost''.
+# Click ''Add''.
+
+Alternatively you can use zenbatchload to add accounts from the command line.
+To do this, you must create a file with contents similar to the following.
+Replace all values in angle brackets with your values minus the brackets.
+Multiple accounts can be added under the same ''/Device/AWS/EC2'' section.
+
+<code>
+/Devices/AWS/EC2 loader='ec2account', loader_arg_keys=['accountname', 'accesskey', 'secretkey', 'collector']
+<accountname> accountname='<accountname>', accesskey='<accesskey>', secretkey='<secretkey>', collector='<collector>'
+</code>
+
+You can then load the account(s) with the following command.
+
+<console>
+$ ##i##zenbatchload <filename>
+</console>
+
+=== Configuring Guest Device Discovery ===
+
+Use the following steps to configure instance guest device discovery. Guest
+device discovery must be configured individually for each EC2 account.
+
+# Navigate to one of the EC2 accounts.
+# Click the edit link beside ''Device Class for Discovered Linux Instances''
+# Choose the device class for Linux and/or Windows instances.
+# Verify that appropriate SSH, SNMP or Windows credentials are configured for the chosen device class(es).
+# Remodel the EC2 account by choosing ''Model Device'' from its menu.
+
+If your instances are VPC instances, and are in a different VPC than the
+Zenoss server that's monitoring the EC2 account, you must add a ''Collector''
+tag to containing VPC with the value set to the name of the Zenoss collector
+to which discovered guest devices should be assigned.
+
+== Installed Items ==
+
+Installing this ZenPack will add the following items to your Zenoss system.
+
+;Device Classes
+* /AWS
+* /AWS/EC2
+
+;Modeler Plugins
+* aws.EC2
+
+;Monitoring Templates
+* EC2Instance (in /AWS/EC2)
+* EC2Volume (in /AWS/EC2)
+
+;Device Types
+* EC2Account (in /AWS/EC2)
+
+;Component Types
+* EC2Region (on EC2Account)
+* EC2VPC (on EC2Region)
+* EC2VPCSubnet (on EC2Region)
+* EC2Zone (on EC2Region)
+* EC2Instance (on EC2Region)
+* EC2Volume (on EC2Region)
