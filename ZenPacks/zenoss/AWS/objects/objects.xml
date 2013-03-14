@@ -450,7 +450,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 DiskReadOps_DiskReadOps
@@ -482,7 +482,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 DiskWriteOps_DiskWriteOps
@@ -545,7 +545,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 DiskReadBytes_DiskReadBytes
@@ -577,7 +577,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 DiskWriteBytes_DiskWriteBytes
@@ -640,7 +640,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 NetworkIn_NetworkIn
@@ -672,7 +672,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 NetworkOut_NetworkOut
@@ -929,7 +929,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 VolumeQueueLength_VolumeQueueLength
@@ -992,7 +992,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 VolumeReadOps_VolumeReadOps
@@ -1055,7 +1055,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 VolumeReadBytes_VolumeReadBytes
@@ -1118,7 +1118,7 @@ ${graphPoint/id}
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-300,/
+60,/
 </property>
 <property type="string" id="dpName" mode="w" >
 VolumeIdleTime_VolumeIdleTime

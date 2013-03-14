@@ -112,12 +112,12 @@
                 Read:
                     dpName: "DiskReadOps_DiskReadOps"
                     format: "%7.2lf%s"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
                 Write:
                     dpName: "DiskWriteOps_DiskWriteOps"
                     format: "%7.2lf%s"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
         Disk Throughput - Volume:
             units: "bytes/sec"
@@ -127,12 +127,12 @@
                 Read:
                     dpName: "DiskReadBytes_DiskReadBytes"
                     format: "%7.2lf%s"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
                 Write:
                     dpName: "DiskWriteBytes_DiskWriteBytes"
                     format: "%7.2lf%s"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
         Network Throughput:
             units: "bits/sec"
@@ -142,12 +142,12 @@
                 In:
                     dpName: "NetworkIn_NetworkIn"
                     format: "%7.2lf%s"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
                 Out:
                     dpName: "NetworkOut_NetworkOut"
                     format: "%7.2lf%s"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
 
 /AWS/EC2/EC2Instance-Detailed:
@@ -219,7 +219,7 @@
                 Waiting:
                     dpName: "VolumeQueueLength_VolumeQueueLength"
                     format: "%7.2lf%%"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
         Time:
             units: "seconds"
@@ -229,7 +229,7 @@
                 Idle:
                     dpName: "VolumeIdleTime_VolumeIdleTime"
                     format: "%9.2lf%%"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
         Throughput - Operations:
             units: "operations/sec"
@@ -239,7 +239,7 @@
                 Read:
                     dpName: "VolumeReadOps_VolumeReadOps"
                     format: "%7.2lf%s"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
         Throughput - Volume:
             units: "bytes/sec"
@@ -249,7 +249,7 @@
                 Read:
                     dpName: "VolumeReadBytes_VolumeReadBytes"
                     format: "%7.2lf%s"
-                    rpn: "300,/"
+                    rpn: "60,/"
 
 
 /AWS/EC2/EC2Volume-IOPS:
