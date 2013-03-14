@@ -53,6 +53,9 @@ class EC2VPCSubnet(AWSComponent):
         ('instances', ToMany(ToOne, MODULE_NAME['EC2Instance'], 'vpc_subnet')),
         )
 
+    def getRegionId(self):
+        return self.region().id
+
     def getVPCId(self):
         vpc = self.vpc()
         if vpc:

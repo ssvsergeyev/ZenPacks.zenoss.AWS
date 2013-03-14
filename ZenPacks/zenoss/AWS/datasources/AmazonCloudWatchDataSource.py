@@ -144,7 +144,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
         baseRequest['StartTime'] = (
             datetime.datetime.utcnow() -
             datetime.timedelta(
-                seconds=ds0.cycletime)).strftime(
+                seconds=ds0.cycletime + 59)).strftime(
                     '%Y-%m-%dT%H:%M:%S.000Z')
 
         baseRequest['EndTime'] = datetime.datetime.utcnow().strftime(

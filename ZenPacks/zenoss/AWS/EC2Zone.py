@@ -44,6 +44,9 @@ class EC2Zone(AWSComponent):
         ('vpc_subnets', ToMany(ToOne, MODULE_NAME['EC2VPCSubnet'], 'zone')),
         )
 
+    def getRegionId(self):
+        return self.region().id
+
     def getInstanceIds(self):
         return sorted(self.instances.objectIds())
 

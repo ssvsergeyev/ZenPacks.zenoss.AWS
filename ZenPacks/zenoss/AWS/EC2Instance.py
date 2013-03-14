@@ -119,6 +119,9 @@ class EC2Instance(AWSComponent):
 
         return templates
 
+    def getRegionId(self):
+        return self.region().id
+
     def getZoneId(self):
         zone = self.zone()
         if zone:

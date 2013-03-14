@@ -69,6 +69,9 @@ class EC2Volume(AWSComponent):
 
         return templates
 
+    def getRegionId(self):
+        return self.region().id
+
     def getZoneId(self):
         zone = self.zone()
         if zone:

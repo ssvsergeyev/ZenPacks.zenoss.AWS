@@ -9,7 +9,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "InstanceId=${here/id}"
 
             datapoints:
@@ -22,7 +22,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "InstanceId=${here/id}"
 
             datapoints:
@@ -35,7 +35,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "InstanceId=${here/id}"
 
             datapoints:
@@ -48,7 +48,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "InstanceId=${here/id}"
 
             datapoints:
@@ -61,7 +61,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "InstanceId=${here/id}"
 
             datapoints:
@@ -74,7 +74,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "InstanceId=${here/id}"
 
             datapoints:
@@ -87,7 +87,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "InstanceId=${here/id}"
 
             datapoints:
@@ -165,7 +165,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EBS"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "VolumeId=${here/id}"
 
             datapoints:
@@ -178,7 +178,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EBS"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "VolumeId=${here/id}"
 
             datapoints:
@@ -191,7 +191,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EBS"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "VolumeId=${here/id}"
 
             datapoints:
@@ -204,7 +204,7 @@
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EBS"
-            region: "${here/region/id}"
+            region: "${here/getRegionId}"
             dimension: "VolumeId=${here/id}"
 
             datapoints:

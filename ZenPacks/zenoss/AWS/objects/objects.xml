@@ -44,7 +44,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EC2
@@ -89,7 +89,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EC2
@@ -134,7 +134,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EC2
@@ -179,7 +179,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EC2
@@ -224,7 +224,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EC2
@@ -269,7 +269,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EC2
@@ -314,7 +314,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EC2
@@ -718,7 +718,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EBS
@@ -763,7 +763,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EBS
@@ -808,7 +808,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EBS
@@ -853,7 +853,7 @@ ${here/id}
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="region" >
-${here/region/id}
+${here/getRegionId}
 </property>
 <property type="string" id="namespace" >
 AWS/EBS
