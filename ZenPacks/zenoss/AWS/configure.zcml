@@ -31,9 +31,9 @@
 
     <!-- API: Infos -->
     <adapter
-        provides=".datasources.AWSDataSource.IAWSDataSourceInfo"
-        for=".datasources.AWSDataSource.AWSDataSource"
-        factory=".datasources.AWSDataSource.AWSDataSourceInfo"
+        provides=".datasources.AmazonCloudWatchDataSource.IAmazonCloudWatchDataSourceInfo"
+        for=".datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSource"
+        factory=".datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourceInfo"
         />
 
     <adapter

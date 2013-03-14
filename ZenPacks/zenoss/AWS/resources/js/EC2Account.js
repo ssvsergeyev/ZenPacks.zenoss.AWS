@@ -275,7 +275,6 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'guest_device'},
-                {name: 'region'},
                 {name: 'zone'},
                 {name: 'vpc'},
                 {name: 'vpc_subnet'},
@@ -301,12 +300,6 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 dataIndex: 'state',
                 header: _t('State'),
                 width: 80
-            },{
-                id: 'region',
-                dataIndex: 'region',
-                header: _t('Region'),
-                renderer: Zenoss.render.aws_entityLinkFromGrid,
-                width: 90
             },{
                 id: 'zone',
                 dataIndex: 'zone',
@@ -382,7 +375,6 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'monitor'},
                 {name: 'monitored'},
                 {name: 'locking'},
-                {name: 'region'},
                 {name: 'zone'},
                 {name: 'instance'},
                 {name: 'size'},
@@ -408,12 +400,6 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Status'),
                 width: 80
             },{
-                id: 'region',
-                dataIndex: 'region',
-                header: _t('Region'),
-                renderer: Zenoss.render.aws_entityLinkFromGrid,
-                width: 90
-            },{
                 id: 'zone',
                 dataIndex: 'zone',
                 header: _t('Zone'),
@@ -424,7 +410,7 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 dataIndex: 'instance',
                 header: _t('Instance'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
-                width: 80
+                width: 150
             },{
                 id: 'size',
                 dataIndex: 'size',
@@ -571,7 +557,6 @@ ZC.EC2VPCSubnetPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'state'},
-                {name: 'region'},
                 {name: 'zone'},
                 {name: 'vpc'},
                 {name: 'cidr_block'},
@@ -595,12 +580,6 @@ ZC.EC2VPCSubnetPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 dataIndex: 'state',
                 header: _t('State'),
                 width: 80
-            },{
-                id: 'region',
-                dataIndex: 'region',
-                header: _t('Region'),
-                renderer: Zenoss.render.aws_entityLinkFromGrid,
-                width: 90
             },{
                 id: 'zone',
                 dataIndex: 'zone',

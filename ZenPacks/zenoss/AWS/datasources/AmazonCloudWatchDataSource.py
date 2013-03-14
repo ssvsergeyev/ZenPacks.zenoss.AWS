@@ -25,9 +25,7 @@ from zope.component import adapts
 from zope.interface import implements
 
 from Products.Zuul.form import schema
-from Products.ZenUtils.Utils import prepId
 from Products.Zuul.infos import ProxyProperty
-from Products.ZenEvents import ZenEventClasses
 from Products.Zuul.infos.template import RRDDataSourceInfo
 from Products.Zuul.interfaces import IRRDDataSourceInfo
 from Products.Zuul.utils import ZuulMessageFactory as _t
@@ -39,15 +37,17 @@ from ZenPacks.zenoss.AWS.utils \
     import awsUrlSign, result_errmsg, lookup_cwregion
 
 
-class AWSDataSource(PythonDataSource):
-    """Datasource used to capture datapoints from AWS CloudWatch."""
+class AmazonCloudWatchDataSource(PythonDataSource):
+    '''
+    Datasource used to capture datapoints from Amazon CloudWatch.
+    '''
 
     ZENPACKID = 'ZenPacks.zenoss.AWS'
 
-    sourcetypes = ('AWS',)
+    sourcetypes = ('Amazon CloudWatch',)
     sourcetype = sourcetypes[0]
 
-    plugin_classname = 'ZenPacks.zenoss.AWS.datasources.AWSDataSource.AWSDataSourcePlugin'
+    plugin_classname = 'ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin'
 
     region = ''
     namespace = ''
@@ -60,24 +60,31 @@ class AWSDataSource(PythonDataSource):
         )
 
 
-class IAWSDataSourceInfo(IRRDDataSourceInfo):
+class IAmazonCloudWatchDataSourceInfo(IRRDDataSourceInfo):
+    '''
+    API Info interface for AmazonCloudWatchDataSource.
+    '''
 
     namespace = schema.TextLine(
-        group=_t('AWS'),
+        group=_t('Amazon CloudWatch'),
         title=_t('Namespace'))
 
     region = schema.TextLine(
-        group=_t('AWS'),
+        group=_t('Amazon CloudWatch'),
         title=_t('Region'))
 
     result_component_key = schema.TextLine(
-        group=_t('AWS'),
+        group=_t('Amazon CloudWatch'),
         title=_t('Result Component Key'))
 
 
-class AWSDataSourceInfo(RRDDataSourceInfo):
-    implements(IAWSDataSourceInfo)
-    adapts(AWSDataSource)
+class AmazonCloudWatchDataSourceInfo(RRDDataSourceInfo):
+    '''
+    API Info adapter factory for AmazonCloudWatchDataSource.
+    '''
+
+    implements(IAmazonCloudWatchDataSourceInfo)
+    adapts(AmazonCloudWatchDataSource)
 
     testable = False
 
@@ -88,15 +95,13 @@ class AWSDataSourceInfo(RRDDataSourceInfo):
     result_component_key = ProxyProperty('result_component_key')
 
 
-class AWSDataSourcePlugin(PythonDataSourcePlugin):
+class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
     proxy_attributes = (
         'ec2accesskey', 'ec2secretkey',
         )
 
     @classmethod
     def config_key(cls, datasource, context):
-
-        params = cls.params(datasource, context)
         return(
             context.device().id,
             datasource.getCycleTime(context),
@@ -136,8 +141,10 @@ class AWSDataSourcePlugin(PythonDataSourcePlugin):
 
         httpRequest = {}
         httpRequest['Action'] = 'GetMetricStatistics'
-        httpRequest['StartTime'] = (datetime.datetime.utcnow() - \
+        httpRequest['StartTime'] = (
+            datetime.datetime.utcnow() -
             datetime.timedelta(seconds=cycletime)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+
         httpRequest['EndTime'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.000Z')
         httpRequest['Period'] = 300
         httpRequest['SignatureMethod'] = 'HmacSHA256'
@@ -160,11 +167,12 @@ class AWSDataSourcePlugin(PythonDataSourcePlugin):
             httpRequest['Dimensions.member.1.Value'] = ds.component
             awsKeys = (accesskey, secretkey)
 
-            getURL = awsUrlSign(httpVerb,
-                        hostHeader,
-                        uriRequest,
-                        httpRequest,
-                        awsKeys)
+            getURL = awsUrlSign(
+                httpVerb,
+                hostHeader,
+                uriRequest,
+                httpRequest,
+                awsKeys)
 
             getURL = 'http://%s' % getURL
             backoff = backoff + .01
@@ -177,7 +185,6 @@ class AWSDataSourcePlugin(PythonDataSourcePlugin):
         defer.returnValue(results)
 
     def onSuccess(self, results, config):
-
         resultTree = {}
 
         for result in results:
@@ -189,16 +196,17 @@ class AWSDataSourcePlugin(PythonDataSourcePlugin):
                 if timeMatch:
                     try:
                         timeValue = calendar.timegm(
-                                time.strptime(timeMatch.group(1), '%Y-%m-%dT%H:%M:%SZ')
-                                )
+                            time.strptime(timeMatch.group(1), '%Y-%m-%dT%H:%M:%SZ'))
                     except:
                         timeValue = calendar.timegm(datetime.datetime.utcnow().timetuple())
                 else:
                     timeValue = calendar.timegm(datetime.datetime.utcnow().timetuple())
 
-                resultTree[result[0]] = {'Value': valueMatch.group(1),
-                                        'Datapoint': datapoint,
-                                        'Time': timeValue}
+                resultTree[result[0]] = {
+                    'Value': valueMatch.group(1),
+                    'Datapoint': datapoint,
+                    'Time': timeValue,
+                    }
 
         data = self.new_data()
         for instanceID in resultTree:
@@ -207,8 +215,7 @@ class AWSDataSourcePlugin(PythonDataSourcePlugin):
             timestamp = resultTree[instanceID]['Time']
             metricvalue = resultTree[instanceID]['Value']
 
-            data['values'][component_id][datapoint] = \
-                        (metricvalue, timestamp)
+            data['values'][component_id][datapoint] = (metricvalue, timestamp)
 
         data['events'].append({
             'eventClassKey': 'AWSCloudWatchSuccess',
@@ -233,4 +240,3 @@ class AWSDataSourcePlugin(PythonDataSourcePlugin):
             })
 
         return data
-

@@ -245,7 +245,7 @@ def instances_rm(region_id, reservations):
             'launch_time': instance.launch_time,
             'state': instance.state,
             'platform': getattr(instance, 'platform', ''),
-            'monitor': instance.monitored,
+            'detailed_monitoring': instance.monitored,
             'setZoneId': zone_id,
             'setVPCSubnetId': subnet_id,
             })

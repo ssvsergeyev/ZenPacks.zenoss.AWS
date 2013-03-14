@@ -55,6 +55,20 @@ class EC2Volume(AWSComponent):
         ('instance', ToOne(ToMany, MODULE_NAME['EC2Instance'], 'volumes')),
         )
 
+    def getRRDTemplates(self):
+        template_names = ['EC2Volume']
+
+        if self.iops:
+            template_names.append('EC2Volume-IOPS')
+
+        templates = []
+        for template_name in template_names:
+            template = self.getRRDTemplateByName(template_name)
+            if template:
+                templates.append(template)
+
+        return templates
+
     def getZoneId(self):
         zone = self.zone()
         if zone:

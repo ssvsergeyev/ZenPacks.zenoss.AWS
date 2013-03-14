@@ -49,6 +49,7 @@ class EC2Instance(AWSComponent):
     private_ip_address = None
     public_dns_name = None
     launch_time = None
+    detailed_monitoring = None
 
     # Used to restore user-defined production state when a stopped
     # instance is resumed.
@@ -64,6 +65,7 @@ class EC2Instance(AWSComponent):
         {'id': 'state', 'type': 'string'},
         {'id': 'region', 'type': 'string'},
         {'id': 'platform', 'type': 'string'},
+        {'id': 'detailed_monitoring', 'type': 'boolean'},
         )
 
     _relations = AWSComponent._relations + (
@@ -84,8 +86,38 @@ class EC2Instance(AWSComponent):
         '''
         Return the path to an icon for this component.
         '''
-        img_name = 'EC2Instance-cw' if self.monitor else 'EC2Instance'
+        if self.detailed_monitoring:
+            img_name = 'EC2Instance-cw'
+        else:
+            img_name = 'EC2Instance'
+
         return '/++resource++aws/img/%s.png' % img_name
+
+    def monitored(self):
+        '''
+        Return True if this instance should be monitored. False
+        otherwise.
+        '''
+        if self.state.lower() == 'running':
+            return True
+
+        return False
+
+    def getRRDTemplates(self):
+        template_names = ['EC2Instance']
+
+        if self.detailed_monitoring:
+            template_names.append('EC2Instance-Detailed')
+
+        template_names.append('EC2Instance-Custom')
+
+        templates = []
+        for template_name in template_names:
+            template = self.getRRDTemplateByName(template_name)
+            if template:
+                templates.append(template)
+
+        return templates
 
     def getZoneId(self):
         zone = self.zone()
@@ -280,6 +312,7 @@ class IEC2InstanceInfo(IComponentInfo):
     public_dns_name = schema.TextLine(title=_t(u'Public DNS Name'))
     private_ip_address = schema.TextLine(title=_t(u'Private IP Address'))
     launch_time = schema.TextLine(title=_t(u'Launch Time'))
+    detailed_monitoring = schema.Bool(title=_t(u'Detailed Monitoring'))
     volume_count = schema.Int(title=_t(u'Number of Volumes'))
     guest_device = schema.Entity(title=_t(u'Guest Device'))
 
@@ -300,6 +333,7 @@ class EC2InstanceInfo(ComponentInfo):
     public_dns_name = ProxyProperty('public_dns_name')
     private_ip_address = ProxyProperty('private_ip_address')
     launch_time = ProxyProperty('launch_time')
+    detailed_monitoring = ProxyProperty('detailed_monitoring')
 
     @property
     @info
