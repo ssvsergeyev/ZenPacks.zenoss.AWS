@@ -20,10 +20,10 @@ from twisted.web.client import getPage
 from twisted.internet import reactor, defer
 from twisted.internet.defer import inlineCallbacks
 
-
 from zope.component import adapts
 from zope.interface import implements
 
+from Products.ZenEvents import ZenEventClasses
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.infos.template import RRDDataSourceInfo
@@ -51,12 +51,12 @@ class AmazonCloudWatchDataSource(PythonDataSource):
 
     region = ''
     namespace = ''
-    result_component_key = ''
+    dimension = ''
 
     _properties = PythonDataSource._properties + (
         {'id': 'region', 'type': 'string'},
         {'id': 'namespace', 'type': 'string'},
-        {'id': 'result_component_key', 'type': 'string'},
+        {'id': 'dimension', 'type': 'string'},
         )
 
 
@@ -73,9 +73,9 @@ class IAmazonCloudWatchDataSourceInfo(IRRDDataSourceInfo):
         group=_t('Amazon CloudWatch'),
         title=_t('Region'))
 
-    result_component_key = schema.TextLine(
+    dimension = schema.TextLine(
         group=_t('Amazon CloudWatch'),
-        title=_t('Result Component Key'))
+        title=_t('Dimension (i.e. InstanceId=${here/id})'))
 
 
 class AmazonCloudWatchDataSourceInfo(RRDDataSourceInfo):
@@ -92,7 +92,18 @@ class AmazonCloudWatchDataSourceInfo(RRDDataSourceInfo):
 
     region = ProxyProperty('region')
     namespace = ProxyProperty('namespace')
-    result_component_key = ProxyProperty('result_component_key')
+    dimension = ProxyProperty('dimension')
+
+
+def timestamp_from_cloudwatch(cloudwatch_time_string):
+    try:
+        return calendar.timegm(
+            time.strptime(cloudwatch_time_string, '%Y-%m-%dT%H:%M:%SZ'))
+
+    except Exception:
+        pass
+
+    return calendar.timegm(datetime.datetime.utcnow().timetuple())
 
 
 class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
@@ -112,45 +123,37 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
     @classmethod
     def params(cls, datasource, context):
-        params = {}
-
-        params['result_component_key'] = datasource.talesEval(
-            datasource.result_component_key, context)
-        params['namespace'] = datasource.talesEval(
-            datasource.namespace, context)
-        params['region'] = datasource.talesEval(
-            datasource.region, context)
-
-        return params
+        return {
+            'region': datasource.talesEval(datasource.region, context),
+            'namespace': datasource.talesEval(datasource.namespace, context),
+            'dimension': datasource.talesEval(datasource.dimension, context),
+            }
 
     @inlineCallbacks
     def collect(self, config):
-
         results = []
 
         ds0 = config.datasources[0]
-
-        accesskey = ds0.ec2accesskey
-        secretkey = ds0.ec2secretkey
-
-        cycletime = 300
 
         # Static for performance collection
         httpVerb = 'GET'
         uriRequest = '/'
 
-        httpRequest = {}
-        httpRequest['Action'] = 'GetMetricStatistics'
-        httpRequest['StartTime'] = (
+        baseRequest = {}
+        baseRequest['Action'] = 'GetMetricStatistics'
+        baseRequest['StartTime'] = (
             datetime.datetime.utcnow() -
-            datetime.timedelta(seconds=cycletime)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+            datetime.timedelta(
+                seconds=ds0.cycletime)).strftime(
+                    '%Y-%m-%dT%H:%M:%S.000Z')
 
-        httpRequest['EndTime'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.000Z')
-        httpRequest['Period'] = 300
-        httpRequest['SignatureMethod'] = 'HmacSHA256'
-        httpRequest['SignatureVersion'] = '2'
-        httpRequest['Version'] = '2010-08-01'
-        httpRequest['Statistics.member.1'] = 'Maximum'
+        baseRequest['EndTime'] = datetime.datetime.utcnow().strftime(
+            '%Y-%m-%dT%H:%M:%S.000Z')
+
+        baseRequest['Period'] = ds0.cycletime
+        baseRequest['SignatureMethod'] = 'HmacSHA256'
+        baseRequest['SignatureVersion'] = '2'
+        baseRequest['Version'] = '2010-08-01'
 
         backoff = 0
 
@@ -161,18 +164,23 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
         for ds in config.datasources:
             hostHeader = lookup_cwregion(ds.params['region'])
+
+            httpRequest = baseRequest.copy()
             httpRequest['MetricName'] = ds.datasource
             httpRequest['Namespace'] = ds.params['namespace']
-            httpRequest['Dimensions.member.1.Name'] = ds.params['result_component_key']
-            httpRequest['Dimensions.member.1.Value'] = ds.component
-            awsKeys = (accesskey, secretkey)
+
+            dim_name, dim_value = ds.params['dimension'].split('=')
+
+            httpRequest['Dimensions.member.1.Name'] = dim_name
+            httpRequest['Dimensions.member.1.Value'] = dim_value
+            httpRequest['Statistics.member.1'] = 'Average'
 
             getURL = awsUrlSign(
                 httpVerb,
                 hostHeader,
                 uriRequest,
                 httpRequest,
-                awsKeys)
+                (ds0.ec2accesskey, ds0.ec2secretkey))
 
             getURL = 'http://%s' % getURL
             backoff = backoff + .01
@@ -180,48 +188,33 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             result = yield getPage(getURL)
             pause = yield sleep(backoff)
             result = result.replace("\n", "")
-            results.append((ds.component, ds.datasource, result))
+            results.append((ds, result))
 
         defer.returnValue(results)
 
     def onSuccess(self, results, config):
-        resultTree = {}
-
-        for result in results:
-            valueMatch = re.search('<Maximum>(.*)</Maximum>', result[2])
-            timeMatch = re.search('<Timestamp>(.*)</Timestamp>', result[2])
-            datapoint = result[1]
-
-            if valueMatch:
-                if timeMatch:
-                    try:
-                        timeValue = calendar.timegm(
-                            time.strptime(timeMatch.group(1), '%Y-%m-%dT%H:%M:%SZ'))
-                    except:
-                        timeValue = calendar.timegm(datetime.datetime.utcnow().timetuple())
-                else:
-                    timeValue = calendar.timegm(datetime.datetime.utcnow().timetuple())
-
-                resultTree[result[0]] = {
-                    'Value': valueMatch.group(1),
-                    'Datapoint': datapoint,
-                    'Time': timeValue,
-                    }
-
         data = self.new_data()
-        for instanceID in resultTree:
-            component_id = instanceID
-            datapoint = resultTree[instanceID]['Datapoint']
-            timestamp = resultTree[instanceID]['Time']
-            metricvalue = resultTree[instanceID]['Value']
 
-            data['values'][component_id][datapoint] = (metricvalue, timestamp)
+        for datasource, result in results:
+            valueMatch = re.search(r'<Average>(.*)</Average>', result)
+            if not valueMatch:
+                continue
+
+            timeMatch = re.search(r'<Timestamp>(.*)</Timestamp>', result)
+            if not timeMatch:
+                continue
+
+            timeValue = timestamp_from_cloudwatch(timeMatch.group(1))
+
+            data['values'][datasource.component][datasource.datasource] = (
+                valueMatch.group(1), timeValue)
 
         data['events'].append({
-            'eventClassKey': 'AWSCloudWatchSuccess',
-            'eventKey': 'awsCloudWatchCollection',
+            'device': config.id,
             'summary': 'AWS CloudWatch: successful metrics collection',
-            'device': config.id
+            'severity': ZenEventClasses.Clear,
+            'eventKey': 'awsCloudWatchCollection',
+            'eventClassKey': 'AWSCloudWatchSuccess',
             })
 
         return data
@@ -233,10 +226,11 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
         data = self.new_data()
         data['events'].append({
-            'eventClassKey': 'AWSCloudWatchError',
-            'eventKey': 'awsCloudWatchCollection',
-            'summary': errmsg,
             'device': config.id,
+            'summary': errmsg,
+            'severity': ZenEventClasses.Error,
+            'eventKey': 'awsCloudWatchCollection',
+            'eventClassKey': 'AWSCloudWatchError',
             })
 
         return data

@@ -98,7 +98,7 @@ class EC2Instance(AWSComponent):
         Return True if this instance should be monitored. False
         otherwise.
         '''
-        if self.state.lower() == 'running':
+        if self.state and self.state.lower() == 'running':
             return True
 
         return False
@@ -266,6 +266,9 @@ class EC2Instance(AWSComponent):
         '''
         Attempt to discover and link guest device.
         '''
+        if not self.state:
+            return
+
         deviceclass = self.guest_deviceclass()
         if not deviceclass:
             return

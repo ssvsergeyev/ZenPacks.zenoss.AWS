@@ -4,91 +4,91 @@
     datasources:
         CPUUtilization:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
             region: "${here/region/id}"
-            result_component_key: "InstanceId"
+            dimension: "InstanceId=${here/id}"
 
             datapoints:
                 CPUUtilization: GAUGE_MIN_0
 
         DiskReadOps:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
             region: "${here/region/id}"
-            result_component_key: "InstanceId"
+            dimension: "InstanceId=${here/id}"
 
             datapoints:
                 DiskReadOps: GAUGE_MIN_0
 
         DiskWriteOps:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
             region: "${here/region/id}"
-            result_component_key: "InstanceId"
+            dimension: "InstanceId=${here/id}"
 
             datapoints:
                 DiskWriteOps: GAUGE_MIN_0
 
         DiskReadBytes:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
             region: "${here/region/id}"
-            result_component_key: "InstanceId"
+            dimension: "InstanceId=${here/id}"
 
             datapoints:
                 DiskReadBytes: GAUGE_MIN_0
 
         DiskWriteBytes:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
             region: "${here/region/id}"
-            result_component_key: "InstanceId"
+            dimension: "InstanceId=${here/id}"
 
             datapoints:
                 DiskWriteBytes: GAUGE_MIN_0
 
         NetworkIn:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
             region: "${here/region/id}"
-            result_component_key: "InstanceId"
+            dimension: "InstanceId=${here/id}"
 
             datapoints:
                 NetworkIn: GAUGE_MIN_0
 
         NetworkOut:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EC2"
             region: "${here/region/id}"
-            result_component_key: "InstanceId"
+            dimension: "InstanceId=${here/id}"
 
             datapoints:
                 NetworkOut: GAUGE_MIN_0
@@ -160,52 +160,52 @@
     datasources:
         VolumeQueueLength:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EBS"
             region: "${here/region/id}"
-            result_component_key: "VolumeId"
+            dimension: "VolumeId=${here/id}"
 
             datapoints:
                 VolumeQueueLength: GAUGE_MIN_0
 
         VolumeIdleTime:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EBS"
             region: "${here/region/id}"
-            result_component_key: "VolumeId"
+            dimension: "VolumeId=${here/id}"
 
             datapoints:
                 VolumeIdleTime: GAUGE_MIN_0
 
         VolumeReadOps:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EBS"
             region: "${here/region/id}"
-            result_component_key: "VolumeId"
+            dimension: "VolumeId=${here/id}"
 
             datapoints:
                 VolumeReadOps: GAUGE_MIN_0
 
         VolumeReadBytes:
             type: Amazon CloudWatch
-            severity: Clear
+            severity: Error
             eventClass: /Ignore
             cycletime: 300
             component: "${here/id}"
             namespace: "AWS/EBS"
             region: "${here/region/id}"
-            result_component_key: "VolumeId"
+            dimension: "VolumeId=${here/id}"
 
             datapoints:
                 VolumeReadBytes: GAUGE_MIN_0

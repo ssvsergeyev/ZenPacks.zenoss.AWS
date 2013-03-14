@@ -35,7 +35,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -49,8 +49,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
-<property type="string" id="result_component_key" >
-InstanceId
+<property type="string" id="dimension" >
+InstanceId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='CPUUtilization' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -80,7 +80,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -94,8 +94,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
-<property type="string" id="result_component_key" >
-InstanceId
+<property type="string" id="dimension" >
+InstanceId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskReadBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -125,7 +125,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -139,8 +139,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
-<property type="string" id="result_component_key" >
-InstanceId
+<property type="string" id="dimension" >
+InstanceId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskReadOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -170,7 +170,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -184,8 +184,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
-<property type="string" id="result_component_key" >
-InstanceId
+<property type="string" id="dimension" >
+InstanceId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskWriteBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -215,7 +215,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -229,8 +229,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
-<property type="string" id="result_component_key" >
-InstanceId
+<property type="string" id="dimension" >
+InstanceId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskWriteOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -260,7 +260,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -274,8 +274,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
-<property type="string" id="result_component_key" >
-InstanceId
+<property type="string" id="dimension" >
+InstanceId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='NetworkIn' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -305,7 +305,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -319,8 +319,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
-<property type="string" id="result_component_key" >
-InstanceId
+<property type="string" id="dimension" >
+InstanceId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='NetworkOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -709,7 +709,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -723,8 +723,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EBS
 </property>
-<property type="string" id="result_component_key" >
-VolumeId
+<property type="string" id="dimension" >
+VolumeId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='VolumeIdleTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -754,7 +754,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -768,8 +768,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EBS
 </property>
-<property type="string" id="result_component_key" >
-VolumeId
+<property type="string" id="dimension" >
+VolumeId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='VolumeQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -799,7 +799,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -813,8 +813,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EBS
 </property>
-<property type="string" id="result_component_key" >
-VolumeId
+<property type="string" id="dimension" >
+VolumeId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='VolumeReadBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -844,7 +844,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-0
+4
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -858,8 +858,8 @@ ${here/region/id}
 <property type="string" id="namespace" >
 AWS/EBS
 </property>
-<property type="string" id="result_component_key" >
-VolumeId
+<property type="string" id="dimension" >
+VolumeId=${here/id}
 </property>
 <tomanycont id='datapoints'>
 <object id='VolumeReadOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
