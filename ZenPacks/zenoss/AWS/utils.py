@@ -36,6 +36,20 @@ def addLocalLibPath():
     site.addsitedir(os.path.join(os.path.dirname(__file__), 'lib'))
 
 
+def iso8601(seconds_ago=0):
+    '''
+    Return a ISO8601 date and time representation of now adjusted by
+    seconds_ago in UTC.
+    '''
+    utcnow = datetime.datetime.utcnow()
+    if seconds_ago == 0:
+        utc = utcnow
+    else:
+        utc = utcnow - datetime.timedelta(seconds=seconds_ago)
+
+    return utc.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+
+
 def awsUrlSign(
         httpVerb='GET',
         hostHeader=None,
@@ -55,8 +69,7 @@ def awsUrlSign(
     """
 
     # Set time of request for key signing
-    timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.000Z')
-    httpRequest['Timestamp'] = timestamp
+    httpRequest['Timestamp'] = iso8601()
 
     accesskey = awsKeys[0]
     secretkey = awsKeys[1]

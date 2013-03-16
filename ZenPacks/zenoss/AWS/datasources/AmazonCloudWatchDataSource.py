@@ -13,6 +13,7 @@ log = logging.getLogger('zen.AWS')
 import datetime
 import time
 import calendar
+import random
 import re
 
 from twisted.web.client import getPage
@@ -34,7 +35,10 @@ from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSource, PythonDataSourcePlugin
 
 from ZenPacks.zenoss.AWS.utils \
-    import awsUrlSign, result_errmsg, lookup_cwregion
+    import awsUrlSign, iso8601, result_errmsg, lookup_cwregion
+
+
+MAX_RETRIES = 3
 
 
 class AmazonCloudWatchDataSource(PythonDataSource):
@@ -133,27 +137,20 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
         ds0 = config.datasources[0]
 
+        # CloudWatch only accepts periods that are evenly divisible by 60.
+        cycletime = (ds0.cycletime / 60) * 60
+
         # Static for performance collection
         httpVerb = 'GET'
         uriRequest = '/'
 
         baseRequest = {}
         baseRequest['Action'] = 'GetMetricStatistics'
-        baseRequest['StartTime'] = (
-            datetime.datetime.utcnow() -
-            datetime.timedelta(
-                seconds=ds0.cycletime + 59)).strftime(
-                    '%Y-%m-%dT%H:%M:%S.000Z')
-
-        baseRequest['EndTime'] = datetime.datetime.utcnow().strftime(
-            '%Y-%m-%dT%H:%M:%S.000Z')
-
-        baseRequest['Period'] = ds0.cycletime
         baseRequest['SignatureMethod'] = 'HmacSHA256'
         baseRequest['SignatureVersion'] = '2'
         baseRequest['Version'] = '2010-08-01'
-
-        backoff = 0
+        baseRequest['Period'] = cycletime
+        baseRequest['Statistics.member.1'] = 'Average'
 
         def sleep(secs):
             d = defer.Deferred()
@@ -164,14 +161,16 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             hostHeader = lookup_cwregion(ds.params['region'])
 
             httpRequest = baseRequest.copy()
+            httpRequest['StartTime'] = iso8601(seconds_ago=(cycletime * 2))
+            httpRequest['EndTime'] = iso8601()
             httpRequest['MetricName'] = ds.datasource
             httpRequest['Namespace'] = ds.params['namespace']
 
-            dim_name, dim_value = ds.params['dimension'].split('=')
+            if ds.params['dimension']:
+                dim_name, dim_value = ds.params['dimension'].split('=')
 
-            httpRequest['Dimensions.member.1.Name'] = dim_name
-            httpRequest['Dimensions.member.1.Value'] = dim_value
-            httpRequest['Statistics.member.1'] = 'Average'
+                httpRequest['Dimensions.member.1.Name'] = dim_name
+                httpRequest['Dimensions.member.1.Value'] = dim_value
 
             getURL = awsUrlSign(
                 httpVerb,
@@ -181,12 +180,31 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                 (ds0.ec2accesskey, ds0.ec2secretkey))
 
             getURL = 'http://%s' % getURL
-            backoff = backoff + .01
-            log.debug('Backoff is %s for URL %s' % (backoff, getURL))
-            result = yield getPage(getURL)
-            pause = yield sleep(backoff)
-            result = result.replace("\n", "")
-            results.append((ds, result))
+
+            # Incremental backoff as outlined by AWS.
+            # http://aws.amazon.com/articles/1394
+            for retry in xrange(MAX_RETRIES + 1):
+                if retry > 0:
+                    delay = (random.random() * pow(4, retry)) / 10.0
+                    log.debug('retry %s: backoff is %s seconds', retry, delay)
+                    wait = yield sleep(delay)
+
+                try:
+                    log.debug('requesting: %s', getURL)
+                    result = yield getPage(getURL)
+
+                except Exception, ex:
+                    import pdb; pdb.set_trace()
+                    code = getattr(ex, 'status', None)
+                    if code in ('500', '503'):
+                        continue
+
+                    raise
+
+                else:
+                    result = result.replace("\n", "")
+                    results.append((ds, result))
+                    break
 
         defer.returnValue(results)
 
