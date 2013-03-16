@@ -117,17 +117,10 @@ def lookup_cwregion(value):
 def result_errmsg(result):
     """Return a useful error message string given a twisted errBack result."""
     try:
-        from pywbem.cim_operations import CIMError
-
         if result.type == ConnectionRefusedError:
-            return 'connection refused. Check IP and zWBEMPort'
+            return 'connection refused'
         elif result.type == TimeoutError:
-            return 'connection timeout. Check IP and zWBEMPort'
-        elif result.type == CIMError:
-            if '401' in result.value.args[1]:
-                return 'login failed. Check zWBEMUsername and zWBEMPassword'
-            else:
-                return result.value.args[1]
+            return 'connection timeout'
         else:
             return result.getErrorMessage()
     except AttributeError:
