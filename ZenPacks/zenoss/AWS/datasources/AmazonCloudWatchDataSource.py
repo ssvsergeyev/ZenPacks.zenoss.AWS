@@ -194,7 +194,6 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     result = yield getPage(getURL)
 
                 except Exception, ex:
-                    import pdb; pdb.set_trace()
                     code = getattr(ex, 'status', None)
                     if code in ('500', '503'):
                         continue
