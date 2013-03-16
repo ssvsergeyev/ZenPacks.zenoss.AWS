@@ -116,9 +116,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
         return(
             context.device().id,
             datasource.getCycleTime(context),
-            datasource.rrdTemplate().id,
-            datasource.id,
-            datasource.plugin_classname,
+            datasource.getRegionId(),
             )
 
     @classmethod
