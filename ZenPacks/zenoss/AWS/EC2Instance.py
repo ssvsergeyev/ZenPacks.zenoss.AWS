@@ -104,10 +104,12 @@ class EC2Instance(AWSComponent):
         return False
 
     def getRRDTemplates(self):
-        template_names = ['EC2Instance']
+        template_names = []
 
         if self.detailed_monitoring:
             template_names.append('EC2Instance-Detailed')
+        else:
+            template_names.append('EC2Instance')
 
         template_names.append('EC2Instance-Custom')
 
