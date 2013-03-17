@@ -32,6 +32,7 @@ class EC2Volume(AWSComponent):
 
     meta_type = portal_type = 'EC2Volume'
 
+    volume_type = None
     create_time = None
     size = None
     iops = None
@@ -40,6 +41,7 @@ class EC2Volume(AWSComponent):
     attach_data_devicepath = None
 
     _properties = AWSComponent._properties + (
+        {'id': 'volume_type', 'type': 'string'},
         {'id': 'create_time', 'type': 'string'},
         {'id': 'size', 'type': 'int'},
         {'id': 'iops', 'type': 'int'},
@@ -58,7 +60,7 @@ class EC2Volume(AWSComponent):
     def getRRDTemplates(self):
         template_names = ['EC2Volume']
 
-        if self.iops:
+        if self.volume_type == 'io1':
             template_names.append('EC2Volume-IOPS')
 
         templates = []
@@ -68,6 +70,9 @@ class EC2Volume(AWSComponent):
                 templates.append(template)
 
         return templates
+
+    def getDimension(self):
+        return 'VolumeId=%s' % self.id
 
     def getRegionId(self):
         return self.region().id
@@ -106,6 +111,7 @@ class IEC2VolumeInfo(IComponentInfo):
     region = schema.Entity(title=_t(u'Region'))
     zone = schema.Entity(title=_t(u'Zone'))
     instance = schema.Entity(title=_t(u'Instance'))
+    volume_type = schema.TextLine(title=_t(u'Type'))
     create_time = schema.TextLine(title=_t(u'Created Time'))
     size = schema.Int(title=_t(u'Size in Bytes'))
     iops = schema.Int(title=_t(u'Provisioned IOPS'))
@@ -123,6 +129,7 @@ class EC2VolumeInfo(ComponentInfo):
     adapts(EC2Volume)
 
     status = ProxyProperty('status')
+    volume_type = ProxyProperty('volume_type')
     create_time = ProxyProperty('create_time')
     size = ProxyProperty('size')
     iops = ProxyProperty('iops')

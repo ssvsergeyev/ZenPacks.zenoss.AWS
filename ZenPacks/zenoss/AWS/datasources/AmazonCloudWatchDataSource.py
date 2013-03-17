@@ -14,7 +14,9 @@ import datetime
 import time
 import calendar
 import random
-import re
+
+from cStringIO import StringIO
+from lxml import etree
 
 from twisted.web.client import getPage
 
@@ -51,16 +53,26 @@ class AmazonCloudWatchDataSource(PythonDataSource):
     sourcetypes = ('Amazon CloudWatch',)
     sourcetype = sourcetypes[0]
 
+    # RRDDataSource
+    component = '${here/id}'
+    cycletime = 300
+
+    # PythonDataSource
     plugin_classname = 'ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin'
 
-    region = ''
+    # AmazonCloudWatchDataSource
     namespace = ''
-    dimension = ''
+    metric = ''
+    statistic = 'Average'
+    dimension = '${here/getDimension}'
+    region = '${here/getRegionId}'
 
     _properties = PythonDataSource._properties + (
-        {'id': 'region', 'type': 'string'},
         {'id': 'namespace', 'type': 'string'},
+        {'id': 'metric', 'type': 'string'},
+        {'id': 'statistic', 'type': 'string'},
         {'id': 'dimension', 'type': 'string'},
+        {'id': 'region', 'type': 'string'},
         )
 
 
@@ -73,13 +85,21 @@ class IAmazonCloudWatchDataSourceInfo(IRRDDataSourceInfo):
         group=_t('Amazon CloudWatch'),
         title=_t('Namespace'))
 
-    region = schema.TextLine(
+    metric = schema.TextLine(
         group=_t('Amazon CloudWatch'),
-        title=_t('Region'))
+        title=_t('Metric Name'))
+
+    statistic = schema.TextLine(
+        group=_t('Amazon CloudWatch'),
+        title=_t('Statistic'))
 
     dimension = schema.TextLine(
         group=_t('Amazon CloudWatch'),
-        title=_t('Dimension (i.e. InstanceId=${here/id})'))
+        title=_t('Dimension'))
+
+    region = schema.TextLine(
+        group=_t('Amazon CloudWatch'),
+        title=_t('Region'))
 
 
 class AmazonCloudWatchDataSourceInfo(RRDDataSourceInfo):
@@ -94,9 +114,11 @@ class AmazonCloudWatchDataSourceInfo(RRDDataSourceInfo):
 
     cycletime = ProxyProperty('cycletime')
 
-    region = ProxyProperty('region')
     namespace = ProxyProperty('namespace')
+    metric = ProxyProperty('metric')
+    statistic = ProxyProperty('statistic')
     dimension = ProxyProperty('dimension')
+    region = ProxyProperty('region')
 
 
 def timestamp_from_cloudwatch(cloudwatch_time_string):
@@ -120,15 +142,20 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
         return(
             context.device().id,
             datasource.getCycleTime(context),
-            datasource.getRegionId(),
+            context.getRegionId(),
+            datasource.namespace,
+            datasource.metric,
+            context.getDimension(),
             )
 
     @classmethod
     def params(cls, datasource, context):
         return {
-            'region': datasource.talesEval(datasource.region, context),
             'namespace': datasource.talesEval(datasource.namespace, context),
+            'metric': datasource.talesEval(datasource.metric, context),
+            'statistic': datasource.talesEval(datasource.statistic, context),
             'dimension': datasource.talesEval(datasource.dimension, context),
+            'region': datasource.talesEval(datasource.region, context),
             }
 
     @inlineCallbacks
@@ -150,7 +177,6 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
         baseRequest['SignatureVersion'] = '2'
         baseRequest['Version'] = '2010-08-01'
         baseRequest['Period'] = cycletime
-        baseRequest['Statistics.member.1'] = 'Average'
 
         def sleep(secs):
             d = defer.Deferred()
@@ -163,8 +189,9 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             httpRequest = baseRequest.copy()
             httpRequest['StartTime'] = iso8601(seconds_ago=(cycletime * 2))
             httpRequest['EndTime'] = iso8601()
-            httpRequest['MetricName'] = ds.datasource
             httpRequest['Namespace'] = ds.params['namespace']
+            httpRequest['MetricName'] = ds.params['metric']
+            httpRequest['Statistics.member.1'] = ds.params['statistic']
 
             if ds.params['dimension']:
                 dim_name, dim_value = ds.params['dimension'].split('=')
@@ -186,11 +213,22 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             for retry in xrange(MAX_RETRIES + 1):
                 if retry > 0:
                     delay = (random.random() * pow(4, retry)) / 10.0
-                    log.debug('retry %s: backoff is %s seconds', retry, delay)
+                    log.debug(
+                        '%s (%s): retry %s backoff is %s seconds',
+                        config.id, ds.params['region'], retry, delay)
+
                     wait = yield sleep(delay)
 
                 try:
-                    log.debug('requesting: %s', getURL)
+                    log.debug(
+                        '%s (%s): requesting %s %s/%s for %s',
+                        config.id,
+                        ds.params['region'],
+                        ds.params['statistic'],
+                        ds.params['namespace'],
+                        ds.params['metric'],
+                        ds.params['dimension'] or 'region')
+
                     result = yield getPage(getURL)
 
                 except Exception, ex:
@@ -201,7 +239,6 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     raise
 
                 else:
-                    result = result.replace("\n", "")
                     results.append((ds, result))
                     break
 
@@ -210,19 +247,33 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
     def onSuccess(self, results, config):
         data = self.new_data()
 
-        for datasource, result in results:
-            valueMatch = re.search(r'<Average>(.*)</Average>', result)
-            if not valueMatch:
+        for ds, result in results:
+
+            # Only one namespace is used. Mangle the xmlns attribute
+            # to make further processing of the XML simpler.
+            result = result.replace(' xmlns=', ' xmlnamespace=', 1)
+
+            try:
+                stats = etree.parse(StringIO(result))
+            except Exception:
+                log.exception(
+                    '%s (%s): error parsing response XML\n%s',
+                    config.id, ds.params['region'], result)
+
                 continue
 
-            timeMatch = re.search(r'<Timestamp>(.*)</Timestamp>', result)
-            if not timeMatch:
+            try:
+                timestamp = timestamp_from_cloudwatch(
+                    stats.xpath('//Timestamp[last()]/text()')[0])
+
+                value = stats.xpath('//%s[last()]/text()' % (
+                    ds.params['statistic']))[0]
+
+            except IndexError:
+                # No value in response. This is usually normal.
                 continue
 
-            timeValue = timestamp_from_cloudwatch(timeMatch.group(1))
-
-            data['values'][datasource.component][datasource.datasource] = (
-                valueMatch.group(1), timeValue)
+            data['values'][ds.component][ds.datasource] = (value, timestamp)
 
         data['events'].append({
             'device': config.id,
@@ -237,7 +288,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
     def onError(self, result, config):
         errmsg = 'AWS: %s' % result_errmsg(result)
 
-        log.error('%s %s', config.id, errmsg)
+        log.error('%s: %s', config.id, errmsg)
 
         data = self.new_data()
         data['events'].append({

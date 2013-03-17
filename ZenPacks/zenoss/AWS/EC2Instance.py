@@ -121,6 +121,9 @@ class EC2Instance(AWSComponent):
 
         return templates
 
+    def getDimension(self):
+        return 'InstanceId=%s' % self.id
+
     def getRegionId(self):
         return self.region().id
 

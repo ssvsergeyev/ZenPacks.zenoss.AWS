@@ -35,7 +35,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -43,14 +43,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+CPUUtilization
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='CPUUtilization' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -80,7 +86,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -88,14 +94,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+DiskReadBytes
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskReadBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -125,7 +137,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -133,14 +145,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+DiskReadOps
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskReadOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -170,7 +188,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -178,14 +196,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+DiskWriteBytes
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskWriteBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -215,7 +239,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -223,14 +247,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+DiskWriteOps
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskWriteOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -260,7 +290,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -268,14 +298,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+NetworkIn
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='NetworkIn' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -305,7 +341,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -313,14 +349,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+NetworkOut
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='NetworkOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -350,7 +392,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -358,14 +400,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+StatusCheckFailed_Instance
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='StatusCheckFailed_Instance' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -395,7 +443,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -403,14 +451,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+StatusCheckFailed_System
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='StatusCheckFailed_System' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -883,7 +937,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -891,14 +945,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+CPUUtilization
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='CPUUtilization' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -928,7 +988,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -936,14 +996,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+DiskReadBytes
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskReadBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -973,7 +1039,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -981,14 +1047,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+DiskReadOps
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskReadOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1018,7 +1090,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1026,14 +1098,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+DiskWriteBytes
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskWriteBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1063,7 +1141,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1071,14 +1149,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+DiskWriteOps
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskWriteOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1108,7 +1192,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1116,14 +1200,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+NetworkIn
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='NetworkIn' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1153,7 +1243,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1161,14 +1251,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+NetworkOut
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='NetworkOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1198,7 +1294,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1206,14 +1302,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+StatusCheckFailed_Instance
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='StatusCheckFailed_Instance' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1243,7 +1345,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1251,14 +1353,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
 </property>
+<property type="string" id="metric" >
+StatusCheckFailed_System
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-InstanceId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='StatusCheckFailed_System' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1731,7 +1839,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1739,11 +1847,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/id}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
+</property>
+<property type="string" id="metric" >
+CPUUtilization
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='CPUUtilization' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1773,7 +1890,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1781,11 +1898,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/id}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
+</property>
+<property type="string" id="metric" >
+DiskReadBytes
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskReadBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1815,7 +1941,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1823,11 +1949,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/id}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
+</property>
+<property type="string" id="metric" >
+DiskReadOps
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskReadOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1857,7 +1992,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1865,11 +2000,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/id}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
+</property>
+<property type="string" id="metric" >
+DiskWriteBytes
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskWriteBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1899,7 +2043,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1907,11 +2051,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/id}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
+</property>
+<property type="string" id="metric" >
+DiskWriteOps
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='DiskWriteOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1941,7 +2094,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1949,11 +2102,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/id}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
+</property>
+<property type="string" id="metric" >
+NetworkIn
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='NetworkIn' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1983,7 +2145,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -1991,11 +2153,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/id}
-</property>
 <property type="string" id="namespace" >
 AWS/EC2
+</property>
+<property type="string" id="metric" >
+NetworkOut
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='NetworkOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2379,7 +2550,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -2387,14 +2558,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EBS
 </property>
+<property type="string" id="metric" >
+VolumeIdleTime
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-VolumeId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='VolumeIdleTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2424,7 +2601,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -2432,14 +2609,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EBS
 </property>
+<property type="string" id="metric" >
+VolumeQueueLength
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-VolumeId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='VolumeQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2469,7 +2652,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -2477,14 +2660,20 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 <property type="string" id="namespace" >
 AWS/EBS
 </property>
+<property type="string" id="metric" >
+VolumeReadBytes
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-VolumeId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
 <object id='VolumeReadBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2514,7 +2703,7 @@ ${here/id}
 /Ignore
 </property>
 <property type="int" id="severity" mode="w" >
-4
+3
 </property>
 <property type="string" id="cycletime" mode="w" >
 300
@@ -2522,17 +2711,227 @@ ${here/id}
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
+<property type="string" id="namespace" >
+AWS/EBS
+</property>
+<property type="string" id="metric" >
+VolumeReadOps
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
 <property type="string" id="region" >
 ${here/getRegionId}
+</property>
+<tomanycont id='datapoints'>
+<object id='VolumeReadOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='VolumeTotalReadTime' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Amazon CloudWatch
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="string" id="eventClass" mode="w" >
+/Ignore
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
 </property>
 <property type="string" id="namespace" >
 AWS/EBS
 </property>
+<property type="string" id="metric" >
+VolumeTotalReadTime
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
 <property type="string" id="dimension" >
-VolumeId=${here/id}
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
 </property>
 <tomanycont id='datapoints'>
-<object id='VolumeReadOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='VolumeTotalReadTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='VolumeTotalWriteTime' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Amazon CloudWatch
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="string" id="eventClass" mode="w" >
+/Ignore
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
+</property>
+<property type="string" id="namespace" >
+AWS/EBS
+</property>
+<property type="string" id="metric" >
+VolumeTotalWriteTime
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+<tomanycont id='datapoints'>
+<object id='VolumeTotalWriteTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='VolumeWriteBytes' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Amazon CloudWatch
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="string" id="eventClass" mode="w" >
+/Ignore
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
+</property>
+<property type="string" id="namespace" >
+AWS/EBS
+</property>
+<property type="string" id="metric" >
+VoluemWriteBytes
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+<tomanycont id='datapoints'>
+<object id='VolumeWriteBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='VolumeWriteOps' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Amazon CloudWatch
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="string" id="eventClass" mode="w" >
+/Ignore
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
+</property>
+<property type="string" id="namespace" >
+AWS/EBS
+</property>
+<property type="string" id="metric" >
+VolumeWriteOps
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+<tomanycont id='datapoints'>
+<object id='VolumeWriteOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2555,7 +2954,7 @@ True
 500
 </property>
 <property type="string" id="units" mode="w" >
-I/O requests
+requests/sec
 </property>
 <property type="boolean" id="log" mode="w" >
 False
@@ -2590,7 +2989,7 @@ LINE
 False
 </property>
 <property type="string" id="format" mode="w" >
-%7.2lf%%
+%7.2lf%s
 </property>
 <property type="string" id="legend" mode="w" >
 ${graphPoint/id}
@@ -2671,6 +3070,38 @@ VolumeReadOps_VolumeReadOps
 AVERAGE
 </property>
 </object>
+<object id='Write' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+1
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%7.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="rpn" mode="w" >
+300,/
+</property>
+<property type="string" id="dpName" mode="w" >
+VolumeWriteOps_VolumeWriteOps
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
 </tomanycont>
 </object>
 <object id='Throughput - Volume' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
@@ -2734,6 +3165,38 @@ VolumeReadBytes_VolumeReadBytes
 AVERAGE
 </property>
 </object>
+<object id='Write' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+1
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%7.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="rpn" mode="w" >
+300,/
+</property>
+<property type="string" id="dpName" mode="w" >
+VolumeWriteBytes_VolumeWriteBytes
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
 </tomanycont>
 </object>
 <object id='Time' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
@@ -2744,7 +3207,7 @@ AVERAGE
 500
 </property>
 <property type="string" id="units" mode="w" >
-seconds
+percentage
 </property>
 <property type="boolean" id="log" mode="w" >
 False
@@ -2767,7 +3230,7 @@ True
 <tomanycont id='graphPoints'>
 <object id='Idle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
-0
+2
 </property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
@@ -2797,6 +3260,70 @@ VolumeIdleTime_VolumeIdleTime
 AVERAGE
 </property>
 </object>
+<object id='Read' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%9.2lf%%
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="rpn" mode="w" >
+300,/
+</property>
+<property type="string" id="dpName" mode="w" >
+VolumeTotalReadTime_VolumeTotalReadTime
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+<object id='Write' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+1
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%9.2lf%%
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="rpn" mode="w" >
+300,/
+</property>
+<property type="string" id="dpName" mode="w" >
+VolumeTotalWriteTime_VolumeTotalWriteTime
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
 </tomanycont>
 </object>
 </tomanycont>
@@ -2805,6 +3332,232 @@ AVERAGE
 <property type="string" id="targetPythonClass" mode="w" >
 ZenPacks.zenoss.AWS.EC2Volume
 </property>
+<tomanycont id='datasources'>
+<object id='VolumeConsumedReadWriteOps' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Amazon CloudWatch
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="string" id="eventClass" mode="w" >
+/Ignore
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
+</property>
+<property type="string" id="namespace" >
+AWS/EBS
+</property>
+<property type="string" id="metric" >
+VolumeConsumedReadWriteOps
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+<tomanycont id='datapoints'>
+<object id='VolumeConsumedReadWriteOps' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='VolumeThroughputPercentage' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Amazon CloudWatch
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="string" id="eventClass" mode="w" >
+/Ignore
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin
+</property>
+<property type="string" id="namespace" >
+AWS/EBS
+</property>
+<property type="string" id="metric" >
+VolumeThroughputPercentage
+</property>
+<property type="string" id="statistic" >
+Average
+</property>
+<property type="string" id="dimension" >
+${here/getDimension}
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+<tomanycont id='datapoints'>
+<object id='VolumeThroughputPercentage' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="string" id="rrdmin" mode="w" >
+0
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+<tomanycont id='graphDefs'>
+<object id='Provisioned IOPS - Consumed' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<property type="int" id="height" mode="w" >
+100
+</property>
+<property type="int" id="width" mode="w" >
+500
+</property>
+<property type="string" id="units" mode="w" >
+operations/sec
+</property>
+<property type="boolean" id="log" mode="w" >
+False
+</property>
+<property type="boolean" id="base" mode="w" >
+False
+</property>
+<property type="int" id="miny" mode="w" >
+0
+</property>
+<property type="int" id="maxy" mode="w" >
+-1
+</property>
+<property type="boolean" id="hasSummary" mode="w" >
+True
+</property>
+<property type="long" id="sequence" mode="w" >
+1
+</property>
+<tomanycont id='graphPoints'>
+<object id='IOPS' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%7.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+VolumeConsumedReadWriteOps_VolumeConsumedReadWriteOps
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='Provisoned IOPS - Throughput' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<property type="int" id="height" mode="w" >
+100
+</property>
+<property type="int" id="width" mode="w" >
+500
+</property>
+<property type="string" id="units" mode="w" >
+percentage
+</property>
+<property type="boolean" id="log" mode="w" >
+False
+</property>
+<property type="boolean" id="base" mode="w" >
+False
+</property>
+<property type="int" id="miny" mode="w" >
+0
+</property>
+<property type="int" id="maxy" mode="w" >
+100
+</property>
+<property type="boolean" id="hasSummary" mode="w" >
+True
+</property>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<tomanycont id='graphPoints'>
+<object id='IOPS' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%7.2lf%%
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+VolumeThroughputPercentage_VolumeThroughputPercentage
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>

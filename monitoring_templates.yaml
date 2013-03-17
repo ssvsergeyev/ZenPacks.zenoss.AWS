@@ -4,84 +4,63 @@
     datasources:
         CPUUtilization:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/id}"
+            metric: CPUUtilization
 
             datapoints:
                 CPUUtilization: GAUGE_MIN_0
 
         DiskReadOps:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/id}"
+            metric: DiskReadOps
 
             datapoints:
                 DiskReadOps: GAUGE_MIN_0
 
         DiskWriteOps:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/id}"
+            metric: DiskWriteOps
 
             datapoints:
                 DiskWriteOps: GAUGE_MIN_0
 
         DiskReadBytes:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/id}"
+            metric: DiskReadBytes
 
             datapoints:
                 DiskReadBytes: GAUGE_MIN_0
 
         DiskWriteBytes:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/id}"
+            metric: DiskWriteBytes
 
             datapoints:
                 DiskWriteBytes: GAUGE_MIN_0
 
         NetworkIn:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/id}"
+            metric: NetworkIn
 
             datapoints:
                 NetworkIn: GAUGE_MIN_0
 
         NetworkOut:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/id}"
+            metric: NetworkOut
 
             datapoints:
                 NetworkOut: GAUGE_MIN_0
@@ -149,117 +128,81 @@
     datasources:
         CPUUtilization:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: CPUUtilization
 
             datapoints:
                 CPUUtilization: GAUGE_MIN_0
 
         DiskReadOps:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: DiskReadOps
 
             datapoints:
                 DiskReadOps: GAUGE_MIN_0
 
         DiskWriteOps:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: DiskWriteOps
 
             datapoints:
                 DiskWriteOps: GAUGE_MIN_0
 
         DiskReadBytes:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: DiskReadBytes
 
             datapoints:
                 DiskReadBytes: GAUGE_MIN_0
 
         DiskWriteBytes:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: DiskWriteBytes
 
             datapoints:
                 DiskWriteBytes: GAUGE_MIN_0
 
         NetworkIn:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: NetworkIn
 
             datapoints:
                 NetworkIn: GAUGE_MIN_0
 
         NetworkOut:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: NetworkOut
 
             datapoints:
                 NetworkOut: GAUGE_MIN_0
 
         StatusCheckFailed_Instance:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: StatusCheckFailed_Instance
 
             datapoints:
                 StatusCheckFailed_Instance: GAUGE_MIN_0
 
         StatusCheckFailed_System:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: StatusCheckFailed_System
 
             datapoints:
                 StatusCheckFailed_System: GAUGE_MIN_0
@@ -341,117 +284,81 @@
     datasources:
         CPUUtilization:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: CPUUtilization
 
             datapoints:
                 CPUUtilization: GAUGE_MIN_0
 
         DiskReadOps:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: DiskReadOps
 
             datapoints:
                 DiskReadOps: GAUGE_MIN_0
 
         DiskWriteOps:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: DiskWriteOps
 
             datapoints:
                 DiskWriteOps: GAUGE_MIN_0
 
         DiskReadBytes:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: DiskReadBytes
 
             datapoints:
                 DiskReadBytes: GAUGE_MIN_0
 
         DiskWriteBytes:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: DiskWriteBytes
 
             datapoints:
                 DiskWriteBytes: GAUGE_MIN_0
 
         NetworkIn:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: NetworkIn
 
             datapoints:
                 NetworkIn: GAUGE_MIN_0
 
         NetworkOut:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: NetworkOut
 
             datapoints:
                 NetworkOut: GAUGE_MIN_0
 
         StatusCheckFailed_Instance:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: StatusCheckFailed_Instance
 
             datapoints:
                 StatusCheckFailed_Instance: GAUGE_MIN_0
 
         StatusCheckFailed_System:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EC2"
-            region: "${here/getRegionId}"
-            dimension: "InstanceId=${here/id}"
+            metric: StatusCheckFailed_System
 
             datapoints:
                 StatusCheckFailed_System: GAUGE_MIN_0
@@ -531,74 +438,104 @@
     targetPythonClass: "ZenPacks.zenoss.AWS.EC2Volume"
 
     datasources:
-        VolumeQueueLength:
-            type: Amazon CloudWatch
-            severity: Error
-            eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
-            namespace: "AWS/EBS"
-            region: "${here/getRegionId}"
-            dimension: "VolumeId=${here/id}"
-
-            datapoints:
-                VolumeQueueLength: GAUGE_MIN_0
-
-        VolumeIdleTime:
-            type: Amazon CloudWatch
-            severity: Error
-            eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
-            namespace: "AWS/EBS"
-            region: "${here/getRegionId}"
-            dimension: "VolumeId=${here/id}"
-
-            datapoints:
-                VolumeIdleTime: GAUGE_MIN_0
-
-        VolumeReadOps:
-            type: Amazon CloudWatch
-            severity: Error
-            eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
-            namespace: "AWS/EBS"
-            region: "${here/getRegionId}"
-            dimension: "VolumeId=${here/id}"
-
-            datapoints:
-                VolumeReadOps: GAUGE_MIN_0
-
         VolumeReadBytes:
             type: Amazon CloudWatch
-            severity: Error
             eventClass: /Ignore
-            cycletime: 300
-            component: "${here/id}"
             namespace: "AWS/EBS"
-            region: "${here/getRegionId}"
-            dimension: "VolumeId=${here/id}"
+            metric: VolumeReadBytes
 
             datapoints:
                 VolumeReadBytes: GAUGE_MIN_0
 
+        VolumeWriteBytes:
+            type: Amazon CloudWatch
+            eventClass: /Ignore
+            namespace: "AWS/EBS"
+            metric: VoluemWriteBytes
+
+            datapoints:
+                VolumeWriteBytes: GAUGE_MIN_0
+
+        VolumeReadOps:
+            type: Amazon CloudWatch
+            eventClass: /Ignore
+            namespace: "AWS/EBS"
+            metric: VolumeReadOps
+
+            datapoints:
+                VolumeReadOps: GAUGE_MIN_0
+
+        VolumeWriteOps:
+            type: Amazon CloudWatch
+            eventClass: /Ignore
+            namespace: "AWS/EBS"
+            metric: VolumeWriteOps
+
+            datapoints:
+                VolumeWriteOps: GAUGE_MIN_0
+
+        VolumeTotalReadTime:
+            type: Amazon CloudWatch
+            eventClass: /Ignore
+            namespace: "AWS/EBS"
+            metric: VolumeTotalReadTime
+
+            datapoints:
+                VolumeTotalReadTime: GAUGE_MIN_0
+
+        VolumeTotalWriteTime:
+            type: Amazon CloudWatch
+            eventClass: /Ignore
+            namespace: "AWS/EBS"
+            metric: VolumeTotalWriteTime
+
+            datapoints:
+                VolumeTotalWriteTime: GAUGE_MIN_0
+
+        VolumeIdleTime:
+            type: Amazon CloudWatch
+            eventClass: /Ignore
+            namespace: "AWS/EBS"
+            metric: VolumeIdleTime
+
+            datapoints:
+                VolumeIdleTime: GAUGE_MIN_0
+
+        VolumeQueueLength:
+            type: Amazon CloudWatch
+            eventClass: /Ignore
+            namespace: "AWS/EBS"
+            metric: VolumeQueueLength
+
+            datapoints:
+                VolumeQueueLength: GAUGE_MIN_0
+
     graphs:
         Queue Length:
-            units: "I/O requests"
+            units: "requests/sec"
             miny: 0
 
             graphpoints:
                 Waiting:
                     dpName: "VolumeQueueLength_VolumeQueueLength"
-                    format: "%7.2lf%%"
+                    format: "%7.2lf%s"
                     rpn: "300,/"
 
         Time:
-            units: "seconds"
+            units: "percentage"
             miny: 0
 
             graphpoints:
+                Read:
+                    dpName: "VolumeTotalReadTime_VolumeTotalReadTime"
+                    format: "%9.2lf%%"
+                    rpn: "300,/"
+
+                Write:
+                    dpName: "VolumeTotalWriteTime_VolumeTotalWriteTime"
+                    format: "%9.2lf%%"
+                    rpn: "300,/"
+
                 Idle:
                     dpName: "VolumeIdleTime_VolumeIdleTime"
                     format: "%9.2lf%%"
@@ -614,6 +551,11 @@
                     format: "%7.2lf%s"
                     rpn: "300,/"
 
+                Write:
+                    dpName: "VolumeWriteOps_VolumeWriteOps"
+                    format: "%7.2lf%s"
+                    rpn: "300,/"
+
         Throughput - Volume:
             units: "bytes/sec"
             miny: 0
@@ -624,6 +566,50 @@
                     format: "%7.2lf%s"
                     rpn: "300,/"
 
+                Write:
+                    dpName: "VolumeWriteBytes_VolumeWriteBytes"
+                    format: "%7.2lf%s"
+                    rpn: "300,/"
+
 
 /AWS/EC2/EC2Volume-IOPS:
     targetPythonClass: "ZenPacks.zenoss.AWS.EC2Volume"
+
+    datasources:
+        VolumeThroughputPercentage:
+            type: Amazon CloudWatch
+            eventClass: /Ignore
+            namespace: "AWS/EBS"
+            metric: VolumeThroughputPercentage
+
+            datapoints:
+                VolumeThroughputPercentage: GAUGE_MIN_0
+
+        VolumeConsumedReadWriteOps:
+            type: Amazon CloudWatch
+            eventClass: /Ignore
+            namespace: "AWS/EBS"
+            metric: VolumeConsumedReadWriteOps
+
+            datapoints:
+                VolumeConsumedReadWriteOps: GAUGE_MIN_0
+
+    graphs:
+        Provisoned IOPS - Throughput:
+            units: "percentage"
+            miny: 0
+            maxy: 100
+
+            graphpoints:
+                IOPS:
+                    dpName: "VolumeThroughputPercentage_VolumeThroughputPercentage"
+                    format: "%7.2lf%%"
+
+        Provisioned IOPS - Consumed:
+            units: "operations/sec"
+            miny: 0
+
+            graphpoints:
+                IOPS:
+                    dpName: "VolumeConsumedReadWriteOps_VolumeConsumedReadWriteOps"
+                    format: "%7.2lf%s"

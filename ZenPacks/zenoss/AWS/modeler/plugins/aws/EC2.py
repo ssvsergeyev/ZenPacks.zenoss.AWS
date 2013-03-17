@@ -272,6 +272,7 @@ def volumes_rm(region_id, volumes):
         volume_data.append({
             'id': prepId(volume.id),
             'title': name_or(volume.tags, volume.id),
+            'volume_type': volume.type,
             'create_time': volume.create_time,
             'size': volume.size / (1024 ** 3),
             'iops': volume.iops,

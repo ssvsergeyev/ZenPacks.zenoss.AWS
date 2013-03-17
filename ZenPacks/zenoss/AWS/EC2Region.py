@@ -50,6 +50,9 @@ class EC2Region(AWSComponent):
             ToOne, MODULE_NAME['EC2VPCSubnet'], 'region')),
         )
 
+    def getDimension(self):
+        return ''
+
     def getRegionId(self):
         return self.id
 
