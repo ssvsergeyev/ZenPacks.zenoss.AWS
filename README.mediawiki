@@ -44,20 +44,28 @@ defaults to every 12 hours.
 : Other: Guest Device (if monitored by Zenoss)
 
 ;Volumes
-: Attributes: ID, Region, Zone, Instance, Created Time, Size, IOPS, Status, Attach Data Status, Attach Data Device
+: Attributes: ID, Region, Zone, Instance, Type Created Time, Size, IOPS, Status, Attach Data Status, Attach Data Device
 : Tags: Name
 
 === Monitoring ===
 
 The following metrics will be collected every 5 minutes by default. Any other
 CloudWatch metrics can also be collected by adding them to the appropriate
-monitoring template.
+monitoring template. The ''Average'' statistic is collected, and the graphed
+value is per second for anything that resembles a rate.
+
+;Regions
+: Metrics: CPUUtilization, DiskReadOps, DiskWriteOps, DiskReadBytes, DiskWriteBytes, NetworkIn, NetworkOut
 
 ;Instances
-: Metrics: CPUUtilization, DiskReadBytes, DiskWriteBytes, DiskReadOps, DiskWriteOps, NetworkIn, NetworkOut
+: Metrics: CPUUtilization, DiskReadOps, DiskWriteOps, DiskReadBytes, DiskWriteBytes, NetworkIn, NetworkOut, StatusCheckFailed_Instance, StatusCheckFailed_System
 
 ;Volumes
-: Metrics: VolumeQueueLength, VolumeReadBytes, VolumeIdleTime, VolumeReadOps
+: Metrics: VolumeReadBytes, VolumeWriteBytes, VolumeReadOps, VolumeWriteOps, VolumeTotalReadTime, VolumeTotalWriteTime, VolumeIdleTime, VolumeQueueLength
+: Provisioned IOPS Metrics: VolumeThroughputPercentage, VolumeReadWriteOps
+
+The ''Amazon CloudWatch'' datasource type also allows for the collection of any
+other CloudWatch metric.
 
 === Guest Device Discovery ===
 
@@ -143,9 +151,15 @@ Installing this ZenPack will add the following items to your Zenoss system.
 ;Modeler Plugins
 * aws.EC2
 
+;Datasource Types
+* Amazon CloudWatch
+
 ;Monitoring Templates
+* EC2Region (in /AWS/EC2)
 * EC2Instance (in /AWS/EC2)
+* EC2Instance-Detailed (in /AWS/EC2)
 * EC2Volume (in /AWS/EC2)
+* EC2Volume-IOPS (in /AWS/EC2)
 
 ;Device Types
 * EC2Account (in /AWS/EC2)
