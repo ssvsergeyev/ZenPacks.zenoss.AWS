@@ -128,7 +128,7 @@ Multiple accounts can be added under the same ''/Device/AWS/EC2'' section.
 
 <syntaxhighlight lang="text">
 /Devices/AWS/EC2 loader='ec2account', loader_arg_keys=['accountname', 'accesskey', 'secretkey', 'collector']
-&lt;accountname&gt; accountname='&lt;accountname&gt;', accesskey='&lt;accesskey&gt;', secretkey='&lt;secretkey&gt;', collector='&lt;collector&gt;'
+<accountname> accountname='<accountname>', accesskey='<accesskey>', secretkey='<secretkey>', collector='<collector>'
 </syntaxhighlight>
 
 You can then load the account(s) with the following command.
