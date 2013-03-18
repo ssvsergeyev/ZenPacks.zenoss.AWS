@@ -2,6 +2,19 @@ This ZenPack provides support for monitoring Amazon Web Services (AWS).
 Monitoring for the following EC2 entities is provided through a combination of
 the AWS EC2 and CloudWatch APIs.
 
+== Gallery ==
+<gallery widths=250px heights=127px>
+AWS Add EC2 Account Menu Item.png
+AWS Add EC2 Account Dialog.png
+AWS Account Overview.png
+AWS Region Instances.png
+AWS Region Graphs.png
+AWS Instance Graphs.png
+AWS Volume Graphs.png
+AWS Zone Volumes.png
+AWS VPC Subnets.png
+</gallery>
+
 == Features ==
 
 The features added by this ZenPack can be summarized as follows. They are each
@@ -113,10 +126,10 @@ To do this, you must create a file with contents similar to the following.
 Replace all values in angle brackets with your values minus the brackets.
 Multiple accounts can be added under the same ''/Device/AWS/EC2'' section.
 
-<code>
+<syntaxhighlight lang="text">
 /Devices/AWS/EC2 loader='ec2account', loader_arg_keys=['accountname', 'accesskey', 'secretkey', 'collector']
-<accountname> accountname='<accountname>', accesskey='<accesskey>', secretkey='<secretkey>', collector='<collector>'
-</code>
+&lt;accountname&gt; accountname='&lt;accountname&gt;', accesskey='&lt;accesskey&gt;', secretkey='&lt;secretkey&gt;', collector='&lt;collector&gt;'
+</syntaxhighlight>
 
 You can then load the account(s) with the following command.
 
