@@ -33,5 +33,5 @@ build:
 		--install-scripts="$(BIN_DIR)"
 
 clean:
-	rm -rf lib build dist *.egg-info
+	rm -rf lib build dist *.egg-info $(BIN_DIR) $(LIB_DIR)
 	cd $(BOTO_DIR) ; rm -rf build dist *.egg-info
