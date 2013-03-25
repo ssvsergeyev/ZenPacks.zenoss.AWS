@@ -13,6 +13,8 @@
         />
 
     <!-- API: Routers -->
+    <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
+
     <browser:directRouter
         name="aws_router"
         for="*"
@@ -163,8 +165,6 @@
     </configure>
 
     <!-- Browser -->
-    <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
-
     <browser:resourceDirectory
         name="aws"
         directory="resources"
