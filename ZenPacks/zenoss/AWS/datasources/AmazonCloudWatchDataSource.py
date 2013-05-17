@@ -160,9 +160,12 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
     @inlineCallbacks
     def collect(self, config):
+        log.debug("Collect for AWS")
         results = []
 
         ds0 = config.datasources[0]
+        accesskey = ds0.ec2accesskey
+        secretkey = ds0.ec2secretkey
 
         # CloudWatch only accepts periods that are evenly divisible by 60.
         cycletime = (ds0.cycletime / 60) * 60
@@ -172,11 +175,8 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
         uriRequest = '/'
 
         baseRequest = {}
-        baseRequest['Action'] = 'GetMetricStatistics'
         baseRequest['SignatureMethod'] = 'HmacSHA256'
         baseRequest['SignatureVersion'] = '2'
-        baseRequest['Version'] = '2010-08-01'
-        baseRequest['Period'] = cycletime
 
         def sleep(secs):
             d = defer.Deferred()
@@ -186,25 +186,28 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
         for ds in config.datasources:
             hostHeader = lookup_cwregion(ds.params['region'])
 
-            httpRequest = baseRequest.copy()
-            httpRequest['StartTime'] = iso8601(seconds_ago=(cycletime * 2))
-            httpRequest['EndTime'] = iso8601()
-            httpRequest['Namespace'] = ds.params['namespace']
-            httpRequest['MetricName'] = ds.params['metric']
-            httpRequest['Statistics.member.1'] = ds.params['statistic']
+            monitorRequest = baseRequest.copy()
+            monitorRequest['Action'] = 'GetMetricStatistics'
+            monitorRequest['Version'] = '2010-08-01'
+            monitorRequest['Period'] = cycletime
+            monitorRequest['StartTime'] = iso8601(seconds_ago=(cycletime * 2))
+            monitorRequest['EndTime'] = iso8601()
+            monitorRequest['Namespace'] = ds.params['namespace']
+            monitorRequest['MetricName'] = ds.params['metric']
+            monitorRequest['Statistics.member.1'] = ds.params['statistic']
 
             if ds.params['dimension']:
                 dim_name, dim_value = ds.params['dimension'].split('=')
 
-                httpRequest['Dimensions.member.1.Name'] = dim_name
-                httpRequest['Dimensions.member.1.Value'] = dim_value
+                monitorRequest['Dimensions.member.1.Name'] = dim_name
+                monitorRequest['Dimensions.member.1.Value'] = dim_value
 
             getURL = awsUrlSign(
                 httpVerb,
                 hostHeader,
                 uriRequest,
-                httpRequest,
-                (ds0.ec2accesskey, ds0.ec2secretkey))
+                monitorRequest,
+                (accesskey, secretkey))
 
             getURL = 'http://%s' % getURL
 
@@ -242,6 +245,28 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     results.append((ds, result))
                     break
 
+            if ds.params['metric'] == 'VolumeTotalWriteTime':
+                # Get Volume Status
+                volumeRequest = baseRequest.copy()
+                volumeRequest['Action'] = 'DescribeVolumeStatus'
+                volumeRequest['Version'] = '2013-02-01'
+                volumeRequest['VolumeId.1'] = dim_value
+                hostHeader = 'ec2.amazonaws.com'
+
+                getURL = awsUrlSign(
+                        httpVerb,
+                        hostHeader,
+                        uriRequest,
+                        volumeRequest,
+                        [accesskey, secretkey])
+
+                getURL = 'http://%s' % getURL
+
+                log.debug('Get Volume Information: %s', getURL)
+
+                result = yield getPage(getURL)
+                results.append(('volumestatus', result))
+
         defer.returnValue(results)
 
     def onSuccess(self, results, config):
@@ -260,20 +285,52 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     '%s (%s): error parsing response XML\n%s',
                     config.id, ds.params['region'], result)
 
-                continue
+            if ds == 'volumestatus':
+                #Parse volume status events
+                try:
+                    volumes = stats.xpath('//volumeStatusSet/item')
 
-            try:
-                timestamp = timestamp_from_cloudwatch(
-                    stats.xpath('//Timestamp[last()]/text()')[0])
+                    for vol in volumes:
+                        volumeID = str(vol.xpath('volumeId[last()]/text()')[0])
+                        volumeStatus = str(vol.xpath('volumeStatus/status/text()')[0])
 
-                value = stats.xpath('//%s[last()]/text()' % (
-                    ds.params['statistic']))[0]
+                        if volumeStatus == 'ok':
+                            data['events'].append({
+                                'component': volumeID,
+                                'device': config.id,
+                                'summary': 'AWS Volume Status: OK',
+                                'severity': ZenEventClasses.Clear,
+                                'eventClass': '/Status',
+                                'eventClassKey': 'AWSVolume',
+                                })
+                        else:
+                            data['events'].append({
+                                'component': volumeID,
+                                'device': config.id,
+                                'summary': "AWS Volume Status: {volumeStatus}".format(
+                                    volumeStatus=volumeStatus),
+                                'severity': ZenEventClasses.Critical,
+                                'eventClass': '/Status',
+                                'eventClassKey': 'AWSVolume',
+                                })
 
-            except IndexError:
-                # No value in response. This is usually normal.
-                continue
+                except IndexError:
+                    continue
 
-            data['values'][ds.component][ds.datasource] = (value, timestamp)
+            else:
+                #Parse cloudwatch metrics
+                try:
+                    timestamp = timestamp_from_cloudwatch(
+                        stats.xpath('//Timestamp[last()]/text()')[0])
+
+                    value = stats.xpath('//%s[last()]/text()' % (
+                        ds.params['statistic']))[0]
+
+                except IndexError:
+                    # No value in response. This is usually normal.
+                    continue
+
+                data['values'][ds.component][ds.datasource] = (value, timestamp)
 
         data['events'].append({
             'device': config.id,
@@ -282,12 +339,11 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             'eventKey': 'awsCloudWatchCollection',
             'eventClassKey': 'AWSCloudWatchSuccess',
             })
-
         return data
 
     def onError(self, result, config):
-        errmsg = 'AWS: %s' % result_errmsg(result)
 
+        errmsg = 'AWS: %s' % result_errmsg(result)
         log.error('%s: %s', config.id, errmsg)
 
         data = self.new_data()
