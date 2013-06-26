@@ -30,5 +30,6 @@ class AWSEmailHostActionContentInfo(InfoBase):
     clear_body_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'clear_body_format')
     email_from = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'email_from')
     aws_account_name = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_account_name')
+    aws_region = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_region')
     aws_access_key = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_access_key')
     aws_secret_key = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_secret_key')

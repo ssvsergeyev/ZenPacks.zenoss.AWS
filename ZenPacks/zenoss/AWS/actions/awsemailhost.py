@@ -24,9 +24,13 @@ from email.Utils import formatdate
 
 from Products.ZenUtils.Utils import sendEmail
 from Products.ZenModel.interfaces import IAction
-from Products.ZenModel.actions import EmailAction, IActionBase, TargetableAction, processTalSource, _signalToContextDict, ActionExecutionException
+from Products.ZenModel.actions import IActionBase, TargetableAction, processTalSource, _signalToContextDict
 
 from ZenPacks.zenoss.AWS.interfaces import IAWSEmailHostActionContentInfo
+from ZenPacks.zenoss.AWS.utils import addLocalLibPath
+
+addLocalLibPath()
+import boto.ses
 
 
 class AWSEmailHostAction(IActionBase, TargetableAction):
@@ -69,11 +73,7 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         aws_account_name = notification.content['aws_account_name']
         aws_access_key = notification.content['aws_access_key']
         aws_secret_key = notification.content['aws_secret_key']
-        #host = notification.content['host']
-        #port = notification.content['port']
-        #user = notification.content['user']
-        #password = notification.content['password']
-        #useTls = notification.content['useTls']
+        aws_region = notification.content['aws_region']
         email_from = notification.content['email_from']
 
         email_message['Subject'] = subject
@@ -81,25 +81,24 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         email_message['To'] = ','.join(targets)
         email_message['Date'] = formatdate(None, True)
 
-        '''result, errorMsg = sendEmail(
-            email_message,
-            host, port,
-            useTls,
-            user, password
-        )'''
+        conn = boto.ses.connect_to_region(
+            aws_region,
+            aws_access_key_id = aws_access_key,
+            aws_secret_access_key = aws_secret_key
+        )
 
-        '''if result:
-            log.debug("Notification '%s' sent emails to: %s",
+        conn.send_email(
+            email_message['From'],
+            email_message['Subject'],
+            email_message,
+            email_message['To'],
+            format = notification.content['body_content_type']
+        )
+
+        log.debug("Notification '%s' sent emails to: %s",
                      notification.id, targets)
-        else:
-            raise ActionExecutionException(
-                "Notification '%s' FAILED to send emails to %s: %s" %
-                (notification.id, targets, errorMsg)
-            )'''
 
     def updateContent(self, content=None, data=None):
-        #super(AltEmailHostAction, self).updateContent(content, data)
-
         updates = dict()
         properties = ['aws_account_name', 'aws_access_key', 'aws_secret_key', 'email_from']
         for k in properties:

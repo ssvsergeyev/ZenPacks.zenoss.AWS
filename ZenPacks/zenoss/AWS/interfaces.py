@@ -21,6 +21,17 @@ from Products.Zuul.interfaces.actions import IInfo
 from Products.Zuul.interfaces import actions
 import textwrap
 
+from ZenPacks.zenoss.AWS.utils import addLocalLibPath
+
+addLocalLibPath()
+import boto.ses
+
+def getAWSRegionTypes():
+    region_infos = boto.ses.regions()
+    regions = []
+    for region in region_infos:
+        regions.append(region.name)
+    return regions
 
 class IAWSEmailHostActionContentInfo(IInfo):
 
@@ -85,6 +96,13 @@ class IAWSEmailHostActionContentInfo(IInfo):
     aws_account_name = schema.Text(
         title       = _t(u'AWS Account Name'),
         description = _t(u'Name of the AWS account you\'ll be using.'),
+    )
+
+    aws_region = schema.Choice(
+        title       = _t(u'AWS Region'),
+        vocabulary  = SimpleVocabulary.fromValues(getAWSRegionTypes()),
+        description = _t(u'List of available AWS Regions.'),
+        default     = getAWSRegionTypes()[0]
     )
 
     aws_access_key = schema.Text(
