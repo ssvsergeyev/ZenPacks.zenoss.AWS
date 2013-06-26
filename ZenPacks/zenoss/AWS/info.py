@@ -15,7 +15,7 @@ import Globals
 
 from zope.interface import implements
 
-from Products.Zuul.infos.actions import EmailActionContentInfo, ActionFieldProperty
+from Products.Zuul.infos.actions import ActionFieldProperty
 from Products.Zuul.infos import InfoBase
 from ZenPacks.zenoss.AWS.interfaces import IAWSEmailHostActionContentInfo
 
@@ -23,10 +23,12 @@ from ZenPacks.zenoss.AWS.interfaces import IAWSEmailHostActionContentInfo
 class AWSEmailHostActionContentInfo(InfoBase):
     implements(IAWSEmailHostActionContentInfo)
 
+    body_content_type = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'body_content_type')
+    subject_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'subject_format')
+    body_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'body_format')
+    clear_subject_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'clear_subject_format')
+    clear_body_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'clear_body_format')
     email_from = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'email_from')
-    #host = ActionFieldProperty(IAltEmailHostActionContentInfo, 'host')
-    #port = ActionFieldProperty(IAltEmailHostActionContentInfo, 'port')
-    #useTls = ActionFieldProperty(IAltEmailHostActionContentInfo, 'useTls')
-    #user = ActionFieldProperty(IAltEmailHostActionContentInfo, 'user')
-    #password = ActionFieldProperty(IAltEmailHostActionContentInfo, 'password')
-
+    aws_account_name = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_account_name')
+    aws_access_key = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_access_key')
+    aws_secret_key = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_secret_key')
