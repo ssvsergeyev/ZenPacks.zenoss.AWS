@@ -106,9 +106,9 @@
         name="awsemailhost"
         />
 
-    <adapter provides=".interfaces.IAWSEmailHostActionContentInfo"
+    <adapter provides=".AWSEmail.IAWSEmailHostActionContentInfo"
              for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
-             factory=".info.AWSEmailHostActionContentInfo"
+             factory=".AWSEmail.AWSEmailHostActionContentInfo"
              />
 
     <!-- Device Links -->

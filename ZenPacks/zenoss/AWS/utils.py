@@ -99,6 +99,16 @@ def awsUrlSign(
     return '%s/?%s&%s' % (hostHeader, new_query_line, signature)
 
 
+def getSESRegions():
+    addLocalLibPath()
+    import boto.ses
+    region_infos = boto.ses.regions()
+    regions = []
+    for region in region_infos:
+        regions.append(region.name)
+    return regions
+
+
 def lookup_cwregion(value):
 
     # Data used to update regions endpoint for CloudWatch.

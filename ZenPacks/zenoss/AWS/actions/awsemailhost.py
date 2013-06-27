@@ -26,7 +26,7 @@ from Products.ZenUtils.Utils import sendEmail
 from Products.ZenModel.interfaces import IAction
 from Products.ZenModel.actions import IActionBase, TargetableAction, processTalSource, _signalToContextDict
 
-from ZenPacks.zenoss.AWS.interfaces import IAWSEmailHostActionContentInfo
+from ZenPacks.zenoss.AWS.AWSEmail import IAWSEmailHostActionContentInfo
 from ZenPacks.zenoss.AWS.utils import addLocalLibPath
 
 addLocalLibPath()

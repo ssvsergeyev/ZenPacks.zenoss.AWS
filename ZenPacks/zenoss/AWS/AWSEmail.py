@@ -11,27 +11,24 @@
 #
 ###########################################################################
 
+import logging
+log = logging.getLogger("zen.useraction.actions")
+
 import Globals
 
 from zope.schema.vocabulary import SimpleVocabulary
+from zope.interface import implements
 
 from Products.Zuul.form import schema
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.Zuul.interfaces.actions import IInfo
 from Products.Zuul.interfaces import actions
+from Products.Zuul.infos.actions import ActionFieldProperty
+from Products.Zuul.infos import InfoBase
+
+from ZenPacks.zenoss.AWS.utils import addLocalLibPath, getSESRegions
+
 import textwrap
-
-from ZenPacks.zenoss.AWS.utils import addLocalLibPath
-
-addLocalLibPath()
-import boto.ses
-
-def getAWSRegionTypes():
-    region_infos = boto.ses.regions()
-    regions = []
-    for region in region_infos:
-        regions.append(region.name)
-    return regions
 
 class IAWSEmailHostActionContentInfo(IInfo):
 
@@ -100,9 +97,9 @@ class IAWSEmailHostActionContentInfo(IInfo):
 
     aws_region = schema.Choice(
         title       = _t(u'AWS Region'),
-        vocabulary  = SimpleVocabulary.fromValues(getAWSRegionTypes()),
+        vocabulary  = SimpleVocabulary.fromValues(getSESRegions()),
         description = _t(u'List of available AWS Regions.'),
-        default     = getAWSRegionTypes()[0]
+        default     = getSESRegions()[0]
     )
 
     aws_access_key = schema.Text(
@@ -114,3 +111,18 @@ class IAWSEmailHostActionContentInfo(IInfo):
         title       = _t(u'AWS Secret Key'),
         description = _t(u'Secret Key for the AWS account.'),
     )
+
+class AWSEmailHostActionContentInfo(InfoBase):
+    implements(IAWSEmailHostActionContentInfo)
+
+    body_content_type = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'body_content_type')
+    subject_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'subject_format')
+    body_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'body_format')
+    clear_subject_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'clear_subject_format')
+    clear_body_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'clear_body_format')
+    email_from = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'email_from')
+    aws_account_name = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_account_name')
+    aws_region = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_region')
+    aws_access_key = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_access_key')
+    aws_secret_key = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_secret_key')
+
