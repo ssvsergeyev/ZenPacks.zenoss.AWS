@@ -23,7 +23,7 @@ from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
 
 from Products.ZenUtils.Utils import sendEmail
-from Products.ZenModel.interfaces import IAction
+from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses
 from Products.ZenModel.actions import IActionBase, TargetableAction, processTalSource, _signalToContextDict
 
 from ZenPacks.zenoss.AWS.AWSEmail import IAWSEmailHostActionContentInfo
@@ -40,7 +40,13 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
     name = 'AWS Email Host'
     actionContentInfo = IAWSEmailHostActionContentInfo
 
-    def executeBatch(self, notification, signal, targets):
+    def __init__(self):
+        super(AWSEmailHostAction, self).__init__()
+
+    def setupAction(self, dmd):
+        self.guidManager = GUIDManager(dmd)
+
+    def executeOnTarget(self, notification, signal, targets):
         log.debug("Executing %s action for targets: %s", self.name, targets)
         self.setupAction(notification.dmd)
 
@@ -98,9 +104,35 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         log.debug("Notification '%s' sent emails to: %s",
                      notification.id, targets)
 
+    def getActionableTargets(self, target):
+        """
+        @param target: This is an object that implements the IProvidesEmailAddresses
+            interface.
+        @type target: UserSettings or GroupSettings.
+        """
+        if IProvidesEmailAddresses.providedBy(target):
+            return target.getEmailAddresses()
+
+    def _stripTags(self, data):
+        """A quick html => plaintext converter
+           that retains and displays anchor hrefs
+
+           stolen from the old zenactions.
+           @todo: needs to be updated for the new data structure?
+        """
+        tags = re.compile(r'<(.|\n)+?>', re.I | re.M)
+        aattrs = re.compile(r'<a(.|\n)+?href=["\']([^"\']*)[^>]*?>([^<>]*?)</a>', re.I | re.M)
+        anchors = re.finditer(aattrs, data)
+        for x in anchors: data = data.replace(x.group(), "%s: %s" % (x.groups()[2], x.groups()[1]))
+        data = re.sub(tags, '', data)
+        return data
+
     def updateContent(self, content=None, data=None):
         updates = dict()
-        properties = ['aws_account_name', 'aws_access_key', 'aws_secret_key', 'email_from']
+        updates['body_content_type'] = data.get('body_content_type', 'html')
+
+        properties = ['subject_format', 'body_format', 'clear_subject_format', 'clear_body_format']
+        properties.extend(['aws_account_name', 'aws_access_key', 'aws_secret_key', 'aws_region', 'email_from'])
         for k in properties:
             updates[k] = data.get(k)
 
