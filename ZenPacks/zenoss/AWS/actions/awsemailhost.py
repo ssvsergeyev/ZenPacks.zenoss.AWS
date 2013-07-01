@@ -11,10 +11,9 @@
 #
 ###########################################################################
 
+import re
 import logging
 log = logging.getLogger("zen.useraction.actions")
-
-import Globals
 
 from zope.interface import implements
 
@@ -22,9 +21,9 @@ from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
 
-from Products.ZenUtils.Utils import sendEmail
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses
 from Products.ZenModel.actions import IActionBase, TargetableAction, processTalSource, _signalToContextDict
+from Products.ZenUtils.guid.guid import GUIDManager
 
 from ZenPacks.zenoss.AWS.AWSEmail import IAWSEmailHostActionContentInfo
 from ZenPacks.zenoss.AWS.utils import addLocalLibPath
@@ -89,8 +88,8 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
 
         conn = boto.ses.connect_to_region(
             aws_region,
-            aws_access_key_id = aws_access_key,
-            aws_secret_access_key = aws_secret_key
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key
         )
 
         conn.send_email(
@@ -98,11 +97,11 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
             email_message['Subject'],
             email_message,
             email_message['To'],
-            format = notification.content['body_content_type']
+            format=notification.content['body_content_type']
         )
 
         log.debug("Notification '%s' sent emails to: %s",
-                     notification.id, targets)
+                  notification.id, targets)
 
     def getActionableTargets(self, target):
         """
@@ -123,7 +122,8 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         tags = re.compile(r'<(.|\n)+?>', re.I | re.M)
         aattrs = re.compile(r'<a(.|\n)+?href=["\']([^"\']*)[^>]*?>([^<>]*?)</a>', re.I | re.M)
         anchors = re.finditer(aattrs, data)
-        for x in anchors: data = data.replace(x.group(), "%s: %s" % (x.groups()[2], x.groups()[1]))
+        for x in anchors:
+            data = data.replace(x.group(), "%s: %s" % (x.groups()[2], x.groups()[1]))
         data = re.sub(tags, '', data)
         return data
 
