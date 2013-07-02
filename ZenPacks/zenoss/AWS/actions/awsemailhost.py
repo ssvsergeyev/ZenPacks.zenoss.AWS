@@ -83,11 +83,11 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
 
         email_message['Subject'] = subject
         email_message['From'] = email_from
-        email_message['To'] = ','.join(targets)
+        email_message['To'] = targets
         email_message['Date'] = formatdate(None, True)
 
         conn = boto.ses.connect_to_region(
-            aws_region,
+            'us-east-1',
             aws_access_key_id=aws_access_key,
             aws_secret_access_key=aws_secret_key
         )
