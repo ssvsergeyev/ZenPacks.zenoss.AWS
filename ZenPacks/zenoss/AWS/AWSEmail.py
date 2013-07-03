@@ -106,7 +106,7 @@ class IAWSEmailHostActionContentInfo(IInfo):
         description=_t(u'Access Key for the AWS account.'),
     )
 
-    aws_secret_key = schema.Text(
+    aws_secret_key = schema.Password(
         title=_t(u'AWS Secret Key'),
         description=_t(u'Secret Key for the AWS account.'),
     )
