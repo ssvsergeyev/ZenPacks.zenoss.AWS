@@ -17,8 +17,6 @@ log = logging.getLogger("zen.useraction.actions")
 
 from zope.interface import implements
 
-from email.Utils import formatdate
-
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses
 from Products.ZenModel.actions import IActionBase, TargetableAction, processTalSource, _signalToContextDict
 from Products.ZenUtils.guid.guid import GUIDManager
@@ -59,21 +57,19 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         log.debug('Sending this subject: %s' % subject)
         log.debug('Sending this body: %s' % body)
 
-        email_message['Body'] = body
+        email_message = body
 
         if notification.content['body_content_type'] == 'html':
-            email_message['Body'] = body.replace('\n', '<br />\n')
+            email_message = body.replace('\n', '<br />\n')
 
-        aws_account_name = notification.content['aws_account_name']
         aws_access_key = notification.content['aws_access_key']
         aws_secret_key = notification.content['aws_secret_key']
         aws_region = notification.content['aws_region']
         email_from = notification.content['email_from']
 
-        email_message['Subject'] = subject
-        email_message['From'] = email_from
-        email_message['To'] = targets
-        email_message['Date'] = formatdate(None, True)
+        email_subject = subject
+        email_to = targets
+        email_format = notification.content['body_content_type']
 
         conn = boto.ses.connect_to_region(
             aws_region,
@@ -82,11 +78,11 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         )
 
         conn.send_email(
-            email_message['From'],
-            email_message['Subject'],
-            email_message['Body'],
-            email_message['To'],
-            format=notification.content['body_content_type']
+            email_from,
+            email_subject,
+            email_message,
+            email_to,
+            format=email_format
         )
 
         log.debug("Notification '%s' sent emails to: %s",
