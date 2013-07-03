@@ -66,10 +66,10 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         aws_secret_key = notification.content['aws_secret_key']
         aws_region = notification.content['aws_region']
         email_from = notification.content['email_from']
+        email_format = notification.content['body_content_type']
 
         email_subject = subject
         email_to = targets
-        email_format = notification.content['body_content_type']
 
         conn = boto.ses.connect_to_region(
             aws_region,
