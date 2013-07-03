@@ -17,8 +17,6 @@ log = logging.getLogger("zen.useraction.actions")
 
 from zope.interface import implements
 
-from email.MIMEText import MIMEText
-from email.MIMEMultipart import MIMEMultipart
 from email.Utils import formatdate
 
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses
@@ -61,19 +59,10 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         log.debug('Sending this subject: %s' % subject)
         log.debug('Sending this body: %s' % body)
 
-        plain_body = MIMEText(self._stripTags(body))
-        email_message = plain_body
+        email_message['Body'] = body
 
         if notification.content['body_content_type'] == 'html':
-            email_message = MIMEMultipart('related')
-            email_message_alternative = MIMEMultipart('alternative')
-            email_message_alternative.attach(plain_body)
-
-            html_body = MIMEText(body.replace('\n', '<br />\n'))
-            html_body.set_type('text/html')
-            email_message_alternative.attach(html_body)
-
-            email_message.attach(email_message_alternative)
+            email_message['Body'] = body.replace('\n', '<br />\n')
 
         aws_account_name = notification.content['aws_account_name']
         aws_access_key = notification.content['aws_access_key']
@@ -87,7 +76,7 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         email_message['Date'] = formatdate(None, True)
 
         conn = boto.ses.connect_to_region(
-            'us-east-1',
+            aws_region,
             aws_access_key_id=aws_access_key,
             aws_secret_access_key=aws_secret_key
         )
@@ -95,7 +84,7 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         conn.send_email(
             email_message['From'],
             email_message['Subject'],
-            email_message,
+            email_message['Body'],
             email_message['To'],
             format=notification.content['body_content_type']
         )
