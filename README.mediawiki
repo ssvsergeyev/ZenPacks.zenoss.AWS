@@ -26,7 +26,7 @@ detailed further below.
 * Discovery of EC2 entities.
 * Monitoring of CloudWatch metrics.
 * Optional auto-discovery and monitoring of instance guest operating systems.
-* Optional service impact with addition of Zenoss Service Dynamic product.
+* Optional service impact with addition of Zenoss Service Dynamics product.
 
 === Discovery ===
 
