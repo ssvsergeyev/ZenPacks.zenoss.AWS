@@ -2,6 +2,8 @@ This ZenPack provides support for monitoring Amazon Web Services (AWS).
 Monitoring for the following EC2 entities is provided through a combination of
 the AWS EC2 and CloudWatch APIs.
 
+{{note}} This ZenPack supersedes the older ZenAWS (ZenPacks.zenoss.ZenAWS) ZenPack that was installed by default on versions of Zenoss prior to 4.2.4. Please remove ZenAWS before installing this ZenPack. This will remove the /EC2 device class and the EC2Manager device within. After installing this ZenPack, you will be able to add a new EC2 Account with much greater functionality.
+
 == Gallery ==
 <gallery widths=250px heights=127px>
 AWS Add EC2 Account Menu Item.png
@@ -13,6 +15,7 @@ AWS Instance Graphs.png
 AWS Volume Graphs.png
 AWS Zone Volumes.png
 AWS VPC Subnets.png
+AWS Impact.png
 </gallery>
 
 == Features ==
