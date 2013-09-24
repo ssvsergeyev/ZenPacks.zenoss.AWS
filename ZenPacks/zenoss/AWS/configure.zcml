@@ -99,6 +99,18 @@
         factory=".EC2VPCSubnet.EC2VPCSubnetPathReporter"
         />
 
+    <!-- AWS Email Host -->
+    <utility
+        factory=".actions.awsemailhost.AWSEmailHostAction"
+        provides="Products.ZenModel.interfaces.IAction"
+        name="awsemailhost"
+        />
+
+    <adapter provides=".AWSEmail.IAWSEmailHostActionContentInfo"
+             for="Products.ZenModel.NotificationSubscription.NotificationSubscription"
+             factory=".AWSEmail.AWSEmailHostActionContentInfo"
+             />
+
     <!-- Device Links -->
     <configure zcml:condition="have zenoss:IExpandedLinkProvider">
         <subscriber
