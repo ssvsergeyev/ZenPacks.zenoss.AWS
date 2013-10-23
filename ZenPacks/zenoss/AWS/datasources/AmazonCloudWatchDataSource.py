@@ -197,10 +197,13 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             monitorRequest['Statistics.member.1'] = ds.params['statistic']
 
             if ds.params['dimension']:
-                dim_name, dim_value = ds.params['dimension'].split('=')
+                dim_group = ds.params['dimension'].split(';')
 
-                monitorRequest['Dimensions.member.1.Name'] = dim_name
-                monitorRequest['Dimensions.member.1.Value'] = dim_value
+                i = 0
+                for dim_name, dim_value in [x.split('=') for x in dim_group]:
+                    i += 1
+                    monitorRequest['Dimensions.member.%d.Name' % i] = dim_name
+                    monitorRequest['Dimensions.member.%d.Value' % i] = dim_value
 
             getURL = awsUrlSign(
                 httpVerb,
