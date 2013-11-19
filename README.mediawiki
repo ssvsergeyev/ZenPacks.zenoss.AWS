@@ -187,3 +187,14 @@ Installing this ZenPack will add the following items to your Zenoss system.
 * EC2Zone (on EC2Region)
 * EC2Instance (on EC2Region)
 * EC2Volume (on EC2Region)
+
+== Changes ==
+
+;Latest
+* Support CloudWatch metrics with multiple indexes.
+* Add "Amazon Email Host" notification type for SES notifications.
+
+;2.0.0
+* Add support for regions, zones, VPCs, subnets and volumes.
+* Add support for custom CloudWatch metrics.
+* Complete rewrite.
