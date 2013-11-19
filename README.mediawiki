@@ -190,7 +190,7 @@ Installing this ZenPack will add the following items to your Zenoss system.
 
 == Changes ==
 
-;Latest
+;2.1.0
 * Support CloudWatch metrics with multiple indexes.
 * Add "Amazon Email Host" notification type for SES notifications.
 
