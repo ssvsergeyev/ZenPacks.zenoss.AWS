@@ -48,7 +48,10 @@ class EC2Region(AWSComponent):
         ('vpcs', ToManyCont(ToOne, MODULE_NAME['EC2VPC'], 'region')),
         ('vpc_subnets', ToManyCont(
             ToOne, MODULE_NAME['EC2VPCSubnet'], 'region')),
-        )
+        ('vpn_gateways', ToManyCont(
+            ToOne, MODULE_NAME['vpn_gateways'], 'region')
+        ),
+    )
 
     def getDimension(self):
         return ''
