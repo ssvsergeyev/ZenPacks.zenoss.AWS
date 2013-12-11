@@ -130,8 +130,7 @@ class EC2(PythonPlugin):
 
         # S3Buckets
         maps['s3buckets'].append(
-            s3buckets_rm(s3connection.get_all_buckets())
-        )
+            s3buckets_rm(s3connection.get_all_buckets()))
 
         # Trigger discovery of instance guest devices.
         maps['account'].append(ObjectMap(data={
