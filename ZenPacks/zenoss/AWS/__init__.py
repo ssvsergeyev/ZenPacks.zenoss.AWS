@@ -23,6 +23,7 @@ productNames = (
     'EC2Reservation',
     'EC2ElasticIP',
     'EC2Image',
+    'S3Bucket',
 )
 
 # Useful to avoid making literal string references to module and class names

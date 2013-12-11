@@ -98,6 +98,12 @@
         factory=".EC2Image.EC2ImageInfo"
         />
 
+    <adapter
+        provides=".S3Bucket.IS3BucketInfo"
+        for=".S3Bucket.S3Bucket"
+        factory=".S3Bucket.S3BucketInfo"
+        />
+
     <!-- Path Reporters -->
     <adapter
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
@@ -133,6 +139,12 @@
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
         for=".EC2ElasticIP.EC2ElasticIP"
         factory=".EC2ElasticIP.EC2ElasticIPPathReporter"
+        />
+
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".S3Bucket.S3Bucket"
+        factory=".S3Bucket.S3BucketPathReporter"
         />
 
     <!-- AWS Email Host -->

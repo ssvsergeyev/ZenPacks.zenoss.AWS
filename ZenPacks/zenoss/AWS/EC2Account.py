@@ -51,6 +51,8 @@ class EC2Account(Device):
             ToOne, MODULE_NAME['EC2ElasticIP'], 'account')),
         ('image', ToManyCont(
             ToOne, MODULE_NAME['EC2Image'], 'account')),
+        ('s3buckets', ToManyCont(
+            ToOne, MODULE_NAME['S3Bucket'], 'account')),
     )
 
     def getDiscoverGuests(self):
