@@ -20,9 +20,8 @@ from Products.Zuul.infos.component import ComponentInfo
 from Products.Zuul.interfaces.component import IComponentInfo
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
-from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME
+from ZenPacks.zenoss.AWS import MODULE_NAME
 from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
-from ZenPacks.zenoss.AWS.utils import updateToMany
 
 
 class S3Bucket(AWSComponent):

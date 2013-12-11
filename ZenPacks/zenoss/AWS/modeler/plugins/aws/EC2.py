@@ -311,7 +311,6 @@ def s3buckets_rm(buckets):
             'creation_date': bucket.creation_date,
             }))
 
-    # S3Buckets
     return RelationshipMap(
         relname='s3buckets',
         modname=MODULE_NAME['S3Bucket'],
