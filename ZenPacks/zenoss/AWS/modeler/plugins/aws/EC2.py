@@ -22,6 +22,7 @@ addLocalLibPath()
 
 from boto.ec2.connection import EC2Connection
 from boto.vpc import VPCConnection
+from boto.s3.connection import S3Connection
 
 '''
 Models regions, instance types, zones, instances, volumes, VPCs and VPC
@@ -55,6 +56,7 @@ class EC2(PythonPlugin):
 
         maps = collections.OrderedDict([
             ('regions', []),
+            ('s3buckets', []),
             ('instance types', []),
             ('zones', []),
             ('VPCs', []),
@@ -75,6 +77,7 @@ class EC2(PythonPlugin):
             }
 
         ec2conn = EC2Connection(accesskey, secretkey)
+        s3connection = S3Connection(accesskey, secretkey)
 
         region_oms = []
         for region in ec2conn.get_all_regions():
@@ -124,6 +127,10 @@ class EC2(PythonPlugin):
             relname='regions',
             modname=MODULE_NAME['EC2Region'],
             objmaps=region_oms))
+
+        # S3Buckets
+        maps['s3buckets'].append(
+            s3buckets_rm(s3connection.get_all_buckets()))
 
         # Trigger discovery of instance guest devices.
         maps['account'].append(ObjectMap(data={
@@ -288,3 +295,22 @@ def volumes_rm(region_id, volumes):
         relname='volumes',
         modname=MODULE_NAME['EC2Volume'],
         objmaps=volume_data)
+
+
+def s3buckets_rm(buckets):
+    '''
+    Return buckets RelationshipMap given a BucketInfo
+    ResultSet.
+    '''
+    bucket_oms = []
+    for bucket in buckets:
+        bucket_oms.append(ObjectMap(data={
+            'id': prepId(bucket.name),
+            'title': bucket.name,
+            'creation_date': bucket.creation_date,
+            }))
+
+    return RelationshipMap(
+        relname='s3buckets',
+        modname=MODULE_NAME['S3Bucket'],
+        objmaps=bucket_oms)

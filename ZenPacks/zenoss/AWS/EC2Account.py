@@ -45,6 +45,8 @@ class EC2Account(Device):
     _relations = Device._relations + (
         ('regions', ToManyCont(
             ToOne, MODULE_NAME['EC2Region'], 'account')),
+        ('s3buckets', ToManyCont(
+            ToOne, MODULE_NAME['S3Bucket'], 'account')),
         )
 
     def getDiscoverGuests(self):
