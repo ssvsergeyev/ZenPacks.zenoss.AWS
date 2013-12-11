@@ -47,9 +47,10 @@ class EC2Region(AWSComponent):
         ('volumes', ToManyCont(ToOne, MODULE_NAME['EC2Volume'], 'region')),
         ('vpcs', ToManyCont(ToOne, MODULE_NAME['EC2VPC'], 'region')),
         ('vpc_subnets', ToManyCont(
-            ToOne, MODULE_NAME['EC2VPCSubnet'], 'region')),
+            ToOne, MODULE_NAME['EC2VPCSubnet'], 'region')
+        ),
         ('vpn_gateways', ToManyCont(
-            ToOne, MODULE_NAME['vpn_gateways'], 'region')
+            ToOne, MODULE_NAME['VPNGateway'], 'region')
         ),
     )
 

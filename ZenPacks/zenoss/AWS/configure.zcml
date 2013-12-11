@@ -80,6 +80,12 @@
         factory=".EC2Zone.EC2ZoneInfo"
         />
 
+    <adapter
+        provides=".VPNGateway.IVPNGatewayInfo"
+        for=".VPNGateway.VPNGateway"
+        factory=".VPNGateway.VPNGatewayInfo"
+        />
+
     <!-- Path Reporters -->
     <adapter
         provides="Products.Zuul.catalog.interfaces.IPathReporter"

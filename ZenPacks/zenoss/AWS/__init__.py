@@ -20,7 +20,7 @@ productNames = (
     'EC2VPC',
     'EC2VPCSubnet',
     'EC2Zone',
-    'vpn_gateways',
+    'VPNGateway',
     )
 
 # Useful to avoid making literal string references to module and class names

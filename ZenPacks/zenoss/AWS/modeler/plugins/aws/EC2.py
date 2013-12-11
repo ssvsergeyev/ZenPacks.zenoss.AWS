@@ -217,13 +217,13 @@ def vpn_gateways_rm(region_id, gateways):
             'title': name_or(gateway.tags, gateway.id),
             'state': gateway.state,
             'availability_zone': gateway.availability_zone,
-            #'gateway_type': gateway.
+            'gateway_type': gateway.type,
         })
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
         relname='vpn_gateways',
-        modname=MODULE_NAME['vpn_gateways'],
+        modname=MODULE_NAME['VPNGateway'],
         objmaps=objmaps
     )
 
