@@ -58,6 +58,7 @@ def test_account(dmd, factor=1):
     from ZenPacks.zenoss.AWS.EC2VPCSubnet import EC2VPCSubnet
     from ZenPacks.zenoss.AWS.EC2Instance import EC2Instance
     from ZenPacks.zenoss.AWS.EC2Volume import EC2Volume
+    from ZenPacks.zenoss.AWS.S3Bucket import S3Bucket
 
     dc = dmd.Devices.createOrganizer('/AWS/EC2')
     dc.setZenProperty('zPythonClass', 'ZenPacks.zenoss.AWS.EC2Account')
@@ -122,5 +123,12 @@ def test_account(dmd, factor=1):
 
                             volume.setZoneId(zone.id)
                             volume.setInstanceId(instance.id)
+
+    # S3Buckets
+    for bucket_id in range(factor):
+        bucket = add_obj(
+            account.s3buckets,
+            S3Bucket('s3bucket%s' % (
+                bucket_id)))
 
     return account

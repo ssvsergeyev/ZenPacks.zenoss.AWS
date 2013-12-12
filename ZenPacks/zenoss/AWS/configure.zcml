@@ -86,6 +86,30 @@
         factory=".VPNGateway.VPNGatewayInfo"
         />
 
+    <adapter
+        provides=".EC2Reservation.IEC2ReservationInfo"
+        for=".EC2Reservation.EC2Reservation"
+        factory=".EC2Reservation.EC2ReservationInfo"
+        />
+
+    <adapter
+        provides=".EC2ElasticIP.IEC2ElasticIPInfo"
+        for=".EC2ElasticIP.EC2ElasticIP"
+        factory=".EC2ElasticIP.EC2ElasticIPInfo"
+        />
+
+    <adapter
+        provides=".EC2Image.IEC2ImageInfo"
+        for=".EC2Image.EC2Image"
+        factory=".EC2Image.EC2ImageInfo"
+        />
+
+    <adapter
+        provides=".S3Bucket.IS3BucketInfo"
+        for=".S3Bucket.S3Bucket"
+        factory=".S3Bucket.S3BucketInfo"
+        />
+
     <!-- Path Reporters -->
     <adapter
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
@@ -103,6 +127,30 @@
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
         for=".EC2VPCSubnet.EC2VPCSubnet"
         factory=".EC2VPCSubnet.EC2VPCSubnetPathReporter"
+        />
+
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".EC2Reservation.EC2Reservation"
+        factory=".EC2Reservation.EC2ReservationPathReporter"
+        />
+
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".EC2Image.EC2Image"
+        factory=".EC2Image.EC2ImagePathReporter"
+        />
+
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".EC2ElasticIP.EC2ElasticIP"
+        factory=".EC2ElasticIP.EC2ElasticIPPathReporter"
+        />
+
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".S3Bucket.S3Bucket"
+        factory=".S3Bucket.S3BucketPathReporter"
         />
 
     <!-- AWS Email Host -->
@@ -179,6 +227,25 @@
             for="Products.ZenModel.Device.Device"
             factory=".impact.DeviceRelationsProvider"
             />
+        <!--
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2Reservation.EC2Reservation"
+            factory=".impact.EC2ReservationRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2ElasticIP.EC2ElasticIP"
+            factory=".impact.EC2ElasticIPRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2Image.EC2Image"
+            factory=".impact.EC2ImageRelationsProvider"
+            />
+        -->
 
     </configure>
 

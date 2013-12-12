@@ -40,12 +40,20 @@ class EC2Account(Device):
         {'id': 'ec2secretkey', 'type': 'string'},
         {'id': 'linuxDeviceClass', 'type': 'string'},
         {'id': 'windowsDeviceClass', 'type': 'string'},
-        )
+    )
 
     _relations = Device._relations + (
         ('regions', ToManyCont(
             ToOne, MODULE_NAME['EC2Region'], 'account')),
-        )
+        ('reservation', ToManyCont(
+            ToOne, MODULE_NAME['EC2Reservation'], 'account')),
+        ('elastic', ToManyCont(
+            ToOne, MODULE_NAME['EC2ElasticIP'], 'account')),
+        ('image', ToManyCont(
+            ToOne, MODULE_NAME['EC2Image'], 'account')),
+        ('s3buckets', ToManyCont(
+            ToOne, MODULE_NAME['S3Bucket'], 'account')),
+    )
 
     def getDiscoverGuests(self):
         '''
