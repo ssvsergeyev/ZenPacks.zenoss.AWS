@@ -68,7 +68,3 @@ class VPNGatewayInfo(ComponentInfo):
     @info
     def region(self):
         return self._object.region()
-
-class VPNGatewayPathReporter(DefaultPathReporter):
-    pass
-
