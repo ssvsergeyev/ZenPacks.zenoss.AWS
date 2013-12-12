@@ -35,3 +35,6 @@ build:
 clean:
 	rm -rf lib build dist *.egg-info $(BIN_DIR) $(LIB_DIR)
 	cd $(BOTO_DIR) ; rm -rf build dist *.egg-info
+
+test:
+	runtests ZenPacks.zenoss.AWS

@@ -81,6 +81,12 @@
         />
 
     <adapter
+        provides=".VPNGateway.IVPNGatewayInfo"
+        for=".VPNGateway.VPNGateway"
+        factory=".VPNGateway.VPNGatewayInfo"
+        />
+
+    <adapter
         provides=".EC2Reservation.IEC2ReservationInfo"
         for=".EC2Reservation.EC2Reservation"
         factory=".EC2Reservation.EC2ReservationInfo"
