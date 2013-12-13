@@ -61,6 +61,7 @@ class EC2(PythonPlugin):
             ('zones', []),
             ('VPCs', []),
             ('VPC subnets', []),
+            ('VPNGateways', []),
             ('instances', []),
             ('volumes', []),
             ('elastic_ips', []),
@@ -104,6 +105,14 @@ class EC2(PythonPlugin):
                 vpcs_rm(
                     region_id,
                     vpcregionconn.get_all_vpcs()))
+
+            # VPNGateways
+            maps['VPNGateways'].append(
+                vpn_gateways_rm(
+                    region_id,
+                    vpcregionconn.get_all_vpn_gateways()
+                )
+            )
 
             # VPC Subnets
             maps['VPC subnets'].append(
@@ -217,6 +226,27 @@ def vpcs_rm(region_id, vpcs):
         relname='vpcs',
         modname=MODULE_NAME['EC2VPC'],
         objmaps=vpc_data)
+
+def vpn_gateways_rm(region_id, gateways):
+    '''
+    Return VPN Gateways RelationshipMap given region_id and list of VpnGateway objects
+    '''
+    objmaps = []
+    for gateway in gateways:
+        objmaps.append({
+            'id': prepId(gateway.id),
+            'title': name_or(gateway.tags, gateway.id),
+            'state': gateway.state,
+            'availability_zone': gateway.availability_zone,
+            'gateway_type': gateway.type,
+        })
+
+    return RelationshipMap(
+        compname='regions/%s' % region_id,
+        relname='vpn_gateways',
+        modname=MODULE_NAME['VPNGateway'],
+        objmaps=objmaps
+    )
 
 
 def vpc_subnets_rm(region_id, subnets):
