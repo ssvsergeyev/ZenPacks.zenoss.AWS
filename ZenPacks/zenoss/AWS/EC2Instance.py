@@ -28,7 +28,7 @@ from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.interfaces.component import IComponentInfo
 from Products.Zuul.utils import ZuulMessageFactory as _t
 
-from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME
+from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME, EC2INSTANCE_TYPES
 from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
 from ZenPacks.zenoss.AWS.utils import updateToOne, updateToMany
 
@@ -66,7 +66,7 @@ class EC2Instance(AWSComponent):
         {'id': 'region', 'type': 'string'},
         {'id': 'platform', 'type': 'string'},
         {'id': 'detailed_monitoring', 'type': 'boolean'},
-        )
+    )
 
     _relations = AWSComponent._relations + (
         ('region', ToOne(
@@ -80,7 +80,15 @@ class EC2Instance(AWSComponent):
 
         ('vpc_subnet', ToOne(
             ToMany, MODULE_NAME['EC2VPCSubnet'], 'instances')),
-        )
+    )
+
+    def instance_type_details(self):
+        if not self.instance_type:
+            return ''
+        try:
+            return EC2INSTANCE_TYPES[self.instance_type]
+        except:
+            return 'No information for this instance type'
 
     def getIconPath(self):
         '''
@@ -318,6 +326,7 @@ class IEC2InstanceInfo(IComponentInfo):
     vpc_subnet = schema.Entity(title=_t(u'VPC Subnet'))
     instance_id = schema.TextLine(title=_t(u'Instance ID'))
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
+    instance_type_details = schema.TextLine(title=_t(u'Instance type details'))
     image_id = schema.TextLine(title=_t(u'Image ID'))
     platform = schema.TextLine(title=_t(u'Platform'))
     public_dns_name = schema.TextLine(title=_t(u'Public DNS Name'))
@@ -379,6 +388,11 @@ class EC2InstanceInfo(ComponentInfo):
     @info
     def guest_device(self):
         return self._object.guest_device()
+
+    @property
+    @info
+    def instance_type_details(self):
+        return self._object.instance_type_details()
 
 
 class EC2InstancePathReporter(DefaultPathReporter):
