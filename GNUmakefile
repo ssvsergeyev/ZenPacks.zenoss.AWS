@@ -36,5 +36,10 @@ clean:
 	rm -rf lib build dist *.egg-info $(BIN_DIR) $(LIB_DIR)
 	cd $(BOTO_DIR) ; rm -rf build dist *.egg-info
 
+json:
+	cd ZenPacks/zenoss/AWS; \
+	wget --quiet https://raw.github.com/garnaat/missingcloud/master/aws.json; \
+	if [ -f aws.json.1 ]; then rm aws.json; mv aws.json.1 aws.json; fi
+
 test:
 	runtests ZenPacks.zenoss.AWS
