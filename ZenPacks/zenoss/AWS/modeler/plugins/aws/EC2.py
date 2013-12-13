@@ -23,6 +23,8 @@ addLocalLibPath()
 from boto.ec2.connection import EC2Connection
 from boto.vpc import VPCConnection
 from boto.s3.connection import S3Connection
+from boto.sqs.connection import SQSConnection
+from boto.sqs import regions as get_sqs_regions
 
 '''
 Models regions, instance types, zones, instances, volumes, VPCs and VPC
@@ -64,6 +66,7 @@ class EC2(PythonPlugin):
             ('VPNGateways', []),
             ('instances', []),
             ('volumes', []),
+            ('queues', []),
             ('account', []),
             ])
 
@@ -81,17 +84,17 @@ class EC2(PythonPlugin):
         s3connection = S3Connection(accesskey, secretkey)
 
         region_oms = []
-        for region in ec2conn.get_all_regions():
+        for region in set(ec2conn.get_all_regions() + get_sqs_regions()):
             region_id = prepId(region.name)
 
             region_oms.append(ObjectMap(data={
                 'id': region_id,
                 'title': region.name,
-                }))
+            }))
 
             ec2regionconn = EC2Connection(accesskey, secretkey, region=region)
             vpcregionconn = VPCConnection(accesskey, secretkey, region=region)
-
+            sqsconnection = SQSConnection(accesskey, secretkey, region=region)
             # Zones
             maps['zones'].append(
                 zones_rm(
@@ -109,6 +112,13 @@ class EC2(PythonPlugin):
                 vpn_gateways_rm(
                     region_id,
                     vpcregionconn.get_all_vpn_gateways()
+                )
+            )
+
+            maps['queues'].append(
+                vpn_queues_rm(
+                    region_id,
+                    sqsconnection.get_all_queues()
                 )
             )
 
@@ -231,6 +241,21 @@ def vpn_gateways_rm(region_id, gateways):
         compname='regions/%s' % region_id,
         relname='vpn_gateways',
         modname=MODULE_NAME['VPNGateway'],
+        objmaps=objmaps
+    )
+
+def vpn_queues_rm(region_id, qs):
+    objmaps = []
+    for q in qs:
+        objmaps.append({
+            'id': prepId(q.id),
+            'title': name_or(q.name),
+        })
+
+    return RelationshipMap(
+        compname='regions/%s' % region_id,
+        relname='queues',
+        modname=MODULE_NAME['SQSQueue'],
         objmaps=objmaps
     )
 

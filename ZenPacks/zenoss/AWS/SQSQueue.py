@@ -12,9 +12,9 @@ from zope.interface import implements
 
 from Products.ZenRelations.RelSchema import ToMany, ToManyCont, ToOne
 
+from Products.Zuul.catalog.paths import DefaultPathReporter
 from Products.Zuul.decorators import info
 
-from Products.Zuul.catalog.paths import DefaultPathReporter
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.infos.component import ComponentInfo
@@ -26,39 +26,22 @@ from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
 from ZenPacks.zenoss.AWS.utils import updateToMany
 
 
-class VPNGateway(AWSComponent):
-    meta_type = portal_type = 'VPNGateway'
-
-    gateway_type = None
-    state = None
-    availability_zone = None
-
-    _properties = AWSComponent._properties + (
-        {'id': 'gateway_type', 'type': 'string'},
-        {'id': 'state', 'type': 'string'},
-        {'id': 'availability_zone', 'type': 'string'},
-    )
+class SQSQueue(AWSComponent):
+    meta_type = portal_type = 'SQSQueue'
 
     _relations = AWSComponent._relations + (
-        ('region', ToOne(ToManyCont, MODULE_NAME['EC2Region'], 'vpn_gateways')),
+        ('region', ToOne(ToManyCont, MODULE_NAME['EC2Region'], 'queues')),
     )
 
 
-class IVPNGatewayInfo(IComponentInfo):
+class ISQSQueueInfo(IComponentInfo):
     account = schema.Entity(title=_t(u'Account'))
-    gateway_type = schema.Entity(title=_t(u'Gateway type'))
-    state = schema.TextLine(title=_t(u'State'))
-    availability_zone = schema.TextLine(title=_t(u'Availability zone'))
     region = schema.Entity(title=_t(u'Region'))
 
 
-class VPNGatewayInfo(ComponentInfo):
-    implements(IVPNGatewayInfo)
-    adapts(VPNGateway)
-
-    gateway_type = ProxyProperty('gateway_type')
-    state = ProxyProperty('state')
-    availability_zone = ProxyProperty('availability_zone')
+class SQSQueueInfo(ComponentInfo):
+    implements(ISQSQueueInfo)
+    adapts(SQSQueue)
 
     @property
     @info
@@ -70,6 +53,5 @@ class VPNGatewayInfo(ComponentInfo):
     def region(self):
         return self._object.region()
 
-class VPNGatewayPathReporter(DefaultPathReporter):
+class SQSQueuePathReporter(DefaultPathReporter):
     pass
-

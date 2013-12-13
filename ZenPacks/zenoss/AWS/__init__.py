@@ -25,6 +25,7 @@ productNames = (
     'EC2ElasticIP',
     'EC2Image',
     'S3Bucket',
+    'SQSQueue',
 )
 
 # Useful to avoid making literal string references to module and class names

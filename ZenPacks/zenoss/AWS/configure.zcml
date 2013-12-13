@@ -110,6 +110,12 @@
         factory=".S3Bucket.S3BucketInfo"
         />
 
+    <adapter
+        provides=".SQSQueue.ISQSQueueInfo"
+        for=".SQSQueue.SQSQueue"
+        factory=".SQSQueue.SQSQueueInfo"
+        />
+
     <!-- Path Reporters -->
     <adapter
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
@@ -151,6 +157,19 @@
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
         for=".S3Bucket.S3Bucket"
         factory=".S3Bucket.S3BucketPathReporter"
+        />
+
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".SQSQueue.SQSQueue"
+        factory=".SQSQueue.SQSQueuePathReporter"
+        />
+
+
+    <adapter
+        provides="Products.Zuul.catalog.interfaces.IPathReporter"
+        for=".VPNGateway.VPNGateway"
+        factory=".VPNGateway.VPNGatewayPathReporter"
         />
 
     <!-- AWS Email Host -->
