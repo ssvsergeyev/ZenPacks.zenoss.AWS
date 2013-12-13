@@ -72,9 +72,6 @@ class EC2Image(AWSComponent):
             'image')),
     )
 
-    def getReservationId(self):
-        return self.account().id
-
 
 class IEC2ImageInfo(IComponentInfo):
     '''

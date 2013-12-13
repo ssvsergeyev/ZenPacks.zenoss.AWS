@@ -45,10 +45,6 @@ class EC2Account(Device):
     _relations = Device._relations + (
         ('regions', ToManyCont(
             ToOne, MODULE_NAME['EC2Region'], 'account')),
-        ('reservation', ToManyCont(
-            ToOne, MODULE_NAME['EC2Reservation'], 'account')),
-        ('elastic', ToManyCont(
-            ToOne, MODULE_NAME['EC2ElasticIP'], 'account')),
         ('image', ToManyCont(
             ToOne, MODULE_NAME['EC2Image'], 'account')),
         ('s3buckets', ToManyCont(
