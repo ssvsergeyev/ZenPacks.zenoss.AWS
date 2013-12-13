@@ -163,7 +163,7 @@
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
         for=".SQSQueue.SQSQueue"
         factory=".SQSQueue.SQSQueuePathReporter"
-        />
+    />
 
 
     <adapter

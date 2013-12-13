@@ -23,8 +23,7 @@ addLocalLibPath()
 from boto.ec2.connection import EC2Connection
 from boto.vpc import VPCConnection
 from boto.s3.connection import S3Connection
-from boto.sqs.connection import SQSConnection
-from boto.sqs import regions as get_sqs_regions
+import boto.sqs
 
 '''
 Models regions, instance types, zones, instances, volumes, VPCs and VPC
@@ -84,7 +83,7 @@ class EC2(PythonPlugin):
         s3connection = S3Connection(accesskey, secretkey)
 
         region_oms = []
-        for region in set(ec2conn.get_all_regions() + get_sqs_regions()):
+        for region in ec2conn.get_all_regions():
             region_id = prepId(region.name)
 
             region_oms.append(ObjectMap(data={
@@ -94,7 +93,10 @@ class EC2(PythonPlugin):
 
             ec2regionconn = EC2Connection(accesskey, secretkey, region=region)
             vpcregionconn = VPCConnection(accesskey, secretkey, region=region)
-            sqsconnection = SQSConnection(accesskey, secretkey, region=region)
+            sqsconnection = boto.sqs.connect_to_region(region.name,
+                aws_access_key_id=accesskey,
+                aws_secret_access_key=secretkey
+            )
             # Zones
             maps['zones'].append(
                 zones_rm(
@@ -249,7 +251,7 @@ def vpn_queues_rm(region_id, qs):
     for q in qs:
         objmaps.append({
             'id': prepId(q.id),
-            'title': name_or(q.name),
+            'title': q.name,
         })
 
     return RelationshipMap(

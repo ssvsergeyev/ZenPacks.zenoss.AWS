@@ -52,6 +52,9 @@ class EC2Region(AWSComponent):
         ('vpn_gateways', ToManyCont(
             ToOne, MODULE_NAME['VPNGateway'], 'region')
         ),
+        ('queues', ToManyCont(
+            ToOne, MODULE_NAME['SQSQueue'], 'region')
+        ),
     )
 
     def getDimension(self):
