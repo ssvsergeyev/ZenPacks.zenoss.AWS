@@ -40,3 +40,6 @@ json:
 	cd ZenPacks/zenoss/AWS; \
 	wget --quiet https://raw.github.com/garnaat/missingcloud/master/aws.json; \
 	if [ -f aws.json.1 ]; then rm aws.json; mv aws.json.1 aws.json; fi
+
+test:
+	runtests ZenPacks.zenoss.AWS
