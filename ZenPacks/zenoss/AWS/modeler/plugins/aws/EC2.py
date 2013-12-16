@@ -23,6 +23,7 @@ addLocalLibPath()
 from boto.ec2.connection import EC2Connection
 from boto.vpc import VPCConnection
 from boto.s3.connection import S3Connection
+import boto.sqs
 
 '''
 Models regions, instance types, zones, instances, volumes, VPCs and VPC
@@ -64,6 +65,7 @@ class EC2(PythonPlugin):
             ('VPNGateways', []),
             ('instances', []),
             ('volumes', []),
+            ('queues', []),
             ('elastic_ips', []),
             ('reservations', []),
             ('account', []),
@@ -89,11 +91,14 @@ class EC2(PythonPlugin):
             region_oms.append(ObjectMap(data={
                 'id': region_id,
                 'title': region.name,
-                }))
+            }))
 
             ec2regionconn = EC2Connection(accesskey, secretkey, region=region)
             vpcregionconn = VPCConnection(accesskey, secretkey, region=region)
-
+            sqsconnection = boto.sqs.connect_to_region(region.name,
+                aws_access_key_id=accesskey,
+                aws_secret_access_key=secretkey
+            )
             # Zones
             maps['zones'].append(
                 zones_rm(
@@ -111,6 +116,13 @@ class EC2(PythonPlugin):
                 vpn_gateways_rm(
                     region_id,
                     vpcregionconn.get_all_vpn_gateways()
+                )
+            )
+
+            maps['queues'].append(
+                vpn_queues_rm(
+                    region_id,
+                    sqsconnection.get_all_queues()
                 )
             )
 
@@ -245,6 +257,21 @@ def vpn_gateways_rm(region_id, gateways):
         compname='regions/%s' % region_id,
         relname='vpn_gateways',
         modname=MODULE_NAME['VPNGateway'],
+        objmaps=objmaps
+    )
+
+def vpn_queues_rm(region_id, qs):
+    objmaps = []
+    for q in qs:
+        objmaps.append({
+            'id': prepId(q.id),
+            'title': q.name,
+        })
+
+    return RelationshipMap(
+        compname='regions/%s' % region_id,
+        relname='queues',
+        modname=MODULE_NAME['SQSQueue'],
         objmaps=objmaps
     )
 

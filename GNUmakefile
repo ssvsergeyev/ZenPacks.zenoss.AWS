@@ -13,7 +13,7 @@
 
 PYTHON=$(shell which python)
 HERE=$(PWD)
-BOTO_DIR=$(HERE)/src/boto-2-8-0-31-JAN-13
+BOTO_DIR=$(HERE)/src/boto
 ZP_DIR=$(HERE)/ZenPacks/zenoss/AWS
 LIB_DIR=$(ZP_DIR)/lib
 BIN_DIR=$(ZP_DIR)/bin

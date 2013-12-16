@@ -12,7 +12,6 @@ from zope.interface import implements
 
 from Products.ZenRelations.RelSchema import ToOne, ToMany, ToManyCont
 
-from Products.Zuul.catalog.paths import DefaultPathReporter, relPath
 from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
@@ -95,12 +94,3 @@ class EC2ElasticIPInfo(ComponentInfo):
     @info
     def region(self):
         return self._object.region()
-
-
-class EC2ElasticIPPathReporter(DefaultPathReporter):
-    '''
-    Path reporter for EC2ElasticIP.
-    '''
-
-    def getPaths(self):
-        return super(EC2ElasticIPPathReporter, self).getPaths()

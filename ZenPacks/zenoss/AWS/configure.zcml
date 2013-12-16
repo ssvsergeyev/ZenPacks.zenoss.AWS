@@ -110,6 +110,12 @@
         factory=".S3Bucket.S3BucketInfo"
         />
 
+    <adapter
+        provides=".SQSQueue.ISQSQueueInfo"
+        for=".SQSQueue.SQSQueue"
+        factory=".SQSQueue.SQSQueueInfo"
+        />
+
     <!-- Path Reporters -->
     <adapter
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
@@ -127,30 +133,6 @@
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
         for=".EC2VPCSubnet.EC2VPCSubnet"
         factory=".EC2VPCSubnet.EC2VPCSubnetPathReporter"
-        />
-
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".EC2Reservation.EC2Reservation"
-        factory=".EC2Reservation.EC2ReservationPathReporter"
-        />
-
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".EC2Image.EC2Image"
-        factory=".EC2Image.EC2ImagePathReporter"
-        />
-
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".EC2ElasticIP.EC2ElasticIP"
-        factory=".EC2ElasticIP.EC2ElasticIPPathReporter"
-        />
-
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".S3Bucket.S3Bucket"
-        factory=".S3Bucket.S3BucketPathReporter"
         />
 
     <!-- AWS Email Host -->
