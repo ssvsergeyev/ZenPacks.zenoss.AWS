@@ -107,6 +107,26 @@ class EC2VPCSubnetRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['vpc', 'zone']
     impact_relationships = ['instances']
 
+# todo: test on zenoss resource manager 4.2.4
+class EC2ReservationRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['region']
+
+
+class EC2ElasticIPRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['region']
+
+
+class EC2ImageRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['account']
+
+
+class S3BucketRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['account']
+
+
+class VPNGatewayRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['region']
+
 
 class EC2InstanceRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['vpc_subnet', 'zone', 'volumes']

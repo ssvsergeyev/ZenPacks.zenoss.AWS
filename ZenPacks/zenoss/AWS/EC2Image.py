@@ -69,7 +69,7 @@ class EC2Image(AWSComponent):
     _relations = AWSComponent._relations + (
         ('account', ToOne(
             ToManyCont, MODULE_NAME['EC2Account'],
-            'image')),
+            'images')),
     )
 
 
