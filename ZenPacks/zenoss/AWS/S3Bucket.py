@@ -66,12 +66,3 @@ class S3BucketInfo(ComponentInfo):
     @info
     def account(self):
         return self._object.device()
-
-
-class S3BucketPathReporter(DefaultPathReporter):
-    '''
-    Path reporter for S3Bucket.
-    '''
-
-    def getPaths(self):
-        return super(S3BucketPathReporter, self).getPaths()

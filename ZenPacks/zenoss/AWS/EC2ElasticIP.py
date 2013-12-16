@@ -49,13 +49,9 @@ class EC2ElasticIP(AWSComponent):
     )
 
     _relations = AWSComponent._relations + (
-        ('account', ToOne(
-            ToManyCont, MODULE_NAME['EC2Account'],
-            'elastic')),
+        ('region', ToOne(
+            ToManyCont, MODULE_NAME['EC2Region'], 'elastic_ips')),
     )
-
-    def getReservationId(self):
-        return self.account().id
 
 
 class IEC2ElasticIPInfo(IComponentInfo):
@@ -64,6 +60,7 @@ class IEC2ElasticIPInfo(IComponentInfo):
     '''
 
     account = schema.Entity(title=_t(u'Account'))
+    region = schema.Entity(title=_t(u'Region'))
     public_ip = schema.TextLine(title=_t(u'Public IP'))
     private_ip_address = schema.TextLine(title=_t(u'Private IP address'))
     instance_id = schema.TextLine(title=_t(u'Instance ID'))
@@ -93,6 +90,11 @@ class EC2ElasticIPInfo(ComponentInfo):
     @info
     def account(self):
         return self._object.device()
+
+    @property
+    @info
+    def region(self):
+        return self._object.region()
 
 
 class EC2ElasticIPPathReporter(DefaultPathReporter):

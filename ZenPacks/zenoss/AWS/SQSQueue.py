@@ -52,6 +52,3 @@ class SQSQueueInfo(ComponentInfo):
     @info
     def region(self):
         return self._object.region()
-
-class SQSQueuePathReporter(DefaultPathReporter):
-    pass

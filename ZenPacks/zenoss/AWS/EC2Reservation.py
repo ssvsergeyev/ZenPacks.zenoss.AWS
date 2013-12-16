@@ -51,13 +51,9 @@ class EC2Reservation(AWSComponent):
     )
 
     _relations = AWSComponent._relations + (
-        ('account', ToOne(
-            ToManyCont, MODULE_NAME['EC2Account'],
-            'reservation')),
+        ('region', ToOne(
+            ToManyCont, MODULE_NAME['EC2Region'], 'reservations')),
     )
-
-    def getReservationId(self):
-        return self.account().id
 
 
 class IEC2ReservationInfo(IComponentInfo):
@@ -66,6 +62,7 @@ class IEC2ReservationInfo(IComponentInfo):
     '''
 
     account = schema.Entity(title=_t(u'Account'))
+    region = schema.Entity(title=_t(u'Region'))
     instance_type = schema.TextLine(title=_t(u'Instance type'))
     availability_zone = schema.TextLine(title=_t(u'Availability zone'))
     duration = schema.TextLine(title=_t(u'Duration'))
@@ -95,6 +92,11 @@ class EC2ReservationInfo(ComponentInfo):
     @info
     def account(self):
         return self._object.device()
+
+    @property
+    @info
+    def region(self):
+        return self._object.region()
 
 
 class EC2ReservationPathReporter(DefaultPathReporter):
