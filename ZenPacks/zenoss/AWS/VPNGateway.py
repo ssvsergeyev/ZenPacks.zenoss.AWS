@@ -14,6 +14,7 @@ from Products.ZenRelations.RelSchema import ToMany, ToManyCont, ToOne
 
 from Products.Zuul.decorators import info
 
+from Products.Zuul.catalog.paths import DefaultPathReporter
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.infos.component import ComponentInfo
