@@ -206,12 +206,6 @@
 
         <subscriber
             provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
-            for="Products.ZenModel.Device.Device"
-            factory=".impact.DeviceRelationsProvider"
-            />
-        <!--
-        <subscriber
-            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
             for=".EC2Reservation.EC2Reservation"
             factory=".impact.EC2ReservationRelationsProvider"
             />
@@ -227,7 +221,24 @@
             for=".EC2Image.EC2Image"
             factory=".impact.EC2ImageRelationsProvider"
             />
-        -->
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".S3Bucket.S3Bucket"
+            factory=".impact.S3BucketRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".VPNGateway.VPNGateway"
+            factory=".impact.VPNGatewayRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for="Products.ZenModel.Device.Device"
+            factory=".impact.DeviceRelationsProvider"
+            />
 
     </configure>
 
