@@ -135,30 +135,6 @@
         factory=".EC2VPCSubnet.EC2VPCSubnetPathReporter"
         />
 
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".EC2Reservation.EC2Reservation"
-        factory=".EC2Reservation.EC2ReservationPathReporter"
-        />
-
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".EC2Image.EC2Image"
-        factory=".EC2Image.EC2ImagePathReporter"
-        />
-
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".EC2ElasticIP.EC2ElasticIP"
-        factory=".EC2ElasticIP.EC2ElasticIPPathReporter"
-        />
-
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".VPNGateway.VPNGateway"
-        factory=".VPNGateway.VPNGatewayPathReporter"
-        />
-
     <!-- AWS Email Host -->
     <utility
         factory=".actions.awsemailhost.AWSEmailHostAction"
