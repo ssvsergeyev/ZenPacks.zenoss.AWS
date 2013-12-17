@@ -153,12 +153,6 @@
         factory=".EC2ElasticIP.EC2ElasticIPPathReporter"
         />
 
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".VPNGateway.VPNGateway"
-        factory=".VPNGateway.VPNGatewayPathReporter"
-        />
-
     <!-- AWS Email Host -->
     <utility
         factory=".actions.awsemailhost.AWSEmailHostAction"
