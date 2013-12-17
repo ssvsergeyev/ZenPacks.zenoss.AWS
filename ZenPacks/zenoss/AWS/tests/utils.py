@@ -61,6 +61,8 @@ def test_account(dmd, factor=1):
     from ZenPacks.zenoss.AWS.S3Bucket import S3Bucket
     from ZenPacks.zenoss.AWS.EC2ElasticIP import EC2ElasticIP
     from ZenPacks.zenoss.AWS.EC2Reservation import EC2Reservation
+    from ZenPacks.zenoss.AWS.EC2Image import EC2Image
+    from ZenPacks.zenoss.AWS.VPNGateway import VPNGateway
 
     dc = dmd.Devices.createOrganizer('/AWS/EC2')
     dc.setZenProperty('zPythonClass', 'ZenPacks.zenoss.AWS.EC2Account')
@@ -133,6 +135,8 @@ def test_account(dmd, factor=1):
                 EC2ElasticIP('elastic_ip%s-%s' % (
                     region_id, elastic_ip_id)))
 
+            elastic_ip.setZoneId(zone.id)
+
         # Reserved instances
         for reservation_id in range(factor):
             reservation = add_obj(
@@ -140,11 +144,29 @@ def test_account(dmd, factor=1):
                 EC2Reservation('reservation%s-%s' % (
                     region_id, reservation_id)))
 
+            reservation.setZoneId(zone.id)
+
+        # VPNGateways
+        for vpn_gateway_id in range(factor):
+            vpn_gateway = add_obj(
+                region.vpn_gateways,
+                VPNGateway('vpn_gateway%s-%s' % (
+                    region_id, vpn_gateway_id)))
+
+            vpn_gateway.setZoneId(zone.id)
+
     # S3Buckets
     for bucket_id in range(factor):
         bucket = add_obj(
             account.s3buckets,
             S3Bucket('s3bucket%s' % (
                 bucket_id)))
+
+    # EC2Image
+    for image_id in range(factor):
+        image = add_obj(
+            account.images,
+            EC2Image('image%s' % (
+                image_id)))
 
     return account

@@ -12,7 +12,6 @@ from zope.interface import implements
 
 from Products.ZenRelations.RelSchema import ToOne, ToMany, ToManyCont
 
-from Products.Zuul.catalog.paths import DefaultPathReporter, relPath
 from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
@@ -69,7 +68,7 @@ class EC2Image(AWSComponent):
     _relations = AWSComponent._relations + (
         ('account', ToOne(
             ToManyCont, MODULE_NAME['EC2Account'],
-            'image')),
+            'images')),
     )
 
 
@@ -124,12 +123,3 @@ class EC2ImageInfo(ComponentInfo):
     @info
     def account(self):
         return self._object.device()
-
-
-class EC2ImagePathReporter(DefaultPathReporter):
-    '''
-    Path reporter for EC2Image.
-    '''
-
-    def getPaths(self):
-        return super(EC2ImagePathReporter, self).getPaths()

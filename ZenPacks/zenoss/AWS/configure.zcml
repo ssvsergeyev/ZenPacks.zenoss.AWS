@@ -135,24 +135,6 @@
         factory=".EC2VPCSubnet.EC2VPCSubnetPathReporter"
         />
 
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".EC2Reservation.EC2Reservation"
-        factory=".EC2Reservation.EC2ReservationPathReporter"
-        />
-
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".EC2Image.EC2Image"
-        factory=".EC2Image.EC2ImagePathReporter"
-        />
-
-    <adapter
-        provides="Products.Zuul.catalog.interfaces.IPathReporter"
-        for=".EC2ElasticIP.EC2ElasticIP"
-        factory=".EC2ElasticIP.EC2ElasticIPPathReporter"
-        />
-
     <!-- AWS Email Host -->
     <utility
         factory=".actions.awsemailhost.AWSEmailHostAction"
@@ -224,12 +206,6 @@
 
         <subscriber
             provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
-            for="Products.ZenModel.Device.Device"
-            factory=".impact.DeviceRelationsProvider"
-            />
-        <!--
-        <subscriber
-            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
             for=".EC2Reservation.EC2Reservation"
             factory=".impact.EC2ReservationRelationsProvider"
             />
@@ -245,7 +221,24 @@
             for=".EC2Image.EC2Image"
             factory=".impact.EC2ImageRelationsProvider"
             />
-        -->
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".S3Bucket.S3Bucket"
+            factory=".impact.S3BucketRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".VPNGateway.VPNGateway"
+            factory=".impact.VPNGatewayRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for="Products.ZenModel.Device.Device"
+            factory=".impact.DeviceRelationsProvider"
+            />
 
     </configure>
 

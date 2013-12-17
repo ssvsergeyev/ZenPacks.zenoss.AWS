@@ -12,7 +12,6 @@ from zope.interface import implements
 
 from Products.ZenRelations.RelSchema import ToOne, ToMany, ToManyCont
 
-from Products.Zuul.catalog.paths import DefaultPathReporter, relPath
 from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
@@ -97,12 +96,3 @@ class EC2ReservationInfo(ComponentInfo):
     @info
     def region(self):
         return self._object.region()
-
-
-class EC2ReservationPathReporter(DefaultPathReporter):
-    '''
-    Path reporter for EC2Reservation.
-    '''
-
-    def getPaths(self):
-        return super(EC2ReservationPathReporter, self).getPaths()
