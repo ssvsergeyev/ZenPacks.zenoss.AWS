@@ -33,6 +33,9 @@ class SQSQueue(AWSComponent):
         ('region', ToOne(ToManyCont, MODULE_NAME['EC2Region'], 'queues')),
     )
 
+    def getRegionId(self):
+        return self.region().id
+
 
 class ISQSQueueInfo(IComponentInfo):
     account = schema.Entity(title=_t(u'Account'))
