@@ -252,7 +252,7 @@ class EC2Instance(AWSComponent):
         Create guest device for this instance if it doesn't already
         exist.
         '''
-        if self.guest:
+        if not self.guest:
             return
         deviceclass = self.guest_deviceclass()
         if not deviceclass:
@@ -274,11 +274,12 @@ class EC2Instance(AWSComponent):
             self.titleOrId())
 
         device = deviceclass.createInstance(self.id)
-        device.setZenProperty('zKeyPath', self.pam_path)
         device.title = self.title
         device.setManageIp(manage_ip)
         device.setPerformanceMonitor(collector.id)
         device.setProdState(self._running_prodstate)
+        device.index_object()
+        device.setZenProperty('zKeyPath', self.pam_path)
         device.index_object()
         notify(IndexingEvent(device))
 

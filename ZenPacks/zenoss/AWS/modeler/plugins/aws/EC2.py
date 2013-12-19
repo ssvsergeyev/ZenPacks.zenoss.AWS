@@ -205,9 +205,8 @@ def check_tag(values, tags):
     Return parsed zproperty.
     '''
     if values.strip():
-        value = dict((k, v) for k, v in (x.split(':')
-                     for x in values.split(';')))
-        # there is bug with string if ";" in the end.
+        value = dict((k.strip(), v.strip()) for k, v in (x.split(':')
+                     for x in values.split(';') if x.strip()))
     else:
         return False
     check = False
@@ -361,18 +360,10 @@ def instances_rm(region_id, device, reservations):
     Return instances RelationshipMap given region_id and an InstanceInfo
     ResultSet.
     '''
-    print '********', device.zRegionPEM
-    print '********', region_id
-    print '********', path_to_pem(region_id, device.zRegionPEM)
-    #  , '*********', device.zLayerTags
     instance_data = []
     for instance in chain.from_iterable(r.instances for r in reservations):
         zone_id = prepId(instance.placement) if instance.placement else None
         subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
-        # if region_id in device.zRegionPEM.keys():
-        #     pam_path = device.zRegionPEM[region_id]
-
-        print '********', check_tag(device.zLayerTags, instance.tags)
 
         instance_data.append({
             'id': prepId(instance.id),
