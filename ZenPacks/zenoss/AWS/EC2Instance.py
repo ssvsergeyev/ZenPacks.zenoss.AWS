@@ -41,6 +41,7 @@ class EC2Instance(AWSComponent):
     meta_type = portal_type = 'EC2Instance'
 
     instance_id = None
+    tags = None
     region = None
     instance_type = None
     image_id = None
@@ -50,6 +51,8 @@ class EC2Instance(AWSComponent):
     public_dns_name = None
     launch_time = None
     detailed_monitoring = None
+    guest = None
+    pam_path = None
 
     # Used to restore user-defined production state when a stopped
     # instance is resumed.
@@ -57,6 +60,7 @@ class EC2Instance(AWSComponent):
 
     _properties = AWSComponent._properties + (
         {'id': 'instance_id', 'type': 'string'},
+        {'id': 'tags', 'type': 'string'},
         {'id': 'public_dns_name', 'type': 'string'},
         {'id': 'private_ip_address', 'type': 'string'},
         {'id': 'image_id', 'type': 'string'},
@@ -248,6 +252,8 @@ class EC2Instance(AWSComponent):
         Create guest device for this instance if it doesn't already
         exist.
         '''
+        if not self.guest:
+            return
         deviceclass = self.guest_deviceclass()
         if not deviceclass:
             return
@@ -272,6 +278,8 @@ class EC2Instance(AWSComponent):
         device.setManageIp(manage_ip)
         device.setPerformanceMonitor(collector.id)
         device.setProdState(self._running_prodstate)
+        device.index_object()
+        device.setZenProperty('zKeyPath', self.pam_path)
         device.index_object()
         notify(IndexingEvent(device))
 
@@ -325,6 +333,7 @@ class IEC2InstanceInfo(IComponentInfo):
     vpc = schema.Entity(title=_t(u'VPC'))
     vpc_subnet = schema.Entity(title=_t(u'VPC Subnet'))
     instance_id = schema.TextLine(title=_t(u'Instance ID'))
+    tags = schema.TextLine(title=_t(u'Tag'))
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
     instance_type_details = schema.TextLine(title=_t(u'Instance type details'))
     image_id = schema.TextLine(title=_t(u'Image ID'))
@@ -345,6 +354,8 @@ class EC2InstanceInfo(ComponentInfo):
     implements(IEC2InstanceInfo)
     adapts(EC2Instance)
 
+    guest = ProxyProperty('guest')
+    tags = ProxyProperty('tags')
     instance_id = ProxyProperty('instance_id')
     instance_type = ProxyProperty('instance_type')
     image_id = ProxyProperty('image_id')
@@ -354,6 +365,7 @@ class EC2InstanceInfo(ComponentInfo):
     private_ip_address = ProxyProperty('private_ip_address')
     launch_time = ProxyProperty('launch_time')
     detailed_monitoring = ProxyProperty('detailed_monitoring')
+    pam_path = ProxyProperty('pam_path')
 
     @property
     @info

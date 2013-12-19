@@ -60,4 +60,7 @@ class ZenPack(ZenPackBase):
     '''
     ZenPack loader.
     '''
-    pass
+    packZProperties = [
+        ('zLayerTags', '', 'string'),
+        ('zRegionPEM', '', 'multilinekeypath'),
+    ]
