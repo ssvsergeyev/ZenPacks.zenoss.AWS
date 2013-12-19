@@ -61,6 +61,6 @@ class ZenPack(ZenPackBase):
     ZenPack loader.
     '''
     packZProperties = [
-        ('zLayerTags', '', 'string'),
-        ('zRegionPEM', '', 'multilinekeypath'),
+        ('zAWSDiscover', '', 'string'),
+        ('zAWSRegionPEM', '', 'multilinekeypath'),
     ]

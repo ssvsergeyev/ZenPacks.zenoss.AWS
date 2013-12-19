@@ -36,8 +36,8 @@ class EC2(PythonPlugin):
     deviceProperties = PythonPlugin.deviceProperties + (
         'ec2accesskey',
         'ec2secretkey',
-        'zLayerTags',
-        'zRegionPEM'
+        'zAWSDiscover',
+        'zAWSRegionPEM'
     )
 
     def collect(self, device, log):
@@ -380,8 +380,8 @@ def instances_rm(region_id, device, reservations):
             'detailed_monitoring': instance.monitored,
             'setZoneId': zone_id,
             'setVPCSubnetId': subnet_id,
-            'guest': check_tag(device.zLayerTags, instance.tags),
-            'pam_path': path_to_pem(region_id, device.zRegionPEM),
+            'guest': check_tag(device.zAWSDiscover, instance.tags),
+            'pam_path': path_to_pem(region_id, device.zAWSRegionPEM),
         })
 
     return RelationshipMap(
