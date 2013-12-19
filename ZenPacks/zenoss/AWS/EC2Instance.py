@@ -80,6 +80,9 @@ class EC2Instance(AWSComponent):
 
         ('vpc_subnet', ToOne(
             ToMany, MODULE_NAME['EC2VPCSubnet'], 'instances')),
+
+        ('images', ToManyCont(
+            ToOne, MODULE_NAME['EC2Image'], 'instance')),
     )
 
     def instance_type_details(self):
