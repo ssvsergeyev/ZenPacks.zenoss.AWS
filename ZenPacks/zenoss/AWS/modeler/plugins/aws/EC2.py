@@ -8,6 +8,7 @@
 ##############################################################################
 
 import collections
+import json
 from itertools import chain
 
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
@@ -35,7 +36,9 @@ class EC2(PythonPlugin):
     deviceProperties = PythonPlugin.deviceProperties + (
         'ec2accesskey',
         'ec2secretkey',
-        )
+        'zLayerTags',
+        'zRegionPEM'
+    )
 
     def collect(self, device, log):
         return True
@@ -69,7 +72,7 @@ class EC2(PythonPlugin):
             ('elastic_ips', []),
             ('reservations', []),
             ('account', []),
-            ])
+        ])
 
         instance_filters = {
             'instance-state-name': [
@@ -78,8 +81,8 @@ class EC2(PythonPlugin):
                 'shutting-down',
                 'stopping',
                 'stopped',
-                ],
-            }
+            ],
+        }
 
         ec2conn = EC2Connection(accesskey, secretkey)
         s3connection = S3Connection(accesskey, secretkey)
@@ -95,7 +98,8 @@ class EC2(PythonPlugin):
 
             ec2regionconn = EC2Connection(accesskey, secretkey, region=region)
             vpcregionconn = VPCConnection(accesskey, secretkey, region=region)
-            sqsconnection = boto.sqs.connect_to_region(region.name,
+            sqsconnection = boto.sqs.connect_to_region(
+                region.name,
                 aws_access_key_id=accesskey,
                 aws_secret_access_key=secretkey
             )
@@ -136,6 +140,7 @@ class EC2(PythonPlugin):
             maps['instances'].append(
                 instances_rm(
                     region_id,
+                    device,
                     ec2regionconn.get_all_instances(
                         filters=instance_filters)))
 
@@ -170,7 +175,7 @@ class EC2(PythonPlugin):
         # Trigger discovery of instance guest devices.
         maps['account'].append(ObjectMap(data={
             'setDiscoverGuests': True,
-            }))
+        }))
 
         return list(chain.from_iterable(maps.itervalues()))
 
@@ -185,6 +190,52 @@ def name_or(tags, default):
     return default
 
 
+def tags_string(tegs):
+    '''
+    Return a string with clean tags.
+    '''
+    res = ''
+    for teg in tegs:
+        res = res + "{0}: {1}, ".format(teg, tegs[teg])
+    return res[:-2] + ';'
+
+
+def check_tag(values, tags):
+    '''
+    Return parsed zproperty.
+    '''
+    if values.strip():
+        value = dict((k, v) for k, v in (x.split(':')
+                     for x in values.split(';')))
+        # there is bug with string if ";" in the end.
+    else:
+        return False
+    check = False
+    for key in tags:
+        try:
+            if value[key] == tags[key]:
+                check += True
+        except:
+            continue
+    return True if check > 0 else False
+
+
+def path_to_pem(region_name, values):
+    '''
+    Return path to PEM file of the region.
+    '''
+    if not values:
+        return ''
+    results = {}
+    for value in values:
+        result = json.loads(value)
+        results.update({result['region_name']: result['pam_path']})
+
+    if not region_name in results:
+        return ''
+    return results[region_name]
+
+
 def to_boolean(string):
     '''
     Return a boolean given a string representation of a boolean.
@@ -192,7 +243,7 @@ def to_boolean(string):
     return {
         'true': True,
         'false': False,
-        }.get(string.lower())
+    }.get(string.lower())
 
 
 def zones_rm(region_id, zones):
@@ -205,7 +256,7 @@ def zones_rm(region_id, zones):
             'id': prepId(zone.name),
             'title': zone.name,
             'state': zone.state,
-            })
+        })
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
@@ -231,7 +282,7 @@ def vpcs_rm(region_id, vpcs):
             'cidr_block': vpc.cidr_block,
             'state': vpc.state,
             'collector': collector,
-            })
+        })
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
@@ -239,9 +290,11 @@ def vpcs_rm(region_id, vpcs):
         modname=MODULE_NAME['EC2VPC'],
         objmaps=vpc_data)
 
+
 def vpn_gateways_rm(region_id, gateways):
     '''
-    Return VPN Gateways RelationshipMap given region_id and list of VpnGateway objects
+    Return VPN Gateways RelationshipMap
+    given region_id and list of VpnGateway objects
     '''
     objmaps = []
     for gateway in gateways:
@@ -259,6 +312,7 @@ def vpn_gateways_rm(region_id, gateways):
         modname=MODULE_NAME['VPNGateway'],
         objmaps=objmaps
     )
+
 
 def vpn_queues_rm(region_id, qs):
     objmaps = []
@@ -293,7 +347,7 @@ def vpc_subnets_rm(region_id, subnets):
             'state': subnet.state,
             'setVPCId': subnet.vpc_id,
             'setZoneId': subnet.availability_zone,
-            })
+        })
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
@@ -302,20 +356,29 @@ def vpc_subnets_rm(region_id, subnets):
         objmaps=vpc_subnet_data)
 
 
-def instances_rm(region_id, reservations):
+def instances_rm(region_id, device, reservations):
     '''
     Return instances RelationshipMap given region_id and an InstanceInfo
     ResultSet.
     '''
+    print '********', device.zRegionPEM
+    print '********', region_id
+    print '********', path_to_pem(region_id, device.zRegionPEM)
+    #  , '*********', device.zLayerTags
     instance_data = []
     for instance in chain.from_iterable(r.instances for r in reservations):
         zone_id = prepId(instance.placement) if instance.placement else None
         subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
+        # if region_id in device.zRegionPEM.keys():
+        #     pam_path = device.zRegionPEM[region_id]
+
+        print '********', check_tag(device.zLayerTags, instance.tags)
 
         instance_data.append({
             'id': prepId(instance.id),
             'title': name_or(instance.tags, instance.id),
             'instance_id': instance.id,
+            'tags': tags_string(instance.tags),
             'public_dns_name': instance.public_dns_name,
             'private_ip_address': instance.private_ip_address,
             'image_id': instance.image_id,
@@ -326,7 +389,9 @@ def instances_rm(region_id, reservations):
             'detailed_monitoring': instance.monitored,
             'setZoneId': zone_id,
             'setVPCSubnetId': subnet_id,
-            })
+            'guest': check_tag(device.zLayerTags, instance.tags),
+            'pam_path': path_to_pem(region_id, device.zRegionPEM),
+        })
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
@@ -359,7 +424,7 @@ def volumes_rm(region_id, volumes):
             'attach_data_devicepath': volume.attach_data.device,
             'setInstanceId': instance_id,
             'setZoneId': volume.zone,
-            })
+        })
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
@@ -383,8 +448,9 @@ def elastic_ips_rm(region_id, elastic_ips):
             'instance_id': elastic_ip.instance_id,
             'domain': elastic_ip.domain,
             'network_interface_id': elastic_ip.network_interface_id,
-            'network_interface_owner_id': elastic_ip.network_interface_owner_id,
-            })
+            'network_interface_owner_id':
+            elastic_ip.network_interface_owner_id,
+        })
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
@@ -410,7 +476,7 @@ def reservations_rm(region_id, reservations):
             'instance_tenancy': reservation.instance_tenancy,
             'offering_type': reservation.offering_type,
             'state': reservation.state,
-            })
+        })
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
@@ -430,7 +496,7 @@ def s3buckets_rm(buckets):
             'id': prepId(bucket.name),
             'title': bucket.name,
             'creation_date': bucket.creation_date,
-            }))
+        }))
 
     return RelationshipMap(
         relname='s3buckets',
