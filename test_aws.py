@@ -7,6 +7,7 @@ import boto
 from boto.ec2.connection import EC2Connection
 import boto.ec2.elb
 import boto.sqs
+import boto.s3
 
 print '-' * 100
 
@@ -17,6 +18,11 @@ aws_scheme = {}
 for region in ec2conn.get_all_regions():
 
     region_scheme = {}
+
+    s3_conn = boto.s3.connect_to_region(region.name, **credentials)
+    print s3_conn.get_all_buckets()
+
+    continue
 
     elb_conn = boto.ec2.elb.connect_to_region(region.name, **credentials)
     elbs = elb_conn.get_all_load_balancers()

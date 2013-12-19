@@ -10,7 +10,7 @@
 from zope.component import adapts
 from zope.interface import implements
 
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
@@ -59,13 +59,52 @@ class SQSDataSourceInfo(RRDDataSourceInfo):
 class SQSDataSourcePlugin(PythonDataSourcePlugin):
     proxy_attributes = (
         'ec2accesskey', 'ec2secretkey',
-        )
+    )
 
     @inlineCallbacks
     def collect(self, config):
+        if False: yield
+        returnValue(True)
+
+    def onSuccess(self, result, config):
+        print 'SUCCESS! ' * 100
+        ds0 = config.datasources[0]
+        accesskey = ds0.ec2accesskey
+        secretkey = ds0.ec2secretkey
+        print '>' * 30, ds0
+
+        results = {'events': [], 'values': {}}
+
+        for ds in config.datasources:
+            print '>' * 50, ds.params
+        '''
+
         sqsconnection = boto.sqs.connect_to_region(region.name, **credentials)    
 
         for queue in sqsconnection.get_all_queues():
             q_scheme = vars(queue)
             q_scheme['messages'] = map(vars, queue.get_messages())
             region_scheme[queue.id] = q_scheme
+        '''
+        results['events'].append({
+            'summary': 'successful collection',
+            'eventKey': 'SQSDataSource_result',
+            'severity': 0,
+        })
+        return results
+
+    def onError(self, result, config):
+        """
+        You can omit this method if you want the error result of the collect
+        method to be used without further processing. It recommended to
+        implement this method to capture errors.
+        """
+        print '!' * 300
+        print result
+        return {
+            'events': [{
+                'summary': 'error: %s' % result,
+                'eventKey': 'SQSDataSource_result',
+                'severity': 4,
+            }],
+        }
