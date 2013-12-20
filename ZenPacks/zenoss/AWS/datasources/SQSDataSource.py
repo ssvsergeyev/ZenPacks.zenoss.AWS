@@ -7,11 +7,28 @@
 #
 ##############################################################################
 
+import logging
+log = logging.getLogger('zen.AWS')
+
+import datetime
+import time
+import calendar
+import random
+
+from cStringIO import StringIO
+from lxml import etree
+
+from twisted.web.client import getPage
+
+from twisted.internet import reactor, defer
+from twisted.internet.defer import inlineCallbacks
+
 from zope.component import adapts
 from zope.interface import implements
 
-from twisted.internet.defer import inlineCallbacks, returnValue
+import boto.sqs
 
+from Products.ZenEvents import ZenEventClasses
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.infos.template import RRDDataSourceInfo
@@ -21,12 +38,14 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSource, PythonDataSourcePlugin
 
+from ZenPacks.zenoss.AWS.utils \
+    import awsUrlSign, iso8601, result_errmsg, lookup_cwregion
+
+
+MAX_RETRIES = 3
+
 
 class SQSDataSource(PythonDataSource):
-    '''
-    Datasource used to capture messages from SQS queues as events
-    '''
-
     ZENPACKID = 'ZenPacks.zenoss.AWS'
 
     sourcetypes = ('Amazon SQS',)
@@ -46,65 +65,72 @@ class SQSDataSource(PythonDataSource):
         {'id': 'region', 'type': 'string'},
     )
 
+
 class ISQSDataSourceInfo(IRRDDataSourceInfo):
-    region = schema.TextLine(group=_t('Amazon'), title=_t('Region'))
+    region = schema.TextLine(
+        group=_t('Amazon CloudWatch'),
+        title=_t('Region'))
+
 
 class SQSDataSourceInfo(RRDDataSourceInfo):
     implements(ISQSDataSourceInfo)
     adapts(SQSDataSource)
-
     region = ProxyProperty('region')
 
 
 class SQSDataSourcePlugin(PythonDataSourcePlugin):
     proxy_attributes = (
         'ec2accesskey', 'ec2secretkey',
-    )
+        )
+
+    @classmethod
+    def params(cls, datasource, context):
+        return {
+            'region': datasource.talesEval(datasource.region, context),
+        }
 
     @inlineCallbacks
     def collect(self, config):
         if False: yield
-        returnValue(True)
+        defer.returnValue(True)
 
-    def onSuccess(self, result, config):
-        print 'SUCCESS! ' * 100
-        ds0 = config.datasources[0]
-        accesskey = ds0.ec2accesskey
-        secretkey = ds0.ec2secretkey
-        print '>' * 30, ds0
-
-        results = {'events': [], 'values': {}}
-
+    def onSuccess(self, results, config):
+        data = {'events': [], 'values': {}, 'maps': []}
         for ds in config.datasources:
-            print '>' * 50, ds.params
-        '''
+            region = ds.params['region']
+            sqsconnection = boto.sqs.connect_to_region(region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+            for queue in sqsconnection.get_all_queues():
+                for message in queue.get_messages():
+                    data['events'].append({
+                        'summary': message._body,
+                        'device': config.id,
+                        'component': queue.name,
+                        'eventKey': message.id,
+                        'severity': ZenEventClasses.Info,
+                        'eventClass': '/SQS/Message',
+                    })
 
-        sqsconnection = boto.sqs.connect_to_region(region.name, **credentials)    
-
-        for queue in sqsconnection.get_all_queues():
-            q_scheme = vars(queue)
-            q_scheme['messages'] = map(vars, queue.get_messages())
-            region_scheme[queue.id] = q_scheme
-        '''
-        results['events'].append({
+        data['events'].append({
+            'device': config.id,
             'summary': 'successful collection',
             'eventKey': 'SQSDataSource_result',
-            'severity': 0,
+            'severity': ZenEventClasses.Clear,
         })
-        return results
+
+        return data
 
     def onError(self, result, config):
-        """
-        You can omit this method if you want the error result of the collect
-        method to be used without further processing. It recommended to
-        implement this method to capture errors.
-        """
-        print '!' * 300
-        print result
+        log.error('%s: %s', config.id, result)
+
         return {
             'events': [{
                 'summary': 'error: %s' % result,
                 'eventKey': 'SQSDataSource_result',
-                'severity': 4,
+                'severity': ZenEventClasses.Error,
             }],
+            'values': {},
+            'maps': []
         }

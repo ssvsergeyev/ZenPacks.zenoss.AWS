@@ -3594,4 +3594,9 @@ AVERAGE
 </tomanycont>
 </object>
 </object>
+<!-- ('', 'zport', 'dmd', 'Events', 'SQS') -->
+<object id='/zport/dmd/Events/SQS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Message' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
 </objects>
