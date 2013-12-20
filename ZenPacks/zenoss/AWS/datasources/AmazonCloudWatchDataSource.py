@@ -160,6 +160,8 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
     @inlineCallbacks
     def collect(self, config):
+        defer.returnValue([])
+
         log.debug("Collect for AWS")
         results = []
 

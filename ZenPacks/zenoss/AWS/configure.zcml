@@ -39,6 +39,12 @@
         />
 
     <adapter
+        provides=".datasources.SQSDataSource.ISQSDataSourceInfo"
+        for=".datasources.SQSDataSource.SQSDataSource"
+        factory=".datasources.SQSDataSource.SQSDataSourceInfo"
+        />
+
+    <adapter
         provides=".EC2Account.IEC2AccountInfo"
         for=".EC2Account.EC2Account"
         factory=".EC2Account.EC2AccountInfo"
