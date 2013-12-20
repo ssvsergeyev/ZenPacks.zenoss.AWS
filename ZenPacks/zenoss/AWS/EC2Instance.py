@@ -43,7 +43,7 @@ class EC2Instance(AWSComponent):
     instance_id = None
     region = None
     instance_type = None
-    image_id = None
+    #image_id = None
     state = None
     platform = None
     private_ip_address = None
@@ -59,7 +59,7 @@ class EC2Instance(AWSComponent):
         {'id': 'instance_id', 'type': 'string'},
         {'id': 'public_dns_name', 'type': 'string'},
         {'id': 'private_ip_address', 'type': 'string'},
-        {'id': 'image_id', 'type': 'string'},
+        #{'id': 'image_id', 'type': 'string'},
         {'id': 'instance_type', 'type': 'string'},
         {'id': 'launch_time', 'type': 'string'},
         {'id': 'state', 'type': 'string'},
@@ -81,8 +81,8 @@ class EC2Instance(AWSComponent):
         ('vpc_subnet', ToOne(
             ToMany, MODULE_NAME['EC2VPCSubnet'], 'instances')),
 
-        ('images', ToManyCont(
-            ToOne, MODULE_NAME['EC2Image'], 'instance')),
+        ('image', ToOne(
+            ToMany, MODULE_NAME['EC2Image'], 'instances')),
     )
 
     def instance_type_details(self):
@@ -148,6 +148,18 @@ class EC2Instance(AWSComponent):
             self.zone,
             self.region().zones,
             CLASS_NAME['EC2Zone'],
+            id_)
+
+    def getImageId(self):
+        image = self.image()
+        if image:
+            return image.id
+
+    def setImageId(self, id_):
+        updateToOne(
+            self.image,
+            self.region().images,
+            CLASS_NAME['EC2Image'],
             id_)
 
     def getVolumeIds(self):
@@ -325,12 +337,13 @@ class IEC2InstanceInfo(IComponentInfo):
     account = schema.Entity(title=_t(u'Account'))
     region = schema.Entity(title=_t(u'Region'))
     zone = schema.Entity(title=_t(u'Zone'))
+    image = schema.Entity(title=_t(u'Image'))
     vpc = schema.Entity(title=_t(u'VPC'))
     vpc_subnet = schema.Entity(title=_t(u'VPC Subnet'))
     instance_id = schema.TextLine(title=_t(u'Instance ID'))
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
     instance_type_details = schema.TextLine(title=_t(u'Instance type details'))
-    image_id = schema.TextLine(title=_t(u'Image ID'))
+   # image_id = schema.TextLine(title=_t(u'Image ID'))
     platform = schema.TextLine(title=_t(u'Platform'))
     public_dns_name = schema.TextLine(title=_t(u'Public DNS Name'))
     private_ip_address = schema.TextLine(title=_t(u'Private IP Address'))
@@ -350,7 +363,7 @@ class EC2InstanceInfo(ComponentInfo):
 
     instance_id = ProxyProperty('instance_id')
     instance_type = ProxyProperty('instance_type')
-    image_id = ProxyProperty('image_id')
+   # image_id = ProxyProperty('image_id')
     state = ProxyProperty('state')
     platform = ProxyProperty('platform')
     public_dns_name = ProxyProperty('public_dns_name')
@@ -372,6 +385,11 @@ class EC2InstanceInfo(ComponentInfo):
     @info
     def zone(self):
         return self._object.zone()
+
+    @property
+    @info
+    def image(self):
+        return self._object.image()
 
     @property
     @info
@@ -409,6 +427,10 @@ class EC2InstancePathReporter(DefaultPathReporter):
         zone = self.context.zone()
         if zone:
             paths.extend(relPath(zone, 'region'))
+
+        image = self.context.image()
+        if image:
+            paths.extend(relPath(image, 'region'))
 
         vpc_subnet = self.context.vpc_subnet()
         if vpc_subnet:

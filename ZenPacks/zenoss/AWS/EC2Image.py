@@ -66,10 +66,22 @@ class EC2Image(AWSComponent):
     )
 
     _relations = AWSComponent._relations + (
-        ('instance', ToOne(
-            ToManyCont, MODULE_NAME['EC2Instance'],
-            'images')),
+        ('region', ToOne(
+            ToManyCont, MODULE_NAME['EC2Region'], 'images')),
+
+        ('instances', ToMany(
+            ToOne, MODULE_NAME['EC2Instance'], 'image')),
     )
+
+    def getInstanceIds(self):
+        return sorted(self.instances.objectIds())
+
+    def setInstanceIds(self, ids):
+        updateToMany(
+            relationship=self.instances,
+            root=self.region().instances,
+            type_=CLASS_NAME['EC2Instance'],
+            ids=ids)
 
 
 class IEC2ImageInfo(IComponentInfo):
@@ -93,6 +105,7 @@ class IEC2ImageInfo(IComponentInfo):
     virtualization_type = schema.TextLine(title=_t(u'Virtualization_type'))
     hypervisor = schema.TextLine(title=_t(u'Hypervisor'))
     instance_lifecycle = schema.TextLine(title=_t(u'Instance_lifecycle'))
+    instance_count = schema.Int(title=_t(u'Number of Instances'))
 
 
 class EC2ImageInfo(ComponentInfo):
@@ -123,3 +136,7 @@ class EC2ImageInfo(ComponentInfo):
     @info
     def account(self):
         return self._object.device()
+
+    @property
+    def instance_count(self):
+        return self._object.instances.countObjects()
