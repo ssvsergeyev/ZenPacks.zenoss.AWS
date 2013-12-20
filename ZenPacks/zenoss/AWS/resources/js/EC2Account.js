@@ -276,6 +276,7 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'locking'},
                 {name: 'guest_device'},
                 {name: 'zone'},
+                {name: 'image'},
                 {name: 'vpc'},
                 {name: 'vpc_subnet'},
                 {name: 'instance_type'},
@@ -304,6 +305,12 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'zone',
                 dataIndex: 'zone',
                 header: _t('Zone'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 95
+            },{
+                id: 'image',
+                dataIndex: 'image',
+                header: _t('Image'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 95
             },{
