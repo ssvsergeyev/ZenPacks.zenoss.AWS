@@ -228,7 +228,7 @@ def path_to_pem(region_name, values):
     results = {}
     for value in values:
         result = json.loads(value)
-        results.update({result['region_name']: result['pam_path']})
+        results.update({result['region_name']: result['pem_path']})
 
     if not region_name in results:
         return ''
@@ -365,6 +365,8 @@ def instances_rm(region_id, device, reservations):
         zone_id = prepId(instance.placement) if instance.placement else None
         subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
 
+        print check_tag(device.zAWSDiscover, instance.tags)
+
         instance_data.append({
             'id': prepId(instance.id),
             'title': name_or(instance.tags, instance.id),
@@ -381,7 +383,7 @@ def instances_rm(region_id, device, reservations):
             'setZoneId': zone_id,
             'setVPCSubnetId': subnet_id,
             'guest': check_tag(device.zAWSDiscover, instance.tags),
-            'pam_path': path_to_pem(region_id, device.zAWSRegionPEM),
+            'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
         })
 
     return RelationshipMap(

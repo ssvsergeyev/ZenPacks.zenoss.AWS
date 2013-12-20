@@ -161,7 +161,7 @@ Ext.define("Zenoss.form.MultilineKeyPath", {
                 renderer: function(value) {
                     try {
                         value = JSON.parse(value);
-                        return value.region_name + ":"  + value.pam_path;
+                        return value.region_name + ":"  + value.pem_path;
                     } catch (err) {
                         return "ERROR: Invalid entered string!";
                     }
@@ -183,7 +183,7 @@ Ext.define("Zenoss.form.MultilineKeyPath", {
                 width: 90,
                 emptyText:'Region name',
             },{
-                itemId: 'pam_path',
+                itemId: 'pem_path',
                 xtype: "textfield",
                 scope: this,
                 width: 180,
@@ -194,11 +194,11 @@ Ext.define("Zenoss.form.MultilineKeyPath", {
                 scope: this,
                 handler: function() {
                     var region_name = this.grid.down('#region_name');
-                    var pam_path = this.grid.down('#pam_path');
+                    var pem_path = this.grid.down('#pem_path');
 
                     var value = {
                         'region_name': region_name.value,
-                        'pam_path': pam_path.value, 
+                        'pem_path': pem_path.value, 
                     };
 
                     if (region_name.value) {
@@ -206,7 +206,7 @@ Ext.define("Zenoss.form.MultilineKeyPath", {
                     }
 
                     region_name.setValue("");
-                    pam_path.setValue("");
+                    pem_path.setValue("");
 
                     this.checkChange();
                 }

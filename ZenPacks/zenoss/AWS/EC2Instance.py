@@ -52,7 +52,7 @@ class EC2Instance(AWSComponent):
     launch_time = None
     detailed_monitoring = None
     guest = None
-    pam_path = None
+    pem_path = None
 
     # Used to restore user-defined production state when a stopped
     # instance is resumed.
@@ -279,7 +279,7 @@ class EC2Instance(AWSComponent):
         device.setPerformanceMonitor(collector.id)
         device.setProdState(self._running_prodstate)
         device.index_object()
-        device.setZenProperty('zKeyPath', self.pam_path)
+        device.setZenProperty('zKeyPath', self.pem_path)
         device.index_object()
         notify(IndexingEvent(device))
 
@@ -365,7 +365,7 @@ class EC2InstanceInfo(ComponentInfo):
     private_ip_address = ProxyProperty('private_ip_address')
     launch_time = ProxyProperty('launch_time')
     detailed_monitoring = ProxyProperty('detailed_monitoring')
-    pam_path = ProxyProperty('pam_path')
+    pem_path = ProxyProperty('pem_path')
 
     @property
     @info
