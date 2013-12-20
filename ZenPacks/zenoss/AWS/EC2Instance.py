@@ -47,6 +47,7 @@ class EC2Instance(AWSComponent):
     image_id = None
     state = None
     platform = None
+    public_ip = None
     private_ip_address = None
     public_dns_name = None
     launch_time = None
@@ -62,6 +63,7 @@ class EC2Instance(AWSComponent):
         {'id': 'instance_id', 'type': 'string'},
         {'id': 'tags', 'type': 'string'},
         {'id': 'public_dns_name', 'type': 'string'},
+        {'id': 'public_ip', 'type': 'string'},
         {'id': 'private_ip_address', 'type': 'string'},
         {'id': 'image_id', 'type': 'string'},
         {'id': 'instance_type', 'type': 'string'},
@@ -297,8 +299,14 @@ class EC2Instance(AWSComponent):
         if not deviceclass:
             return
 
+        guest_device = self.guest_device()
+        if guest_device:
+            guest_device.setPerformanceMonitor(
+                guest_device.getPerformanceServerName(),
+                self.guest_collector().getOrganizerName()
+            )
+
         if self.state.lower() == 'running':
-            guest_device = self.guest_device()
             if guest_device:
                 if guest_device.productionState != self._running_prodstate:
                     LOG.info(
@@ -311,7 +319,6 @@ class EC2Instance(AWSComponent):
                 self.create_guest()
 
         elif self.state.lower() == 'stopped':
-            guest_device = self.guest_device()
             if guest_device:
                 if guest_device.productionState != -1:
                     LOG.info(
@@ -339,6 +346,7 @@ class IEC2InstanceInfo(IComponentInfo):
     image_id = schema.TextLine(title=_t(u'Image ID'))
     platform = schema.TextLine(title=_t(u'Platform'))
     public_dns_name = schema.TextLine(title=_t(u'Public DNS Name'))
+    public_ip = schema.TextLine(title=_t(u'Public IP'))
     private_ip_address = schema.TextLine(title=_t(u'Private IP Address'))
     launch_time = schema.TextLine(title=_t(u'Launch Time'))
     detailed_monitoring = schema.Bool(title=_t(u'Detailed Monitoring'))
@@ -362,6 +370,7 @@ class EC2InstanceInfo(ComponentInfo):
     state = ProxyProperty('state')
     platform = ProxyProperty('platform')
     public_dns_name = ProxyProperty('public_dns_name')
+    public_ip = ProxyProperty('public_ip')
     private_ip_address = ProxyProperty('private_ip_address')
     launch_time = ProxyProperty('launch_time')
     detailed_monitoring = ProxyProperty('detailed_monitoring')
