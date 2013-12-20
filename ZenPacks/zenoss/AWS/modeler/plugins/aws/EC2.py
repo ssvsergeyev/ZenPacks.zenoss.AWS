@@ -365,14 +365,13 @@ def instances_rm(region_id, device, reservations):
         zone_id = prepId(instance.placement) if instance.placement else None
         subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
 
-        print check_tag(device.zAWSDiscover, instance.tags)
-
         instance_data.append({
             'id': prepId(instance.id),
             'title': name_or(instance.tags, instance.id),
             'instance_id': instance.id,
             'tags': tags_string(instance.tags),
             'public_dns_name': instance.public_dns_name,
+            'public_ip': instance.ip_address,
             'private_ip_address': instance.private_ip_address,
             'image_id': instance.image_id,
             'instance_type': instance.instance_type,
