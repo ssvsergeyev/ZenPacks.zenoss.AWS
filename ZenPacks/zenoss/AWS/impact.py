@@ -117,7 +117,7 @@ class EC2ElasticIPRelationsProvider(BaseRelationsProvider):
 
 
 class EC2ImageRelationsProvider(BaseRelationsProvider):
-    impact_relationships = ['account']
+    impact_relationships = ['region']
 
 
 class S3BucketRelationsProvider(BaseRelationsProvider):
@@ -125,6 +125,10 @@ class S3BucketRelationsProvider(BaseRelationsProvider):
 
 
 class VPNGatewayRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['region']
+
+
+class SQSQueueRelationsProvider(BaseRelationsProvider):
     impact_relationships = ['region']
 
 

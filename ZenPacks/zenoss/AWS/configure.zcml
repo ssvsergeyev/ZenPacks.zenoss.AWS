@@ -236,6 +236,12 @@
 
         <subscriber
             provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".SQSQueue.SQSQueue"
+            factory=".impact.SQSQueueRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
             for="Products.ZenModel.Device.Device"
             factory=".impact.DeviceRelationsProvider"
             />
