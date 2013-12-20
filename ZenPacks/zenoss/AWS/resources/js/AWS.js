@@ -130,4 +130,158 @@ var ZE = Ext.ns('Zenoss.extensions');
 ZE.adddevice = ZE.adddevice instanceof Array ? ZE.adddevice : [];
 ZE.adddevice.push(add_ec2account);
 
+try {
+/* zRegionMNT property */
+Zenoss.zproperties.registerZPropertyType('multilinekeypath', {xtype: 'multilinekeypath'});
+
+Ext.define("Zenoss.form.MultilineKeyPath", {
+    alias:['widget.multilinekeypath'],
+    extend: 'Ext.form.field.Base',
+    mixins: {
+        field: 'Ext.form.field.Field'
+    },
+
+    constructor: function(config) {
+        config = Ext.applyIf(config || {}, {
+            editable: true,
+            allowBlank: true,
+            submitValue: true,
+            triggerAction: 'all',
+        });
+        config.fieldLabel = "PEM file to region";
+        Zenoss.form.MultilineCredentials.superclass.constructor.call(this, config);
+    },
+
+    initComponent: function() {
+        this.grid = this.childComponent = Ext.create('Ext.grid.Panel', {
+            hideHeaders: true,
+            columns: [{
+                dataIndex: 'value',
+                flex: 1,
+                renderer: function(value) {
+                    try {
+                        value = JSON.parse(value);
+                        return value.region_name + ":"  + value.pem_path;
+                    } catch (err) {
+                        return "ERROR: Invalid entered string!";
+                    }
+                }
+            }],
+
+            store: {
+                fields: ['value'],
+                data: []
+            },
+
+            height: this.height || 150,
+            width: 370,
+            
+            tbar: [{
+                itemId: 'region_name',
+                xtype: "textfield",
+                scope: this,
+                width: 90,
+                emptyText:'Region name',
+            },{
+                itemId: 'pem_path',
+                xtype: "textfield",
+                scope: this,
+                width: 180,
+                emptyText:'Path to PEM file',
+                value: '' //to avoid undefined value
+            },{
+                text: 'Add',
+                scope: this,
+                handler: function() {
+                    var region_name = this.grid.down('#region_name');
+                    var pem_path = this.grid.down('#pem_path');
+
+                    var value = {
+                        'region_name': region_name.value,
+                        'pem_path': pem_path.value, 
+                    };
+
+                    if (region_name.value) {
+                        this.grid.getStore().add({value: JSON.stringify(value)});
+                    }
+
+                    region_name.setValue("");
+                    pem_path.setValue("");
+
+                    this.checkChange();
+                }
+            },{
+                text: "Remove",
+                itemId: 'removeButton',
+                disabled: true, // initial state
+                scope: this,
+                handler: function() {
+                    var grid = this.grid,
+                        selModel = grid.getSelectionModel(),
+                        store = grid.getStore();
+                    store.remove(selModel.getSelection());
+                    this.checkChange();
+                }
+            }],
+
+            listeners: {
+                scope: this,
+                selectionchange: function(selModel, selection) {
+                    var removeButton = this.grid.down('#removeButton');
+                    removeButton.setDisabled(Ext.isEmpty(selection));
+                }
+            }
+        });
+
+        this.callParent(arguments);
+    },
+
+    // --- Rendering ---
+    // Generates the child component markup
+    getSubTplMarkup: function() {
+        // generateMarkup will append to the passed empty array and return it
+        var buffer = Ext.DomHelper.generateMarkup(this.childComponent.getRenderTree(), []);
+        // but we want to return a single string
+        return buffer.join('');
+    },
+
+    // Regular containers implements this method to call finishRender for each of their
+    // child, and we need to do the same for the component to display smoothly
+    finishRenderChildren: function() {
+        this.callParent(arguments);
+        this.childComponent.finishRender();
+    },
+
+    // --- Resizing ---
+    onResize: function(w, h) {
+        this.callParent(arguments);
+        this.childComponent.setSize(w - this.getLabelWidth(), h);
+    },
+
+    // --- Value handling ---
+    setValue: function(values) {
+        var data = [];
+        if (values) {
+            Ext.each(values, function(value) {
+                data.push({value: value});
+            });
+        }
+        this.grid.getStore().loadData(data);
+    },
+
+    getValue: function() {
+        var data = [];
+        this.grid.getStore().each(function(record) {
+            data.push(record.get('value'));
+        });
+        return data;        
+    },
+
+    getSubmitValue: function() {
+        return this.getValue();
+    },
+});
+/* workaround for zenoss 4.1.1 */
+} catch (err) {}
+
 }());

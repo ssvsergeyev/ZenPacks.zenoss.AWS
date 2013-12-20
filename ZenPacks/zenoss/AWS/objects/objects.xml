@@ -5,6 +5,38 @@
 <property visible="True" type="lines" id="zDeviceTemplates" >
 []
 </property>
+<tomanycont id='rrdTemplates'>
+<object id='SQSQueue' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='Messages' module='ZenPacks.zenoss.AWS.datasources.SQSDataSource' class='SQSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Amazon SQS
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.datasources.SQSDataSource.SQSDataSourcePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
 <object id='EC2' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="boolean" id="zPingMonitorIgnore" >
 True
@@ -3560,6 +3592,11 @@ AVERAGE
 </tomanycont>
 </object>
 </tomanycont>
+</object>
+</object>
+<!-- ('', 'zport', 'dmd', 'Events', 'SQS') -->
+<object id='/zport/dmd/Events/SQS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Message' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 </objects>
