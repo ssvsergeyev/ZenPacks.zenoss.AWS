@@ -25,7 +25,7 @@ from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
 
 class AWSBasePlugin(PythonDataSourcePlugin):
     """
-    Subclass of PythonDataSourcePlugin to monitor AWS S3Buckets.
+    Subclass of PythonDataSourcePlugin to monitor AWS components.
     """
     proxy_attributes = (
         'ec2accesskey', 'ec2secretkey',
@@ -64,9 +64,6 @@ class S3BucketPlugin(AWSBasePlugin):
     """
     Subclass of PythonDataSourcePlugin to monitor AWS S3Buckets.
     """
-    proxy_attributes = (
-        'ec2accesskey', 'ec2secretkey',
-    )
 
     @defer.inlineCallbacks
     def collect(self, config):
@@ -89,9 +86,6 @@ class EC2RegionPlugin(AWSBasePlugin):
     """
     Subclass of PythonDataSourcePlugin to monitor AWS EC2Region soft limits.
     """
-    proxy_attributes = (
-        'ec2accesskey', 'ec2secretkey',
-    )
 
     @defer.inlineCallbacks
     def collect(self, config):
