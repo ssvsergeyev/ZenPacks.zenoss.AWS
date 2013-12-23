@@ -65,8 +65,8 @@ class EC2(PythonPlugin):
             ('VPCs', []),
             ('VPC subnets', []),
             ('VPNGateways', []),
-            ('instances', []),
             ('images', []),
+            ('instances', []),
             ('volumes', []),
             ('queues', []),
             ('elastic_ips', []),
@@ -107,26 +107,31 @@ class EC2(PythonPlugin):
             )
             # Zones
             maps['zones'].append(
-                zones_rm(region_id, ec2regionconn.get_all_zones())
+                zones_rm(
+                    region_id, ec2regionconn.get_all_zones())
             )
 
             # VPCs
             maps['VPCs'].append(
-                vpcs_rm(region_id, vpcregionconn.get_all_vpcs())
+                vpcs_rm(
+                    region_id, vpcregionconn.get_all_vpcs())
             )
 
             # VPNGateways
             maps['VPNGateways'].append(
-                vpn_gateways_rm(region_id, vpcregionconn.get_all_vpn_gateways())
+                vpn_gateways_rm(
+                    region_id, vpcregionconn.get_all_vpn_gateways())
             )
 
             maps['queues'].append(
-                vpn_queues_rm(region_id, sqsconnection.get_all_queues())
+                vpn_queues_rm(
+                    region_id, sqsconnection.get_all_queues())
             )
 
             # VPC Subnets
             maps['VPC subnets'].append(
-                vpc_subnets_rm(region_id, vpcregionconn.get_all_subnets())
+                vpc_subnets_rm(
+                    region_id, vpcregionconn.get_all_subnets())
             )
 
             # Instances
@@ -143,24 +148,26 @@ class EC2(PythonPlugin):
             if image_filters:
                 maps['images'].append(
                     images_rm(region_id, ec2regionconn.get_all_images(
-                        image_ids=image_filters
-                    ))
+                        image_ids=image_filters))
                 )
                 image_filters = []
 
             # Volumes
             maps['volumes'].append(
-                volumes_rm(region_id, ec2regionconn.get_all_volumes())
+                volumes_rm(
+                    region_id, ec2regionconn.get_all_volumes())
             )
 
             # Elastic IPs
             maps['elastic_ips'].append(
-                elastic_ips_rm(region_id, ec2regionconn.get_all_addresses())
+                elastic_ips_rm(
+                    region_id, ec2regionconn.get_all_addresses())
             )
 
             # Reservations
             maps['reservations'].append(
-                reservations_rm(region_id, ec2regionconn.get_all_reserved_instances())
+                reservations_rm(
+                    region_id, ec2regionconn.get_all_reserved_instances())
             )
             
 
@@ -378,7 +385,6 @@ def instances_rm(region_id, device, reservations, image_filters):
             'public_dns_name': instance.public_dns_name,
             'public_ip': instance.ip_address,
             'private_ip_address': instance.private_ip_address,
-            'image_id': instance.image_id,
             'instance_type': instance.instance_type,
             'launch_time': instance.launch_time,
             'state': instance.state,
