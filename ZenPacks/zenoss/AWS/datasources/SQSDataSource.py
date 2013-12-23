@@ -26,8 +26,6 @@ from twisted.internet.defer import inlineCallbacks
 from zope.component import adapts
 from zope.interface import implements
 
-import boto.sqs
-
 from Products.ZenEvents import ZenEventClasses
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
@@ -40,6 +38,11 @@ from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
 
 from ZenPacks.zenoss.AWS.utils \
     import awsUrlSign, iso8601, result_errmsg, lookup_cwregion
+from ZenPacks.zenoss.AWS.utils import addLocalLibPath
+
+addLocalLibPath()
+import boto.sqs
+
 
 
 MAX_RETRIES = 3
