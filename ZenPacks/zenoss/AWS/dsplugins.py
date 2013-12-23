@@ -30,25 +30,19 @@ class S3BucketPlugin(PythonDataSourcePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        values = {}
-        events = []
-        maps = []
+        data = {'events': [], 'values': {}, 'maps': []}
         for ds in config.datasources:
             s3connection = S3Connection(ds.ec2accesskey, ds.ec2secretkey)
             bucket = s3connection.get_bucket(ds.component)
             keys = yield bucket.get_all_keys()
 
             t = time.time()
-            values[ds.component] = dict(
+            data['values'][ds.component] = dict(
                 keys_count=(len(keys), t),
                 total_size=(sum([key.size for key in keys]), t),
             )
 
-        defer.returnValue(dict(
-            events=events,
-            values=values,
-            maps=maps,
-        ))
+        defer.returnValue(data)
 
     def onSuccess(self, result, config):
         for component in result["values"].keys():
