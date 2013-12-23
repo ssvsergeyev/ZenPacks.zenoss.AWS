@@ -31,7 +31,6 @@ Models regions, instance types, zones, instances, volumes, VPCs and VPC
 subnets for an Amazon EC2 account.
 '''
 
-
 class EC2(PythonPlugin):
     deviceProperties = PythonPlugin.deviceProperties + (
         'ec2accesskey',
@@ -66,6 +65,7 @@ class EC2(PythonPlugin):
             ('VPCs', []),
             ('VPC subnets', []),
             ('VPNGateways', []),
+            ('images', []),
             ('instances', []),
             ('volumes', []),
             ('queues', []),
@@ -83,6 +83,8 @@ class EC2(PythonPlugin):
                 'stopped',
             ],
         }
+
+        image_filters = []
 
         ec2conn = EC2Connection(accesskey, secretkey)
         s3connection = S3Connection(accesskey, secretkey)
@@ -106,61 +108,68 @@ class EC2(PythonPlugin):
             # Zones
             maps['zones'].append(
                 zones_rm(
-                    region_id,
-                    ec2regionconn.get_all_zones()))
+                    region_id, ec2regionconn.get_all_zones())
+            )
 
             # VPCs
             maps['VPCs'].append(
                 vpcs_rm(
-                    region_id,
-                    vpcregionconn.get_all_vpcs()))
+                    region_id, vpcregionconn.get_all_vpcs())
+            )
 
             # VPNGateways
             maps['VPNGateways'].append(
                 vpn_gateways_rm(
-                    region_id,
-                    vpcregionconn.get_all_vpn_gateways()
-                )
+                    region_id, vpcregionconn.get_all_vpn_gateways())
             )
 
             maps['queues'].append(
                 vpn_queues_rm(
-                    region_id,
-                    sqsconnection.get_all_queues()
-                )
+                    region_id, sqsconnection.get_all_queues())
             )
 
             # VPC Subnets
             maps['VPC subnets'].append(
                 vpc_subnets_rm(
-                    region_id,
-                    vpcregionconn.get_all_subnets()))
+                    region_id, vpcregionconn.get_all_subnets())
+            )
 
             # Instances
             maps['instances'].append(
                 instances_rm(
                     region_id,
                     device,
-                    ec2regionconn.get_all_instances(
-                        filters=instance_filters)))
+                    ec2regionconn.get_all_instances(filters=instance_filters),
+                    image_filters
+                )
+            )
+
+            # Images
+            if image_filters:
+                maps['images'].append(
+                    images_rm(region_id, ec2regionconn.get_all_images(
+                        image_ids=image_filters))
+                )
+                image_filters = []
 
             # Volumes
             maps['volumes'].append(
                 volumes_rm(
-                    region_id,
-                    ec2regionconn.get_all_volumes()))
+                    region_id, ec2regionconn.get_all_volumes())
+            )
 
             # Elastic IPs
             maps['elastic_ips'].append(
                 elastic_ips_rm(
-                    region_id,
-                    ec2regionconn.get_all_addresses()))
+                    region_id, ec2regionconn.get_all_addresses())
+            )
 
             # Reservations
             maps['reservations'].append(
                 reservations_rm(
-                    region_id,
-                    ec2regionconn.get_all_reserved_instances()))
+                    region_id, ec2regionconn.get_all_reserved_instances())
+            )
+            
 
         # Regions
         maps['regions'].append(RelationshipMap(
@@ -170,7 +179,8 @@ class EC2(PythonPlugin):
 
         # S3Buckets
         maps['s3buckets'].append(
-            s3buckets_rm(s3connection.get_all_buckets()))
+            s3buckets_rm(s3connection.get_all_buckets())
+        )
 
         # Trigger discovery of instance guest devices.
         maps['account'].append(ObjectMap(data={
@@ -355,7 +365,7 @@ def vpc_subnets_rm(region_id, subnets):
         objmaps=vpc_subnet_data)
 
 
-def instances_rm(region_id, device, reservations):
+def instances_rm(region_id, device, reservations, image_filters):
     '''
     Return instances RelationshipMap given region_id and an InstanceInfo
     ResultSet.
@@ -365,6 +375,8 @@ def instances_rm(region_id, device, reservations):
         zone_id = prepId(instance.placement) if instance.placement else None
         subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
 
+        image_filters.append(instance.image_id)
+
         instance_data.append({
             'id': prepId(instance.id),
             'title': name_or(instance.tags, instance.id),
@@ -373,13 +385,13 @@ def instances_rm(region_id, device, reservations):
             'public_dns_name': instance.public_dns_name,
             'public_ip': instance.ip_address,
             'private_ip_address': instance.private_ip_address,
-            'image_id': instance.image_id,
             'instance_type': instance.instance_type,
             'launch_time': instance.launch_time,
             'state': instance.state,
             'platform': getattr(instance, 'platform', ''),
             'detailed_monitoring': instance.monitored,
             'setZoneId': zone_id,
+            'setImageId': instance.image_id,
             'setVPCSubnetId': subnet_id,
             'guest': check_tag(device.zAWSDiscover, instance.tags),
             'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
@@ -390,6 +402,41 @@ def instances_rm(region_id, device, reservations):
         relname='instances',
         modname=MODULE_NAME['EC2Instance'],
         objmaps=instance_data)
+
+
+def images_rm(region_id, images):
+    '''
+    Return images RelationshipMap given region_id and an ImageInfo
+    ResultSet.
+    '''
+    image_data = []
+    for image in images:
+        image_data.append({
+            'id': prepId(image.id),
+            'title': image.id,
+            'location': image.location,
+            'state': image.state,
+            'owner_id': image.owner_id,
+            'architecture': image.architecture,
+            'platform': image.platform,
+            'image_type': image.type,
+            'kernel_id': image.kernel_id,
+            'ramdisk_id': image.ramdisk_id,
+            'description': image.description,
+            'block_device_mapping': str(image.block_device_mapping),
+            'root_device_type': image.root_device_type,
+            'root_device_name': image.root_device_name,
+            'virtualization_type': image.virtualization_type,
+            'hypervisor': image.hypervisor,
+            'instance_lifecycle': image.instance_lifecycle,
+            })
+
+    return RelationshipMap(
+        compname='regions/%s' % region_id,
+        relname='images',
+        modname=MODULE_NAME['EC2Image'],
+        objmaps=image_data
+    )
 
 
 def volumes_rm(region_id, volumes):

@@ -61,6 +61,9 @@ class EC2Region(AWSComponent):
         ('queues', ToManyCont(
             ToOne, MODULE_NAME['SQSQueue'], 'region')
         ),
+        ('images', ToManyCont(
+            ToOne, MODULE_NAME['EC2Image'], 'region')
+        ),
     )
 
     def getDimension(self):
@@ -107,6 +110,7 @@ class IEC2RegionInfo(IComponentInfo):
 
     account = schema.Entity(title=_t(u'Account'))
     zone_count = schema.Int(title=_t(u'Number of Zones'))
+    image_count = schema.Int(title=_t(u'Number of Images'))
     instance_count = schema.Int(title=_t(u'Number of Instances'))
     volume_count = schema.Int(title=_t(u'Number of Volumes'))
     vpc_count = schema.Int(title=_t(u'Number of VPCs'))
@@ -129,6 +133,10 @@ class EC2RegionInfo(ComponentInfo):
     @property
     def zone_count(self):
         return self._object.zones.countObjects()
+
+    @property
+    def image_count(self):
+        return self._object.images.countObjects()
 
     @property
     def instance_count(self):

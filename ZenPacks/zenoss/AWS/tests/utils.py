@@ -87,6 +87,13 @@ def test_account(dmd, factor=1):
                 EC2Zone('zone%s-%s' % (
                     region_id, zone_id)))
 
+        # Images
+        for image_id in range(factor):
+            image = add_obj(
+                region.images,
+                EC2Image('image%s-%s' % (
+                    region_id, image_id)))
+
             # VPCs
             for vpc_id in range(factor):
                 vpc = add_obj(
@@ -113,6 +120,7 @@ def test_account(dmd, factor=1):
                                 instance_id)))
 
                         instance.setZoneId(zone.id)
+                        instance.setImageId(image.id)
                         instance.setVPCSubnetId(subnet.id)
                         instance.private_ip_address = '10.77.77.77'
                         instance.create_guest()
@@ -135,16 +143,12 @@ def test_account(dmd, factor=1):
                 EC2ElasticIP('elastic_ip%s-%s' % (
                     region_id, elastic_ip_id)))
 
-            elastic_ip.setZoneId(zone.id)
-
         # Reserved instances
         for reservation_id in range(factor):
             reservation = add_obj(
                 region.reservations,
                 EC2Reservation('reservation%s-%s' % (
                     region_id, reservation_id)))
-
-            reservation.setZoneId(zone.id)
 
         # VPNGateways
         for vpn_gateway_id in range(factor):
@@ -153,20 +157,11 @@ def test_account(dmd, factor=1):
                 VPNGateway('vpn_gateway%s-%s' % (
                     region_id, vpn_gateway_id)))
 
-            vpn_gateway.setZoneId(zone.id)
-
     # S3Buckets
     for bucket_id in range(factor):
         bucket = add_obj(
             account.s3buckets,
             S3Bucket('s3bucket%s' % (
                 bucket_id)))
-
-    # EC2Image
-    for image_id in range(factor):
-        image = add_obj(
-            account.images,
-            EC2Image('image%s' % (
-                image_id)))
 
     return account
