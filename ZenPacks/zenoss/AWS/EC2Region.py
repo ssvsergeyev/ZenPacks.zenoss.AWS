@@ -61,6 +61,9 @@ class EC2Region(AWSComponent):
         ('queues', ToManyCont(
             ToOne, MODULE_NAME['SQSQueue'], 'region')
         ),
+        ('images', ToManyCont(
+            ToOne, MODULE_NAME['EC2Image'], 'region')
+        ),
     )
 
     def getDimension(self):

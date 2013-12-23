@@ -85,12 +85,13 @@ class BaseRelationsProvider(object):
 
 
 class EC2AccountRelationsProvider(BaseRelationsProvider):
-    impact_relationships = ['regions']
+    impact_relationships = ['regions', 's3buckets']
 
 
 class EC2RegionRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['account']
-    impact_relationships = ['zones', 'vpcs']
+    impact_relationships = ['zones', 'vpcs', 'elastic_ips', 'reservations',
+                            'vpn_gateways', 'queues', 'images']
 
 
 class EC2ZoneRelationsProvider(BaseRelationsProvider):
@@ -118,6 +119,7 @@ class EC2ElasticIPRelationsProvider(BaseRelationsProvider):
 
 class EC2ImageRelationsProvider(BaseRelationsProvider):
     impact_relationships = ['region']
+    impacted_by_relationships = ['instances']
 
 
 class S3BucketRelationsProvider(BaseRelationsProvider):
@@ -133,7 +135,7 @@ class SQSQueueRelationsProvider(BaseRelationsProvider):
 
 
 class EC2InstanceRelationsProvider(BaseRelationsProvider):
-    impacted_by_relationships = ['vpc_subnet', 'zone', 'volumes']
+    impacted_by_relationships = ['vpc_subnet', 'zone', 'volumes', 'images']
 
     def getEdges(self):
         for impact in super(EC2InstanceRelationsProvider, self).getEdges():
