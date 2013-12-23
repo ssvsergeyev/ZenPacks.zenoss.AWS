@@ -90,6 +90,7 @@ class IEC2ImageInfo(IComponentInfo):
     '''
 
     account = schema.Entity(title=_t(u'Account'))
+    region = schema.Entity(title=_t(u'Region'))
     location = schema.TextLine(title=_t(u'Location'))
     state = schema.TextLine(title=_t(u'State'))
     owner_id = schema.TextLine(title=_t(u'Owner ID'))
@@ -136,6 +137,11 @@ class EC2ImageInfo(ComponentInfo):
     @info
     def account(self):
         return self._object.device()
+
+    @property
+    @info
+    def region(self):
+        return self._object.region()
 
     @property
     def instance_count(self):

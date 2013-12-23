@@ -44,7 +44,6 @@ class EC2Instance(AWSComponent):
     tags = None
     region = None
     instance_type = None
-    #image_id = None
     state = None
     platform = None
     public_ip = None
@@ -65,7 +64,6 @@ class EC2Instance(AWSComponent):
         {'id': 'public_dns_name', 'type': 'string'},
         {'id': 'public_ip', 'type': 'string'},
         {'id': 'private_ip_address', 'type': 'string'},
-        #{'id': 'image_id', 'type': 'string'},
         {'id': 'instance_type', 'type': 'string'},
         {'id': 'launch_time', 'type': 'string'},
         {'id': 'state', 'type': 'string'},
@@ -359,7 +357,6 @@ class IEC2InstanceInfo(IComponentInfo):
     tags = schema.TextLine(title=_t(u'Tag'))
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
     instance_type_details = schema.TextLine(title=_t(u'Instance type details'))
-   # image_id = schema.TextLine(title=_t(u'Image ID'))
     platform = schema.TextLine(title=_t(u'Platform'))
     public_dns_name = schema.TextLine(title=_t(u'Public DNS Name'))
     public_ip = schema.TextLine(title=_t(u'Public IP'))
@@ -382,7 +379,6 @@ class EC2InstanceInfo(ComponentInfo):
     tags = ProxyProperty('tags')
     instance_id = ProxyProperty('instance_id')
     instance_type = ProxyProperty('instance_type')
-   # image_id = ProxyProperty('image_id')
     state = ProxyProperty('state')
     platform = ProxyProperty('platform')
     public_dns_name = ProxyProperty('public_dns_name')
