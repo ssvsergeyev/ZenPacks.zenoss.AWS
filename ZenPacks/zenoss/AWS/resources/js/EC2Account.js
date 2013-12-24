@@ -460,6 +460,81 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 Ext.reg('EC2VolumePanel', ZC.EC2VolumePanel);
 
 
+ZC.EC2SnapshotPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'EC2Snapshot',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'volume'},
+                {name: 'size'},
+                {name: 'status'},
+                {name: 'progress'},
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'status',
+                dataIndex: 'status',
+                header: _t('Status'),
+                width: 80
+            },{
+                id: 'volume',
+                dataIndex: 'volume',
+                header: _t('Volume'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 95
+            },{
+                id: 'size',
+                dataIndex: 'size',
+                header: _t('Size'),
+                renderer: Zenoss.render.bytesString,
+                width: 55
+            },{
+                id: 'progress',
+                dataIndex: 'progress',
+                header: _t('Progress'),
+                width: 55
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.EC2SnapshotPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('EC2SnapshotPanel', ZC.EC2SnapshotPanel);
+
+
 ZC.EC2VPCPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
     subComponentGridPanel: false,
 

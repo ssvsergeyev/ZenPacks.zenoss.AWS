@@ -15,6 +15,7 @@ ZC.registerName('EC2Account', _t('EC2 Account', _t('EC2 Accounts')));
 ZC.registerName('EC2Instance', _t('Instance'), _t('Instances'));
 ZC.registerName('EC2Region', _t('Region'), _t('Regions'));
 ZC.registerName('EC2Volume', _t('Volume'), _t('Volumes'));
+ZC.registerName('EC2Snapshot', _t('Snapshot'), _t('Snapshots'));
 ZC.registerName('EC2VPC', _t('VPC'), _t('VPCs'));
 ZC.registerName('EC2VPCSubnet', _t('Subnet'), _t('Subnets'));
 ZC.registerName('EC2Zone', _t('Zone'), _t('Zones'));
