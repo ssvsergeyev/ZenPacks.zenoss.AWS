@@ -12,13 +12,16 @@ from logging import getLogger
 log = getLogger('zen.python')
 
 import time
-
+import boto
+import boto.sqs
+import boto.ec2
 from boto.ec2.connection import EC2Connection
 from boto.s3.connection import S3Connection
 from boto.vpc import VPCConnection
 from twisted.internet import defer
 
 from Products.ZenUtils.Utils import prepId
+from Products.ZenEvents import ZenEventClasses
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
 
@@ -30,6 +33,16 @@ class AWSBasePlugin(PythonDataSourcePlugin):
     proxy_attributes = (
         'ec2accesskey', 'ec2secretkey',
     )
+
+    @classmethod
+    def params(cls, datasource, context):
+        try:
+            region = datasource.talesEval(datasource.region, context)
+        except:
+            return {}
+        return {
+            'region': region,
+        }
 
     @defer.inlineCallbacks
     def collect(self, config):
@@ -132,6 +145,71 @@ class EC2RegionPlugin(AWSBasePlugin):
                         vpc_security_groups_count=(sg_count, t),
                         vpc_security_rules_count=(rules_count, t)
                     )
-        # print "==" * 20
-        # print data
+
+        defer.returnValue(data)
+
+
+class SQSQueuePlugin(AWSBasePlugin):
+    """
+    Subclass of PythonDataSourcePlugin to monitor AWS SQSQueue.
+    """
+
+    @defer.inlineCallbacks
+    def collect(self, config):
+        data = {'events': [], 'values': {}, 'maps': []}
+        for ds in config.datasources:
+            region = ds.params['region']
+            sqsconnection = yield boto.sqs.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+            for queue in sqsconnection.get_all_queues():
+                for message in queue.get_messages():
+                    data['events'].append({
+                        'summary': message._body,
+                        'device': config.id,
+                        'component': queue.name,
+                        'eventKey': message.id,
+                        'severity': ZenEventClasses.Info,
+                        'eventClass': '/SQS/Message',
+                    })
+
+        data['events'].append({
+            'device': config.id,
+            'summary': 'successful collection',
+            'eventKey': 'SQSDataSource_result',
+            'severity': ZenEventClasses.Clear,
+        })
+        defer.returnValue(data)
+
+
+class ZonePlugin(AWSBasePlugin):
+    """
+    Subclass of PythonDataSourcePlugin to monitor AWS Zone.
+    """
+
+    @defer.inlineCallbacks
+    def collect(self, config):
+        data = {'events': [], 'values': {}, 'maps': []}
+        for ds in config.datasources:
+            region = ds.params['region']
+            ec2regionconn = boto.ec2.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey
+            )
+            zone = yield ec2regionconn.get_all_zones(ds.component).pop()
+            if not zone.state == 'available':
+                severity = ZenEventClasses.Warning
+            else:
+                severity = ZenEventClasses.Clear
+
+                data['events'].append({
+                    'summary': 'Zone state is {0}'.format(zone.state),
+                    'component': ds.component,
+                    'eventKey': 'ZoneStatus',
+                    'severity': severity,
+                    'eventClass': '/Status',
+                })
         defer.returnValue(data)

@@ -39,9 +39,9 @@
         />
 
     <adapter
-        provides=".datasources.SQSDataSource.ISQSDataSourceInfo"
-        for=".datasources.SQSDataSource.SQSDataSource"
-        factory=".datasources.SQSDataSource.SQSDataSourceInfo"
+        provides=".datasources.AWSDataSource.IAWSDataSourceInfo"
+        for=".datasources.AWSDataSource.AWSDataSource"
+        factory=".datasources.AWSDataSource.AWSDataSourceInfo"
         />
 
     <adapter

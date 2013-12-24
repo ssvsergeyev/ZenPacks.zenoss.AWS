@@ -91,7 +91,7 @@ class EC2AccountRelationsProvider(BaseRelationsProvider):
 class EC2RegionRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['account']
     impact_relationships = ['zones', 'vpcs', 'elastic_ips', 'reservations',
-                            'vpn_gateways', 'queues', 'images']
+                            'vpn_gateways', 'queues']
 
 
 class EC2ZoneRelationsProvider(BaseRelationsProvider):
@@ -108,7 +108,7 @@ class EC2VPCSubnetRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['vpc', 'zone']
     impact_relationships = ['instances']
 
-# todo: test on zenoss resource manager 4.2.4
+
 class EC2ReservationRelationsProvider(BaseRelationsProvider):
     impact_relationships = ['region']
 
@@ -118,8 +118,9 @@ class EC2ElasticIPRelationsProvider(BaseRelationsProvider):
 
 
 class EC2ImageRelationsProvider(BaseRelationsProvider):
-    impact_relationships = ['region']
-    impacted_by_relationships = ['instances']
+    # impact_relationships = ['region']
+    # impacted_by_relationships = ['instances']
+    pass
 
 
 class S3BucketRelationsProvider(BaseRelationsProvider):
@@ -135,7 +136,7 @@ class SQSQueueRelationsProvider(BaseRelationsProvider):
 
 
 class EC2InstanceRelationsProvider(BaseRelationsProvider):
-    impacted_by_relationships = ['vpc_subnet', 'zone', 'volumes', 'images']
+    impacted_by_relationships = ['vpc_subnet', 'zone', 'volumes']
 
     def getEdges(self):
         for impact in super(EC2InstanceRelationsProvider, self).getEdges():
