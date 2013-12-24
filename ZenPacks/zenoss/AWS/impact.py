@@ -85,12 +85,13 @@ class BaseRelationsProvider(object):
 
 
 class EC2AccountRelationsProvider(BaseRelationsProvider):
-    impact_relationships = ['regions']
+    impact_relationships = ['regions', 's3buckets']
 
 
 class EC2RegionRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['account']
-    impact_relationships = ['zones', 'vpcs']
+    impact_relationships = ['zones', 'vpcs', 'elastic_ips', 'reservations',
+                            'vpn_gateways', 'queues']
 
 
 class EC2ZoneRelationsProvider(BaseRelationsProvider):
@@ -107,7 +108,7 @@ class EC2VPCSubnetRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['vpc', 'zone']
     impact_relationships = ['instances']
 
-# todo: test on zenoss resource manager 4.2.4
+
 class EC2ReservationRelationsProvider(BaseRelationsProvider):
     impact_relationships = ['region']
 
@@ -117,7 +118,9 @@ class EC2ElasticIPRelationsProvider(BaseRelationsProvider):
 
 
 class EC2ImageRelationsProvider(BaseRelationsProvider):
-    impact_relationships = ['account']
+    # impact_relationships = ['region']
+    # impacted_by_relationships = ['instances']
+    pass
 
 
 class S3BucketRelationsProvider(BaseRelationsProvider):
@@ -125,6 +128,10 @@ class S3BucketRelationsProvider(BaseRelationsProvider):
 
 
 class VPNGatewayRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['region']
+
+
+class SQSQueueRelationsProvider(BaseRelationsProvider):
     impact_relationships = ['region']
 
 
