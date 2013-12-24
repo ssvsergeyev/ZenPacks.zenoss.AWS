@@ -39,9 +39,9 @@
         />
 
     <adapter
-        provides=".datasources.SQSDataSource.ISQSDataSourceInfo"
-        for=".datasources.SQSDataSource.SQSDataSource"
-        factory=".datasources.SQSDataSource.SQSDataSourceInfo"
+        provides=".datasources.AWSDataSource.IAWSDataSourceInfo"
+        for=".datasources.AWSDataSource.AWSDataSource"
+        factory=".datasources.AWSDataSource.AWSDataSourceInfo"
         />
 
     <adapter
@@ -238,6 +238,12 @@
             provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
             for=".VPNGateway.VPNGateway"
             factory=".impact.VPNGatewayRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".SQSQueue.SQSQueue"
+            factory=".impact.SQSQueueRelationsProvider"
             />
 
         <subscriber
