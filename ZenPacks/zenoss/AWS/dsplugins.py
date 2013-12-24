@@ -8,10 +8,12 @@
 #
 ######################################################################
 
+import boto
+import boto.vpc
+import boto.ec2
+
 from logging import getLogger
 log = getLogger('zen.python')
-
-import time
 
 from boto.ec2.connection import EC2Connection
 from boto.s3.connection import S3Connection
@@ -73,10 +75,9 @@ class S3BucketPlugin(AWSBasePlugin):
             bucket = s3connection.get_bucket(ds.component)
             keys = yield bucket.get_all_keys()
 
-            t = time.time()
             data['values'][ds.component] = dict(
-                keys_count=(len(keys), t),
-                total_size=(sum([key.size for key in keys]), t),
+                keys_count=(len(keys), 'N'),
+                total_size=(sum([key.size for key in keys]), 'N'),
             )
 
         defer.returnValue(data)
@@ -90,7 +91,6 @@ class EC2RegionPlugin(AWSBasePlugin):
     @defer.inlineCallbacks
     def collect(self, config):
         data = {'events': [], 'values': {}, 'maps': []}
-        t = time.time()
         instance_filters = {
             'instance-state-name': [
                 'pending',
@@ -100,38 +100,71 @@ class EC2RegionPlugin(AWSBasePlugin):
                 'stopped',
             ],
         }
-        accesskey = config.datasources[0].ec2accesskey
-        secretkey = config.datasources[0].ec2secretkey
 
-        ec2conn = EC2Connection(accesskey, secretkey)
-        regions = yield ec2conn.get_all_regions()
-        for region in regions:
-            region_id = prepId(region.name)
-            ec2regionconn = EC2Connection(accesskey, secretkey, region=region)
-            vpcregionconn = VPCConnection(accesskey, secretkey, region=region)
+        for ds in config.datasources:
+            ec2regionconn = boto.ec2.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+            vpcregionconn = boto.vpc.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
 
-            for ds in config.datasources:
-                if ds.component == region_id:
-                    instances_count = len(ec2regionconn.get_all_instances(
-                        filters=instance_filters
-                    ))
-                    elastic_ips_count = len(ec2regionconn.get_all_addresses())
-                    subnets_count = len(vpcregionconn.get_all_subnets())
-                    volumes_count = len(ec2regionconn.get_all_volumes())
-                    sg = ec2regionconn.get_all_security_groups()
-                    sg_count = len(sg)
-                    rules_count = 0
-                    for group in sg:
-                        rules_count = max(len(group.rules), rules_count)
+            instances_count = len(ec2regionconn.get_all_instances(
+                filters=instance_filters
+            ))
+            elastic_ips_count = len(ec2regionconn.get_all_addresses())
+            subnets_count = len(vpcregionconn.get_all_subnets())
+            volumes_count = len(ec2regionconn.get_all_volumes())
+            sg = ec2regionconn.get_all_security_groups()
+            sg_count = len(sg)
+            rules_count = 0
+            for group in sg:
+                rules_count = max(len(group.rules), rules_count)
 
-                    data['values'][ds.component] = dict(
-                        instances_count=(instances_count, t),
-                        elastic_ips_count=(elastic_ips_count, t),
-                        subnets_count=(subnets_count, t),
-                        volumes_count=(volumes_count, t),
-                        vpc_security_groups_count=(sg_count, t),
-                        vpc_security_rules_count=(rules_count, t)
-                    )
-        # print "==" * 20
-        # print data
+            data['values'][ds.component] = dict(
+                instances_count=(instances_count, 'N'),
+                elastic_ips_count=(elastic_ips_count, 'N'),
+                subnets_count=(subnets_count, 'N'),
+                volumes_count=(volumes_count, 'N'),
+                vpc_security_groups_count=(sg_count, 'N'),
+                vpc_security_rules_count=(rules_count, 'N')
+            )
+        print "==" * 20
+        print data
+        defer.returnValue(data)
+
+
+class EC2VPCSubnetPlugin(AWSBasePlugin):
+    """
+    Subclass of PythonDataSourcePlugin to monitor AWS VPC Subnets.
+    """
+
+    @classmethod
+    def params(cls, datasource, context):
+        return {
+            'region': datasource.talesEval(datasource.region, context),
+        }
+
+    @defer.inlineCallbacks
+    def collect(self, config):
+        data = {'events': [], 'values': {}, 'maps': []}
+        for ds in config.datasources:
+            region = ds.params['region']
+            vpcregionconn = boto.vpc.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+            subnet = yield vpcregionconn.get_all_subnets(ds.component).pop()
+
+            data['values'][ds.component] = dict(
+                available_ip_address_count=(
+                    subnet.available_ip_address_count, 'N'
+                )
+            )
+
         defer.returnValue(data)
