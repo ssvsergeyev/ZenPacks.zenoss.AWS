@@ -203,6 +203,7 @@ class ZonePlugin(AWSBasePlugin):
             else:
                 severity = ZenEventClasses.Clear
 
+
                 data['events'].append({
                     'summary': 'Zone state is {0}'.format(zone.state),
                     'component': ds.component,
@@ -211,12 +212,23 @@ class ZonePlugin(AWSBasePlugin):
                     'eventClass': '/Status',
                 })
 
+            
+
+            data['events'].append({
+                'summary': 'Zone state is {0}'.format(zone.state),
+                'component': ds.component,
+                'eventKey': 'ZoneStatus',
+                'severity': severity,
+                'eventClass': '/Status',
+            })
+
             data['maps'].append(ObjectMap({
                 "compname": "regions/%s/zones/%s" % (
                     region, ds.component),
                 "modname": "Zone state",
                 "state": zone.state
             }))
+
         defer.returnValue(data)
 
 
