@@ -282,6 +282,7 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'instance_type'},
                 {name: 'platform'},
                 {name: 'private_ip_address'},
+                {name: 'public_ip'},
                 {name: 'volume_count'},
                 {name: 'state'}
             ],
@@ -339,6 +340,11 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'private_ip_address',
                 dataIndex: 'private_ip_address',
                 header: _t('Private IP'),
+                width: 85
+            },{
+                id: 'public_ip',
+                dataIndex: 'public_ip',
+                header: _t('Public IP'),
                 width: 85
             },{
                 id: 'volume_count',
