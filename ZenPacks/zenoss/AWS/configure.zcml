@@ -39,9 +39,9 @@
         />
 
     <adapter
-        provides=".datasources.SQSDataSource.ISQSDataSourceInfo"
-        for=".datasources.SQSDataSource.SQSDataSource"
-        factory=".datasources.SQSDataSource.SQSDataSourceInfo"
+        provides=".datasources.AWSDataSource.IAWSDataSourceInfo"
+        for=".datasources.AWSDataSource.AWSDataSource"
+        factory=".datasources.AWSDataSource.AWSDataSourceInfo"
         />
 
     <adapter
@@ -66,6 +66,12 @@
         provides=".EC2Volume.IEC2VolumeInfo"
         for=".EC2Volume.EC2Volume"
         factory=".EC2Volume.EC2VolumeInfo"
+        />
+
+    <adapter
+        provides=".EC2Snapshot.IEC2SnapshotInfo"
+        for=".EC2Snapshot.EC2Snapshot"
+        factory=".EC2Snapshot.EC2SnapshotInfo"
         />
 
     <adapter
@@ -238,6 +244,12 @@
             provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
             for=".VPNGateway.VPNGateway"
             factory=".impact.VPNGatewayRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".SQSQueue.SQSQueue"
+            factory=".impact.SQSQueueRelationsProvider"
             />
 
         <subscriber

@@ -276,11 +276,13 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'locking'},
                 {name: 'guest_device'},
                 {name: 'zone'},
+                {name: 'image'},
                 {name: 'vpc'},
                 {name: 'vpc_subnet'},
                 {name: 'instance_type'},
                 {name: 'platform'},
                 {name: 'private_ip_address'},
+                {name: 'public_ip'},
                 {name: 'volume_count'},
                 {name: 'state'}
             ],
@@ -304,6 +306,12 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'zone',
                 dataIndex: 'zone',
                 header: _t('Zone'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 95
+            },{
+                id: 'image',
+                dataIndex: 'image',
+                header: _t('Image'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 95
             },{
@@ -332,6 +340,11 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'private_ip_address',
                 dataIndex: 'private_ip_address',
                 header: _t('Private IP'),
+                width: 85
+            },{
+                id: 'public_ip',
+                dataIndex: 'public_ip',
+                header: _t('Public IP'),
                 width: 85
             },{
                 id: 'volume_count',
@@ -451,6 +464,81 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 });
 
 Ext.reg('EC2VolumePanel', ZC.EC2VolumePanel);
+
+
+ZC.EC2SnapshotPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'EC2Snapshot',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'volume'},
+                {name: 'size'},
+                {name: 'status'},
+                {name: 'progress'},
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'status',
+                dataIndex: 'status',
+                header: _t('Status'),
+                width: 80
+            },{
+                id: 'volume',
+                dataIndex: 'volume',
+                header: _t('Volume'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 95
+            },{
+                id: 'size',
+                dataIndex: 'size',
+                header: _t('Size'),
+                renderer: Zenoss.render.bytesString,
+                width: 55
+            },{
+                id: 'progress',
+                dataIndex: 'progress',
+                header: _t('Progress'),
+                width: 55
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.EC2SnapshotPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('EC2SnapshotPanel', ZC.EC2SnapshotPanel);
 
 
 ZC.EC2VPCPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
@@ -664,6 +752,23 @@ Zenoss.nav.appendTo('Component', [{
     },
     setContext: function(uid) {
         ZC.EC2VolumePanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_snapshots',
+    text: _t('Snapshots'),
+    xtype: 'EC2SnapshotPanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            case 'EC2Volume': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2SnapshotPanel.superclass.setContext.apply(this, [uid]);
     }
 }]);
 

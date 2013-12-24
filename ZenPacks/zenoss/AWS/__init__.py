@@ -31,6 +31,7 @@ productNames = (
     'EC2Image',
     'S3Bucket',
     'SQSQueue',
+    'EC2Snapshot'
 )
 
 # Useful to avoid making literal string references to module and class names
@@ -60,4 +61,7 @@ class ZenPack(ZenPackBase):
     '''
     ZenPack loader.
     '''
-    pass
+    packZProperties = [
+        ('zAWSDiscover', '', 'string'),
+        ('zAWSRegionPEM', '', 'multilinekeypath'),
+    ]

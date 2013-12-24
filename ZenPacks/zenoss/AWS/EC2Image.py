@@ -21,7 +21,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME
 from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
-from ZenPacks.zenoss.AWS.utils import updateToMany, updateToOne
+from ZenPacks.zenoss.AWS.utils import updateToMany
 
 
 class EC2Image(AWSComponent):
@@ -66,10 +66,22 @@ class EC2Image(AWSComponent):
     )
 
     _relations = AWSComponent._relations + (
-        ('account', ToOne(
-            ToManyCont, MODULE_NAME['EC2Account'],
-            'images')),
+        ('region', ToOne(
+            ToManyCont, MODULE_NAME['EC2Region'], 'images')),
+
+        ('instances', ToMany(
+            ToOne, MODULE_NAME['EC2Instance'], 'image')),
     )
+
+    def getInstanceIds(self):
+        return sorted(self.instances.objectIds())
+
+    def setInstanceIds(self, ids):
+        updateToMany(
+            relationship=self.instances,
+            root=self.region().instances,
+            type_=CLASS_NAME['EC2Instance'],
+            ids=ids)
 
 
 class IEC2ImageInfo(IComponentInfo):
@@ -78,6 +90,7 @@ class IEC2ImageInfo(IComponentInfo):
     '''
 
     account = schema.Entity(title=_t(u'Account'))
+    region = schema.Entity(title=_t(u'Region'))
     location = schema.TextLine(title=_t(u'Location'))
     state = schema.TextLine(title=_t(u'State'))
     owner_id = schema.TextLine(title=_t(u'Owner ID'))
@@ -93,6 +106,7 @@ class IEC2ImageInfo(IComponentInfo):
     virtualization_type = schema.TextLine(title=_t(u'Virtualization_type'))
     hypervisor = schema.TextLine(title=_t(u'Hypervisor'))
     instance_lifecycle = schema.TextLine(title=_t(u'Instance_lifecycle'))
+    instance_count = schema.Int(title=_t(u'Number of Instances'))
 
 
 class EC2ImageInfo(ComponentInfo):
@@ -123,3 +137,12 @@ class EC2ImageInfo(ComponentInfo):
     @info
     def account(self):
         return self._object.device()
+
+    @property
+    @info
+    def region(self):
+        return self._object.region()
+
+    @property
+    def instance_count(self):
+        return self._object.instances.countObjects()
