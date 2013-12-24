@@ -128,7 +128,7 @@ class EC2RegionPlugin(AWSBasePlugin):
             elastic_ips_count = len(ec2regionconn.get_all_addresses())
             subnets_count = len(vpcregionconn.get_all_subnets())
             volumes_count = len(ec2regionconn.get_all_volumes())
-            sg = ec2regionconn.get_all_security_groups()
+            sg = yield ec2regionconn.get_all_security_groups()
             sg_count = len(sg)
             rules_count = 0
             for group in sg:
