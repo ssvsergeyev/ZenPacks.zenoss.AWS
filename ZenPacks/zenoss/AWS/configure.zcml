@@ -69,6 +69,12 @@
         />
 
     <adapter
+        provides=".EC2Snapshot.IEC2SnapshotInfo"
+        for=".EC2Snapshot.EC2Snapshot"
+        factory=".EC2Snapshot.EC2SnapshotInfo"
+        />
+
+    <adapter
         provides=".EC2VPC.IEC2VPCInfo"
         for=".EC2VPC.EC2VPC"
         factory=".EC2VPC.EC2VPCInfo"

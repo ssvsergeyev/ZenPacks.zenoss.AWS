@@ -68,6 +68,7 @@ class EC2(PythonPlugin):
             ('images', []),
             ('instances', []),
             ('volumes', []),
+            ('snapshots', []),
             ('queues', []),
             ('elastic_ips', []),
             ('reservations', []),
@@ -156,6 +157,14 @@ class EC2(PythonPlugin):
             maps['volumes'].append(
                 volumes_rm(
                     region_id, ec2regionconn.get_all_volumes())
+            )
+
+            # Volumes
+            maps['snapshots'].append(
+                snapshots_rm(
+                    region_id, ec2regionconn.get_all_snapshots(
+                        owner="self"
+                    ))
             )
 
             # Elastic IPs
@@ -470,6 +479,36 @@ def volumes_rm(region_id, volumes):
         relname='volumes',
         modname=MODULE_NAME['EC2Volume'],
         objmaps=volume_data)
+
+
+def snapshots_rm(region_id, snapshots):
+    '''
+    Return snapshots RelationshipMap given region_id and a Snapshot
+    ResultSet.
+    '''
+    snapshot_data = []
+    for snapshot in snapshots:
+        if snapshot.volume_id:
+            volume_id = prepId(snapshot.volume_id)
+        else:
+            volume_id = None
+
+        snapshot_data.append({
+            'id': prepId(snapshot.id),
+            'title': name_or(snapshot.tags, snapshot.id),
+            'description': snapshot.description,
+            'size': snapshot.volume_size / (1024 ** 3),
+            'status': snapshot.status,
+            'progress': snapshot.progress,
+            'start_time': snapshot.start_time,
+            'setVolumeId': volume_id,
+        })
+
+    return RelationshipMap(
+        compname='regions/%s' % region_id,
+        relname='snapshots',
+        modname=MODULE_NAME['EC2Snapshot'],
+        objmaps=snapshot_data)
 
 
 def elastic_ips_rm(region_id, elastic_ips):
