@@ -55,6 +55,7 @@ class EC2Volume(AWSComponent):
         ('region', ToOne(ToManyCont, MODULE_NAME['EC2Region'], 'volumes')),
         ('zone', ToOne(ToMany, MODULE_NAME['EC2Zone'], 'volumes')),
         ('instance', ToOne(ToMany, MODULE_NAME['EC2Instance'], 'volumes')),
+        ('snapshots', ToManyCont(ToOne, MODULE_NAME['EC2Snapshot'], 'volume')),
         )
 
     def getRRDTemplates(self):
