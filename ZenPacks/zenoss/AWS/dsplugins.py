@@ -15,12 +15,9 @@ import boto.ec2
 from logging import getLogger
 log = getLogger('zen.python')
 
-from boto.ec2.connection import EC2Connection
 from boto.s3.connection import S3Connection
-from boto.vpc import VPCConnection
 from twisted.internet import defer
 
-from Products.ZenUtils.Utils import prepId
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
 
@@ -103,12 +100,12 @@ class EC2RegionPlugin(AWSBasePlugin):
 
         for ds in config.datasources:
             ec2regionconn = boto.ec2.connect_to_region(
-                region,
+                ds.component,
                 aws_access_key_id=ds.ec2accesskey,
                 aws_secret_access_key=ds.ec2secretkey,
             )
             vpcregionconn = boto.vpc.connect_to_region(
-                region,
+                ds.component,
                 aws_access_key_id=ds.ec2accesskey,
                 aws_secret_access_key=ds.ec2secretkey,
             )
@@ -133,8 +130,7 @@ class EC2RegionPlugin(AWSBasePlugin):
                 vpc_security_groups_count=(sg_count, 'N'),
                 vpc_security_rules_count=(rules_count, 'N')
             )
-        print "==" * 20
-        print data
+
         defer.returnValue(data)
 
 
@@ -142,12 +138,6 @@ class EC2VPCSubnetPlugin(AWSBasePlugin):
     """
     Subclass of PythonDataSourcePlugin to monitor AWS VPC Subnets.
     """
-
-    @classmethod
-    def params(cls, datasource, context):
-        return {
-            'region': datasource.talesEval(datasource.region, context),
-        }
 
     @defer.inlineCallbacks
     def collect(self, config):
