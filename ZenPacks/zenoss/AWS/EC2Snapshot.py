@@ -47,7 +47,7 @@ class EC2Snapshot(AWSComponent):
         )
 
     _relations = AWSComponent._relations + (
-        ('region', ToOne(ToManyCont, MODULE_NAME['EC2Region'], 'volumes')),
+        ('region', ToOne(ToManyCont, MODULE_NAME['EC2Region'], 'snapshots')),
         ('volume', ToOne(ToMany, MODULE_NAME['EC2Volume'], 'snapshots')),
         )
 

@@ -750,6 +750,23 @@ Zenoss.nav.appendTo('Component', [{
 }]);
 
 Zenoss.nav.appendTo('Component', [{
+    id: 'component_snapshots',
+    text: _t('Snapshots'),
+    xtype: 'EC2SnapshotPanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            case 'EC2Volume': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2SnapshotPanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
     id: 'component_vpcs',
     text: _t('VPCs'),
     xtype: 'EC2VPCPanel',
