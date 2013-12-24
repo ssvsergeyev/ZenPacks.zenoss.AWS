@@ -202,13 +202,13 @@ class ZonePlugin(AWSBasePlugin):
             else:
                 severity = ZenEventClasses.Clear
 
-                data['events'].append({
-                    'summary': 'Zone state is {0}'.format(zone.state),
-                    'component': ds.component,
-                    'eventKey': 'ZoneStatus',
-                    'severity': severity,
-                    'eventClass': '/Status',
-                })
+            data['events'].append({
+                'summary': 'Zone state is {0}'.format(zone.state),
+                'component': ds.component,
+                'eventKey': 'ZoneStatus',
+                'severity': severity,
+                'eventClass': '/Status',
+            })
         defer.returnValue(data)
 
 
