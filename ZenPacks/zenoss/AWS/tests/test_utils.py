@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from mock import Mock
+
 from zope.event import notify
 
 from Products.Five import zcml
@@ -174,9 +176,23 @@ class TestUtils(BaseTestCase):
         self.assertEqual(zone1.instances.countObjects(), 0)
         self.assertEqual(zone2.instances.countObjects(), 0)
 
+class TestReservedUtils(BaseTestCase):
+    def test_unreserved_instance_count(self):
+        from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
+
+        instance = Mock()
+        instance.state = 'running'
+        instance.spot_instance_request_id = False
+
+        ec2_conn = Mock()
+        ec2_conn.get_only_instances.return_value = [instance] * 10
+        ec2_conn.get_all_reserved_instances.return_value = range(5)
+
+        self.assertEquals(unreserved_instance_count(ec2_conn, instance), 5)
 
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(TestUtils))
+    suite.addTest(makeSuite(TestReservedUtils))
     return suite
