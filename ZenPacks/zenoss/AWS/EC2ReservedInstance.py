@@ -75,14 +75,14 @@ class EC2ReservedInstance(AWSComponent):
 
 
 class IEC2ReservedInstanceInfo(IComponentInfo):
-    reserved_instance_id = schema.TextLine(title=_t(u'Instance ID'))
+    reserved_instance_id = schema.TextLine(title=_t(u'Reserved instance ID'))
     region = schema.Entity(title=_t(u'Region'))
     zone = schema.Entity(title=_t(u'Zone'))
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
     state = schema.TextLine(title=_t(u'State'))
 
 
-class EC2InstanceInfo(ComponentInfo):
+class EC2ReservedInstanceInfo(ComponentInfo):
     implements(IEC2ReservedInstanceInfo)
     adapts(EC2ReservedInstance)
 

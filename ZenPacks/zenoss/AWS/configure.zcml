@@ -128,6 +128,12 @@
         factory=".SQSQueue.SQSQueueInfo"
         />
 
+    <adapter
+        provides=".EC2ReservedInstance.IEC2ReservedInstanceInfo"
+        for=".EC2ReservedInstance.EC2ReservedInstance"
+        factory=".EC2ReservedInstance.EC2ReservedInstanceInfo"
+        />
+
     <!-- Path Reporters -->
     <adapter
         provides="Products.Zuul.catalog.interfaces.IPathReporter"
