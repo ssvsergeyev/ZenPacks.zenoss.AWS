@@ -16,6 +16,36 @@ ZenPacks.zenoss.AWS.EC2Account
 ['aws.EC2']
 </property>
 <tomanycont id='rrdTemplates'>
+<object id='EC2Image' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='ImageState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2ImageStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='EC2Instance' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
 ZenPacks.zenoss.AWS.EC2Instance
@@ -276,6 +306,29 @@ True
 </object>
 </tomanycont>
 </object>
+<object id='InstanceState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2InstanceStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
 <object id='NetworkIn' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Amazon CloudWatch
@@ -479,6 +532,48 @@ True
 </property>
 </object>
 </tomanycont>
+</object>
+</tomanycont>
+<tomanycont id='thresholds'>
+<object id='StatusCheckFailed_Instance' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Snmp
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
+['StatusCheckFailed_Instance_StatusCheckFailed_Instance']
+</property>
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="maxval" mode="w" >
+1
+</property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
+</object>
+<object id='StatusCheckFailed_System' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Snmp
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
+['StatusCheckFailed_System_StatusCheckFailed_System']
+</property>
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="maxval" mode="w" >
+1
+</property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
@@ -1178,6 +1273,29 @@ True
 </object>
 </tomanycont>
 </object>
+<object id='InstanceState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2InstanceStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
 <object id='NetworkIn' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Amazon CloudWatch
@@ -1381,6 +1499,48 @@ True
 </property>
 </object>
 </tomanycont>
+</object>
+</tomanycont>
+<tomanycont id='thresholds'>
+<object id='StatusCheckFailed_Instance' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Snmp
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
+['StatusCheckFailed_Instance_StatusCheckFailed_Instance']
+</property>
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="maxval" mode="w" >
+1
+</property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
+</object>
+<object id='StatusCheckFailed_System' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<property type="string" id="eventClass" mode="w" >
+/Perf/Snmp
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property label="DataPoints" type="lines" id="dsnames" mode="w" >
+['StatusCheckFailed_System_StatusCheckFailed_System']
+</property>
+<property label="Enabled" type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="maxval" mode="w" >
+1
+</property>
+<property type="int" id="escalateCount" mode="w" >
+0
+</property>
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
@@ -2949,6 +3109,66 @@ AVERAGE
 </object>
 </tomanycont>
 </object>
+<object id='EC2Snapshot' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='SnapshotStatus' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2SnapshotStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='EC2VPC' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='VPCState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2VPCStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='EC2VPCSubnet' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
 Products.ZenModel.Device
@@ -3259,6 +3479,29 @@ True
 </property>
 </object>
 </tomanycont>
+</object>
+<object id='VolumeStatus' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2VolumeStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
 </object>
 <object id='VolumeTotalReadTime' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -4344,6 +4587,36 @@ ${here/id}
 </property>
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.dsplugins.SQSQueuePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='VPNGateway' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='GatewayState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.VPNGatewayStatePlugin
 </property>
 <property type="string" id="region" >
 ${here/getRegionId}
