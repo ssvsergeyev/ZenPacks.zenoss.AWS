@@ -65,6 +65,9 @@ class EC2Region(AWSComponent):
         ('images', ToManyCont(
             ToOne, MODULE_NAME['EC2Image'], 'region')
         ),
+        ('reserved_instances', ToManyCont(
+            ToOne, MODULE_NAME['EC2ReservedInstance'], 'region')
+        ),
     )
 
     def getDimension(self):

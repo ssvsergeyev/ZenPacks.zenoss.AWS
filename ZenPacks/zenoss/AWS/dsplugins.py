@@ -78,7 +78,7 @@ class S3BucketPlugin(AWSBasePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
         for ds in config.datasources:
             s3connection = S3Connection(ds.ec2accesskey, ds.ec2secretkey)
             bucket = s3connection.get_bucket(ds.component)
@@ -99,7 +99,7 @@ class EC2RegionPlugin(AWSBasePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
         instance_filters = {
             'instance-state-name': [
                 'pending',
@@ -153,7 +153,7 @@ class SQSQueuePlugin(AWSBasePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
         for ds in config.datasources:
             region = ds.params['region']
             sqsconnection = yield boto.sqs.connect_to_region(
@@ -188,7 +188,7 @@ class ZonePlugin(AWSBasePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
         for ds in config.datasources:
             region = ds.params['region']
             ec2regionconn = boto.ec2.connect_to_region(
@@ -219,7 +219,29 @@ class EC2VPCSubnetPlugin(AWSBasePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
+        for ds in config.datasources:
+            region = ds.params['region']
+            vpcregionconn = boto.vpc.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+            subnet = yield vpcregionconn.get_all_subnets(ds.component).pop()
+
+            data['values'][ds.component] = dict(
+                available_ip_address_count=(
+                    subnet.available_ip_address_count, 'N'
+                )
+            )
+
+        defer.returnValue(data)
+
+class EC2ReservedInstancesPlugin(AWSBasePlugin):
+
+    @defer.inlineCallbacks
+    def collect(self, config):
+        data = self.new_data()
         for ds in config.datasources:
             region = ds.params['region']
             vpcregionconn = boto.vpc.connect_to_region(
