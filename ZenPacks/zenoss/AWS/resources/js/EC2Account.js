@@ -969,7 +969,6 @@ ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'region'},
-                {name: 'public_ip'},
                 {name: 'private_ip_address'},
                 {name: 'instance_id'},
                 {name: 'domain'},
@@ -986,18 +985,13 @@ ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'name',
                 dataIndex: 'name',
-                header: _t('Name'),
-                renderer: Zenoss.render.aws_entityLinkFromGrid
-            },{
-                id: 'public_ip',
-                dataIndex: 'public_ip',
                 header: _t('Public IP'),
-                width: 80
+                renderer: Zenoss.render.aws_entityLinkFromGrid
             },{
                 id: 'private_ip_address',
                 dataIndex: 'private_ip_address',
                 header: _t('Private IP address'),
-                width: 80
+                width: 100
             },{
                 id: 'region',
                 dataIndex: 'region',
@@ -1013,17 +1007,17 @@ ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'domain',
                 dataIndex: 'domain',
                 header: _t('Domain'),
-                width: 100
+                width: 60
             },{
                 id: 'network_interface_id',
                 dataIndex: 'network_interface_id',
                 header: _t('Network interface ID'),
-                width: 90
+                width: 110
             },{
                 id: 'network_interface_owner_id',
                 dataIndex: 'network_interface_owner_id',
                 header: _t('Network interface_owner ID'),
-                width: 90
+                width: 150
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
