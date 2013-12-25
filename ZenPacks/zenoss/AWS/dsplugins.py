@@ -253,6 +253,14 @@ class EC2VPCSubnetPlugin(AWSBasePlugin):
 
         defer.returnValue(data)
 
+CONNECTION_TYPE = {
+    'EC2VPC': 'vpc',
+    'EC2Snapshot': 'ec2',
+    'EC2Volume': 'ec2',
+    'VPNGateway': 'vpc',
+    'EC2Image': 'ec2',
+    'EC2Instance': 'ec2'
+}
 
 # Plugins for components' state remodeling.
 class EC2BaseStatePlugin(AWSBasePlugin):
@@ -272,17 +280,18 @@ class EC2BaseStatePlugin(AWSBasePlugin):
         data = self.new_data()
         for ds in config.datasources:
             region = yield ds.params['region']
-            self.ec2regionconn = boto.ec2.connect_to_region(
-                region,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
-
-            self.vpcregionconn = boto.vpc.connect_to_region(
-                region,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
+            if CONNECTION_TYPE.get(ds.template) == 'ec2':
+                self.ec2regionconn = boto.ec2.connect_to_region(
+                    region,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+            else:
+                self.vpcregionconn = boto.vpc.connect_to_region(
+                    region,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
 
             data['maps'].append(
                 self.results_to_maps(region, ds.component)
