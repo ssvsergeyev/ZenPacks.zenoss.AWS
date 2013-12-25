@@ -678,7 +678,7 @@ ZC.EC2VPCSubnetPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 dataIndex: 'zone',
                 header: _t('Zone'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
-                width: 95VPNGateway
+                width: 95
             },{
                 id: 'vpc',
                 dataIndex: 'vpc',
@@ -912,8 +912,7 @@ ZC.S3BucketPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'monitor'},
                 {name: 'monitored'},
                 {name: 'locking'},
-                {name: 'creation_date'},
-
+                {name: 'creation_date'}
             ],
             columns: [{
                 id: 'severity',
@@ -975,7 +974,7 @@ ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'instance_id'},
                 {name: 'domain'},
                 {name: 'network_interface_id'},
-                {name: 'network_interface_owner_id'},
+                {name: 'network_interface_owner_id'}
             ],
             columns: [{
                 id: 'severity',
@@ -1078,7 +1077,7 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'virtualization_type'},
                 {name: 'hypervisor'},
                 {name: 'instance_lifecycle'},
-                {name: 'instance_count'},
+                {name: 'instance_count'}
             ],
             columns: [{
                 id: 'severity',
@@ -1095,7 +1094,7 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'location',
                 dataIndex: 'location',
-                header: _t('Location),
+                header: _t('Location'),
                 width: 80
             },{
                 id: 'state',
@@ -1308,7 +1307,7 @@ Zenoss.nav.appendTo('Component', [{
 
 Zenoss.nav.appendTo('Component', [{
     id: 'component_vpn_gateways',
-    text: _t('Gateway'),
+    text: _t('Gateways'),
     xtype: 'VPNGatewayPanel',
     subComponentGridPanel: true,
     filterNav: function(navpanel) {
@@ -1324,7 +1323,7 @@ Zenoss.nav.appendTo('Component', [{
 
 Zenoss.nav.appendTo('Component', [{
     id: 'component_reservations',
-    text: _t('Reservation'),
+    text: _t('Reservations'),
     xtype: 'EC2ReservationPanel',
     subComponentGridPanel: true,
     filterNav: function(navpanel) {
@@ -1340,7 +1339,7 @@ Zenoss.nav.appendTo('Component', [{
 
 Zenoss.nav.appendTo('Component', [{
     id: 'component_s3buckets',
-    text: _t('Bucket'),
+    text: _t('Buckets'),
     xtype: 'S3BucketPanel',
     subComponentGridPanel: true,
     filterNav: function(navpanel) {
@@ -1356,7 +1355,7 @@ Zenoss.nav.appendTo('Component', [{
 
 Zenoss.nav.appendTo('Component', [{
     id: 'component_elastic_ips',
-    text: _t('ElasticIP'),
+    text: _t('ElasticIPs'),
     xtype: 'EC2ElasticIPPanel',
     subComponentGridPanel: true,
     filterNav: function(navpanel) {
@@ -1372,7 +1371,7 @@ Zenoss.nav.appendTo('Component', [{
 
 Zenoss.nav.appendTo('Component', [{
     id: 'component_images',
-    text: _t('Image'),
+    text: _t('Images'),
     xtype: 'EC2ImagePanel',
     subComponentGridPanel: true,
     filterNav: function(navpanel) {
