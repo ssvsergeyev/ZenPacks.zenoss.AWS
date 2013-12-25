@@ -45,6 +45,7 @@ class EC2Region(AWSComponent):
         ('zones', ToManyCont(ToOne, MODULE_NAME['EC2Zone'], 'region')),
         ('instances', ToManyCont(ToOne, MODULE_NAME['EC2Instance'], 'region')),
         ('volumes', ToManyCont(ToOne, MODULE_NAME['EC2Volume'], 'region')),
+        ('snapshots', ToManyCont(ToOne, MODULE_NAME['EC2Snapshot'], 'region')),
         ('vpcs', ToManyCont(ToOne, MODULE_NAME['EC2VPC'], 'region')),
         ('vpc_subnets', ToManyCont(
             ToOne, MODULE_NAME['EC2VPCSubnet'], 'region')

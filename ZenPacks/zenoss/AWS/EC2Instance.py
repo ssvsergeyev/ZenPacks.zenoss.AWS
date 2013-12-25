@@ -430,7 +430,9 @@ class EC2InstanceInfo(ComponentInfo):
     @property
     @info
     def instance_type_details(self):
-        return self._object.instance_type_details()
+        val = self._object.instance_type_details()
+        return val.replace("; ", "</span><br />").\
+            replace(": ", ": <span style='display:inline-block;float:right'>")
 
 
 class EC2InstancePathReporter(DefaultPathReporter):

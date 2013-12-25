@@ -21,7 +21,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME
 from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
-from ZenPacks.zenoss.AWS.utils import updateToMany, updateToOne
+from ZenPacks.zenoss.AWS.utils import updateToMany
 
 
 class EC2Image(AWSComponent):
