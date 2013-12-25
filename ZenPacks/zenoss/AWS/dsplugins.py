@@ -19,6 +19,7 @@ import boto.vpc
 from boto.s3.connection import S3Connection
 from twisted.internet import defer
 
+from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.ZenEvents import ZenEventClasses
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
@@ -73,7 +74,7 @@ class AWSBasePlugin(PythonDataSourcePlugin):
 
 class S3BucketPlugin(AWSBasePlugin):
     """
-    Subclass of PythonDataSourcePlugin to monitor AWS S3Buckets.
+    Subclass of AWSBasePlugin to monitor AWS S3Buckets.
     """
 
     @defer.inlineCallbacks
@@ -94,7 +95,7 @@ class S3BucketPlugin(AWSBasePlugin):
 
 class EC2RegionPlugin(AWSBasePlugin):
     """
-    Subclass of PythonDataSourcePlugin to monitor AWS EC2Region soft limits.
+    Subclass of AWSBasePlugin to monitor AWS EC2Region soft limits.
     """
 
     @defer.inlineCallbacks
@@ -148,7 +149,7 @@ class EC2RegionPlugin(AWSBasePlugin):
 
 class SQSQueuePlugin(AWSBasePlugin):
     """
-    Subclass of PythonDataSourcePlugin to monitor AWS SQSQueue.
+    Subclass of AWSBasePlugin to monitor AWS SQSQueue.
     """
 
     @defer.inlineCallbacks
@@ -183,12 +184,12 @@ class SQSQueuePlugin(AWSBasePlugin):
 
 class ZonePlugin(AWSBasePlugin):
     """
-    Subclass of PythonDataSourcePlugin to monitor AWS Zone.
+    Subclass of AWSBasePlugin to monitor AWS Zone.
     """
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
         for ds in config.datasources:
             region = ds.params['region']
             ec2regionconn = boto.ec2.connect_to_region(
@@ -209,17 +210,25 @@ class ZonePlugin(AWSBasePlugin):
                 'severity': severity,
                 'eventClass': '/Status',
             })
+
+            data['maps'].append(ObjectMap({
+                "compname": "regions/%s/zones/%s" % (
+                    region, ds.component),
+                "modname": "Zone state",
+                "state": zone.state
+            }))
+
         defer.returnValue(data)
 
 
 class EC2VPCSubnetPlugin(AWSBasePlugin):
     """
-    Subclass of PythonDataSourcePlugin to monitor AWS VPC Subnets.
+    Subclass of AWSBasePlugin to monitor AWS VPC Subnets.
     """
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
         for ds in config.datasources:
             region = ds.params['region']
             vpcregionconn = boto.vpc.connect_to_region(
@@ -234,5 +243,12 @@ class EC2VPCSubnetPlugin(AWSBasePlugin):
                     subnet.available_ip_address_count, 'N'
                 )
             )
+
+            data['maps'].append(ObjectMap({
+                "compname": "regions/%s/vpc_subnets/%s" % (
+                    region, ds.component),
+                "modname": "Subnet state",
+                "state": subnet.state
+            }))
 
         defer.returnValue(data)
