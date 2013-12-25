@@ -24,6 +24,9 @@ from Products.ZenEvents import ZenEventClasses
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
 
+from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
+from ZenPacks.zenoss.AWS.utils import unused_reserved_instances_count
+
 
 class AWSBasePlugin(PythonDataSourcePlugin):
     """
@@ -170,7 +173,7 @@ class SQSQueuePlugin(AWSBasePlugin):
                         'component': queue.name,
                         'eventKey': message.id,
                         'severity': ZenEventClasses.Info,
-                        'eventClass': '/SQS/Message',
+                        'eventClass': '/AWS/SQSMessage',
                     })
 
         data['events'].append({
@@ -380,6 +383,31 @@ class EC2VolumeStatePlugin(EC2BaseStatePlugin):
         })
 
 
-class EC2ReservedInstancesPlugin(AWSBasePlugin):
+class EC2UnreservedInstancesPlugin(AWSBasePlugin):
     def collect(self, config):
         data = self.new_data()
+        for ds in config.datasources:
+            region = ds.params['region']
+            ec2_conn = boto.ec2.connect_to_region(region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+            instance = ec2_conn.get_only_instances(ds.component).pop()
+            c = unreserved_instance_count(ec2_conn, instance)
+
+            event = None
+            if c == 1:
+                event = 'This instance could be reserved'
+            elif c > 1:
+                event = 'There is %s instances of this type in this availability zone which could be reserved' % c
+
+            if event:
+                data['events'].append({
+                    'summary': event,
+                    'device': config.id,
+                    'component': ds.component,
+                    'severity': ZenEventClasses.Error,
+                    'eventClass': '/AWS/Suggestion',
+                })
+
+        return defer.maybeDeferred(lambda : data)
