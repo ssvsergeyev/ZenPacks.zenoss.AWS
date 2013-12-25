@@ -103,9 +103,9 @@ class IEC2ImageInfo(IComponentInfo):
     block_device_mapping = schema.TextLine(title=_t(u'Block device mapping'))
     root_device_type = schema.TextLine(title=_t(u'Root device type'))
     root_device_name = schema.TextLine(title=_t(u'Root device name'))
-    virtualization_type = schema.TextLine(title=_t(u'Virtualization_type'))
+    virtualization_type = schema.TextLine(title=_t(u'Virtualization type'))
     hypervisor = schema.TextLine(title=_t(u'Hypervisor'))
-    instance_lifecycle = schema.TextLine(title=_t(u'Instance_lifecycle'))
+    instance_lifecycle = schema.TextLine(title=_t(u'Instance lifecycle'))
     instance_count = schema.Int(title=_t(u'Number of Instances'))
 
 

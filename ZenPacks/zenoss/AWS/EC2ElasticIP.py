@@ -66,7 +66,7 @@ class IEC2ElasticIPInfo(IComponentInfo):
     domain = schema.TextLine(title=_t(u'Domain'))
     network_interface_id = schema.TextLine(title=_t(u'Network interface ID'))
     network_interface_owner_id = schema.TextLine(
-        title=_t(u'Network interface_owner ID')
+        title=_t(u'Network interface owner ID')
     )
 
 
