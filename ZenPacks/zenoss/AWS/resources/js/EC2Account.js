@@ -1016,7 +1016,7 @@ ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'network_interface_owner_id',
                 dataIndex: 'network_interface_owner_id',
-                header: _t('Network interface_owner ID'),
+                header: _t('Network interface owner ID'),
                 width: 150
             },{
                 id: 'monitored',
@@ -1154,7 +1154,7 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'virtualization_type',
                 dataIndex: 'virtualization_type',
-                header: _t('Virtualization_type'),
+                header: _t('Virtualization type'),
                 width: 90
             },{
                 id: 'hypervisor',
@@ -1164,7 +1164,7 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'instance_lifecycle',
                 dataIndex: 'instance_lifecycle',
-                header: _t('Instance_lifecycle'),
+                header: _t('Instance lifecycle'),
                 width: 90
             },{
                 id: 'instance_count',
