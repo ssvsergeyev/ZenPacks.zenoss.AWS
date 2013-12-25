@@ -16,6 +16,36 @@ ZenPacks.zenoss.AWS.EC2Account
 ['aws.EC2']
 </property>
 <tomanycont id='rrdTemplates'>
+<object id='EC2Image' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='ImageState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2ImageStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='EC2Instance' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
 ZenPacks.zenoss.AWS.EC2Instance
@@ -275,6 +305,29 @@ True
 </property>
 </object>
 </tomanycont>
+</object>
+<object id='InstanceState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2InstanceStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
 </object>
 <object id='NetworkIn' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -1219,6 +1272,29 @@ True
 </property>
 </object>
 </tomanycont>
+</object>
+<object id='InstanceState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2InstanceStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
 </object>
 <object id='NetworkIn' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -3033,6 +3109,66 @@ AVERAGE
 </object>
 </tomanycont>
 </object>
+<object id='EC2Snapshot' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='SnapshotStatus' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2SnapshotStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='EC2VPC' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='VPCState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2VPCStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='EC2VPCSubnet' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
 Products.ZenModel.Device
@@ -3343,6 +3479,29 @@ True
 </property>
 </object>
 </tomanycont>
+</object>
+<object id='VolumeStatus' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2VolumeStatePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
 </object>
 <object id='VolumeTotalReadTime' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -4428,6 +4587,36 @@ ${here/id}
 </property>
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.dsplugins.SQSQueuePlugin
+</property>
+<property type="string" id="region" >
+${here/getRegionId}
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='VPNGateway' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='GatewayState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+AWSDataSource
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="component" mode="w" >
+${here/id}
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.VPNGatewayStatePlugin
 </property>
 <property type="string" id="region" >
 ${here/getRegionId}
