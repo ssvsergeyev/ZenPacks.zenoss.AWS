@@ -18,6 +18,11 @@ ZC.registerName('EC2Volume', _t('Volume'), _t('Volumes'));
 ZC.registerName('EC2VPC', _t('VPC'), _t('VPCs'));
 ZC.registerName('EC2VPCSubnet', _t('Subnet'), _t('Subnets'));
 ZC.registerName('EC2Zone', _t('Zone'), _t('Zones'));
+ZC.registerName('VPNGateway', _t('Gateway'), _t('Gateways'));
+ZC.registerName('EC2Reservation', _t('Reservation'), _t('Reservations'))
+ZC.registerName('S3Bucket', _t('Bucket'), _t('Buckets'))
+ZC.registerName('EC2ElasticIP', _t('ElasticIP'), _t('ElasticIPs'))
+ZC.registerName('EC2Image', _t('Image'), _t('Images'))
 
 
 var add_ec2account = new Zenoss.Action({
