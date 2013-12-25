@@ -4627,9 +4627,11 @@ ${here/getRegionId}
 </tomanycont>
 </object>
 </object>
-<!-- ('', 'zport', 'dmd', 'Events', 'SQS') -->
-<object id='/zport/dmd/Events/SQS' module='Products.ZenEvents.EventClass' class='EventClass'>
-<object id='Message' module='Products.ZenEvents.EventClass' class='EventClass'>
+<!-- ('', 'zport', 'dmd', 'Events', 'AWS') -->
+<object id='/zport/dmd/Events/AWS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='SQSMessage' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Suggestion' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 </objects>
