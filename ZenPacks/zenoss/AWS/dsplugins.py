@@ -411,3 +411,34 @@ class EC2UnreservedInstancesPlugin(AWSBasePlugin):
                 })
 
         return defer.maybeDeferred(lambda : data)
+
+
+class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
+    def collect(self, config):
+        print '!' * 100
+        data = self.new_data()
+        for ds in config.datasources:
+            region = ds.params['region']
+            ec2_conn = boto.ec2.connect_to_region(region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+            reserved_instance = ec2_conn.get_reserved_instances(ds.component).pop()
+            c = unused_reserved_instances_count(ec2_conn, reserved_instance)
+
+            event = None
+            if c == 1:
+                event = 'This reserved instance is unused'
+            elif c > 1:
+                event = 'There is %s reserved instances of this type in this availability zone which are unused' % c
+
+            if event:
+                data['events'].append({
+                    'summary': event,
+                    'device': config.id,
+                    'component': ds.component,
+                    'severity': ZenEventClasses.Error,
+                    'eventClass': '/AWS/Suggestion',
+                })
+
+        return defer.maybeDeferred(lambda : data)
