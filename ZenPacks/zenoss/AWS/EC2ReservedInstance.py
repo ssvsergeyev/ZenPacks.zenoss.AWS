@@ -47,13 +47,10 @@ class EC2ReservedInstance(AWSComponent):
 
     _relations = AWSComponent._relations + (
         ('region', ToOne(
-            ToManyCont, MODULE_NAME['EC2Region'], 'instances')),
+            ToManyCont, MODULE_NAME['EC2Region'], 'reserved_instances')),
 
         ('zone', ToOne(
-            ToMany, MODULE_NAME['EC2Zone'], 'instances')),
-
-        ('vpc_subnet', ToOne(
-            ToMany, MODULE_NAME['EC2VPCSubnet'], 'instances')),
+            ToMany, MODULE_NAME['EC2Zone'], 'reserved_instances')),
     )
 
     def monitored(self):

@@ -612,7 +612,7 @@ def reserved_instances_rm(region_id, reserved_instances):
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
-        relname='reserved_instances;',
+        relname='reserved_instances',
         modname=MODULE_NAME['EC2ReservedInstance'],
         objmaps=obj_map
     )
