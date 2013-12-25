@@ -143,7 +143,7 @@ class EC2RegionPlugin(AWSBasePlugin):
                 vpc_security_groups_count=(sg_count, 'N'),
                 vpc_security_rules_count=(rules_count, 'N')
             )
-        print data
+
         defer.returnValue(data)
 
 
@@ -202,17 +202,6 @@ class ZonePlugin(AWSBasePlugin):
                 severity = ZenEventClasses.Warning
             else:
                 severity = ZenEventClasses.Clear
-
-
-                data['events'].append({
-                    'summary': 'Zone state is {0}'.format(zone.state),
-                    'component': ds.component,
-                    'eventKey': 'ZoneStatus',
-                    'severity': severity,
-                    'eventClass': '/Status',
-                })
-
-            
 
             data['events'].append({
                 'summary': 'Zone state is {0}'.format(zone.state),
