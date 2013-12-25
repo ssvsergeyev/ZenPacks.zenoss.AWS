@@ -79,7 +79,7 @@ class S3BucketPlugin(AWSBasePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
         for ds in config.datasources:
             s3connection = S3Connection(ds.ec2accesskey, ds.ec2secretkey)
             bucket = s3connection.get_bucket(ds.component)
@@ -100,7 +100,7 @@ class EC2RegionPlugin(AWSBasePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
         instance_filters = {
             'instance-state-name': [
                 'pending',
@@ -154,7 +154,7 @@ class SQSQueuePlugin(AWSBasePlugin):
 
     @defer.inlineCallbacks
     def collect(self, config):
-        data = {'events': [], 'values': {}, 'maps': []}
+        data = self.new_data()
         for ds in config.datasources:
             region = ds.params['region']
             sqsconnection = yield boto.sqs.connect_to_region(
@@ -252,3 +252,129 @@ class EC2VPCSubnetPlugin(AWSBasePlugin):
             }))
 
         defer.returnValue(data)
+
+
+# Plugins for components' state remodeling.
+class EC2BaseStatePlugin(AWSBasePlugin):
+    """
+    Subclass of AWSBasePlugin to monitor AWS components' states.
+    """
+    ec2regionconn = None
+    vpcregionconn = None
+
+    def results_to_maps(self, region, component):
+        """Return Object map for the component status remodeling.
+        """
+        pass
+
+    @defer.inlineCallbacks
+    def collect(self, config):
+        data = self.new_data()
+        for ds in config.datasources:
+            region = yield ds.params['region']
+            self.ec2regionconn = boto.ec2.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+
+            self.vpcregionconn = boto.vpc.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+
+            data['maps'].append(
+                self.results_to_maps(region, ds.component)
+            )
+        defer.returnValue(data)
+
+
+class EC2InstanceStatePlugin(EC2BaseStatePlugin):
+    """
+    Subclass of EC2BaseStatePlugin to monitor AWS Instance state.
+    """
+
+    def results_to_maps(self, region, component):
+        instance = self.ec2regionconn.get_only_instances(component).pop()
+        return ObjectMap({
+            "compname": "regions/%s/instances/%s" % (
+                region, component),
+            "modname": "Instance state",
+            "state": instance.state
+        })
+
+
+class EC2VPCStatePlugin(EC2BaseStatePlugin):
+    """
+    Subclass of EC2BaseStatePlugin to monitor AWS VPC state.
+    """
+
+    def results_to_maps(self, region, component):
+        vpc = self.vpcregionconn.get_all_vpcs(component).pop()
+        return ObjectMap({
+            "compname": "regions/%s/vpcs/%s" % (
+                region, component),
+            "modname": "VPC state",
+            "state": vpc.state
+        })
+
+
+class EC2SnapshotStatePlugin(EC2BaseStatePlugin):
+    """
+    Subclass of EC2BaseStatePlugin to monitor AWS Snapshot status.
+    """
+
+    def results_to_maps(self, region, component):
+        snapshot = self.ec2regionconn.get_all_snapshots(component).pop()
+        return ObjectMap({
+            "compname": "regions/%s/snapshots/%s" % (
+                region, component),
+            "modname": "Snapshot status",
+            "status": snapshot.status
+        })
+
+
+class EC2ImageStatePlugin(EC2BaseStatePlugin):
+    """
+    Subclass of EC2BaseStatePlugin to monitor AWS Image state.
+    """
+
+    def results_to_maps(self, region, component):
+        image = self.ec2regionconn.get_all_images(component).pop()
+        return ObjectMap({
+            "compname": "regions/%s/images/%s" % (
+                region, component),
+            "modname": "Image state",
+            "state": image.state
+        })
+
+
+class VPNGatewayStatePlugin(EC2BaseStatePlugin):
+    """
+    Subclass of EC2BaseStatePlugin to monitor AWS Gateways state.
+    """
+
+    def results_to_maps(self, region, component):
+        gateway = self.vpcregionconn.get_all_vpn_gateways(component).pop()
+        return ObjectMap({
+            "compname": "regions/%s/vpn_gateways/%s" % (
+                region, component),
+            "modname": "VPNGateway state",
+            "state": gateway.state
+        })
+
+
+class EC2VolumeStatePlugin(EC2BaseStatePlugin):
+    """
+    Subclass of EC2BaseStatePlugin to monitor AWS Volumes status.
+    """
+
+    def results_to_maps(self, region, component):
+        volume = self.ec2regionconn.get_all_volumes(component).pop()
+        return ObjectMap({
+            "compname": "regions/%s/volumes/%s" % (
+                region, component),
+            "modname": "Volume status",
+            "status": volume.status
+        })
