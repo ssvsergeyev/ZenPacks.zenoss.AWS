@@ -1504,16 +1504,25 @@ Ext.onReady(function(){
     var DEVICE_DESCRIPTION_PANEL = 'deviceoverviewpanel_descriptionsummary';
     var DEVICE_CUSTOM_PANEL = 'deviceoverviewpanel_customsummary';
     var DEVICE_SNMP_PANEL = 'deviceoverviewpanel_snmpsummary';
-    
+    var DEVICE_SYSTEM_PANEL = 'deviceoverviewpanel_systemsummary';
+
     /* Summary Panel Override */
     Ext.ComponentMgr.onAvailable(DEVICE_SUMMARY_PANEL, function(){
         var summarypanel = Ext.getCmp(DEVICE_SUMMARY_PANEL);
         summarypanel.hide();
         });
 
+    /* System Panel Override */
+    Ext.ComponentMgr.onAvailable(DEVICE_SYSTEM_PANEL, function(){
+        var systempanel = Ext.getCmp(DEVICE_SYSTEM_PANEL);
+        systempanel.minHeight = 100;
+        });
+
     /* ID Panel Override */
     Ext.ComponentMgr.onAvailable(DEVICE_ID_PANEL, function(){
         var idpanel = Ext.getCmp(DEVICE_ID_PANEL);
+        idpanel.defaultType = 'devformpanel';
+        idpanel.minHeight = 300;
         
         idpanel.removeField('serialNumber');
         idpanel.removeField('tagNumber');
@@ -1537,6 +1546,7 @@ Ext.onReady(function(){
         var descriptionpanel = Ext.getCmp(DEVICE_DESCRIPTION_PANEL);
 
         descriptionpanel.defaultType = 'devformpanel';
+        descriptionpanel.minHeight = 310;
         
         descriptionpanel.removeField('rackSlot');
         descriptionpanel.removeField('hwManufacturer');
