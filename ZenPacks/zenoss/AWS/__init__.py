@@ -26,7 +26,6 @@ productNames = (
     'EC2VPCSubnet',
     'EC2Zone',
     'VPNGateway',
-    'EC2Reservation',
     'EC2ElasticIP',
     'EC2Image',
     'S3Bucket',

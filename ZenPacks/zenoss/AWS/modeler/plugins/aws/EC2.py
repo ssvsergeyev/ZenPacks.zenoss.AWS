@@ -175,12 +175,6 @@ class EC2(PythonPlugin):
                     region_id, ec2regionconn.get_all_addresses())
             )
 
-            # Reservations
-            maps['reservations'].append(
-                reservations_rm(
-                    region_id, ec2regionconn.get_all_reserved_instances())
-            )
-
             maps['reserved_instances'].append(
                 reserved_instances_rm(
                     region_id,
@@ -577,33 +571,6 @@ def elastic_ips_rm(region_id, elastic_ips):
         relname='elastic_ips',
         modname=MODULE_NAME['EC2ElasticIP'],
         objmaps=elastic_ip_data)
-
-
-def reservations_rm(region_id, reservations):
-    '''
-    Return Reservations RelationshipMap given region_id and an ReservationInfo
-    ResultSet.
-    '''
-    reservation_data = []
-    for reservation in reservations:
-        reservation_data.append({
-            'id': prepId(reservation.id),
-            'title': reservation.id,
-            'instance_type': reservation.instance_type,
-            'availability_zone': reservation.availability_zone,
-            'duration': reservation.duration,
-            'description': reservation.description,
-            'instance_tenancy': reservation.instance_tenancy,
-            'offering_type': reservation.offering_type,
-            'state': reservation.state,
-        })
-
-    return RelationshipMap(
-        compname='regions/%s' % region_id,
-        relname='reservations',
-        modname=MODULE_NAME['EC2Reservation'],
-        objmaps=reservation_data
-    )
 
 
 def s3buckets_rm(buckets):
