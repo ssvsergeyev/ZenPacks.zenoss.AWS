@@ -13,17 +13,17 @@ var ZC = Ext.ns('Zenoss.component');
 
 ZC.registerName('EC2Account', _t('EC2 Account', _t('EC2 Accounts')));
 ZC.registerName('EC2Instance', _t('Instance'), _t('Instances'));
-ZC.registerName('EC2Region', _t('Region'), _t('Regions'));
+ZC.registerName('EC2Region', _t('EC2Region'), _t('EC2Regions'));
 ZC.registerName('EC2Volume', _t('Volume'), _t('Volumes'));
 ZC.registerName('EC2Snapshot', _t('Snapshot'), _t('Snapshots'));
 ZC.registerName('EC2VPC', _t('VPC'), _t('VPCs'));
 ZC.registerName('EC2VPCSubnet', _t('Subnet'), _t('Subnets'));
 ZC.registerName('EC2Zone', _t('Zone'), _t('Zones'));
-ZC.registerName('VPNGateway', _t('Gateway'), _t('Gateways'));
-ZC.registerName('EC2Reservation', _t('Reservation'), _t('Reservations'))
-ZC.registerName('S3Bucket', _t('Bucket'), _t('Buckets'))
-ZC.registerName('EC2ElasticIP', _t('ElasticIP'), _t('ElasticIPs'))
-ZC.registerName('EC2Image', _t('Image'), _t('Images'))
+ZC.registerName('VPNGateway', _t('VPN Gateway'), _t('VPN Gateways'));
+ZC.registerName('EC2Reservation', _t('EC2 Reservation'), _t('EC2 Reservations'))
+ZC.registerName('S3Bucket', _t('S3 Bucket'), _t('S3 Buckets'))
+ZC.registerName('EC2ElasticIP', _t('EC2 Elastic IP'), _t('EC2 Elastic IPs'))
+ZC.registerName('EC2Image', _t('EC2 Image'), _t('EC2 Images'))
 
 
 var add_ec2account = new Zenoss.Action({
