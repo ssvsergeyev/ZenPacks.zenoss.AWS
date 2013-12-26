@@ -517,9 +517,9 @@ ZC.EC2SnapshotPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'size',
                 dataIndex: 'size',
-                header: _t('Size'),
+                header: _t('Volume size'),
                 renderer: Zenoss.render.bytesString,
-                width: 55
+                width: 75
             },{
                 id: 'progress',
                 dataIndex: 'progress',
@@ -740,7 +740,7 @@ ZC.VPNGatewayPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'region'},
                 {name: 'gateway_type'},
                 {name: 'state'},
-                {name: 'availability_zone'}
+                //{name: 'availability_zone'}
             ],
             columns: [{
                 id: 'severity',
@@ -771,11 +771,11 @@ ZC.VPNGatewayPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Gateway type'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 95
-            },{
-                id: 'availability_zone',
-                dataIndex: 'availability_zone',
-                header: _t('Availability zone'),
-                width: 95
+            // },{
+            //     id: 'availability_zone',
+            //     dataIndex: 'availability_zone',
+            //     header: _t('Availability zone'),
+            //     width: 95
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
@@ -1016,7 +1016,7 @@ ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'network_interface_owner_id',
                 dataIndex: 'network_interface_owner_id',
-                header: _t('Network interface_owner ID'),
+                header: _t('Network interface owner ID'),
                 width: 150
             },{
                 id: 'monitored',
@@ -1154,7 +1154,7 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'virtualization_type',
                 dataIndex: 'virtualization_type',
-                header: _t('Virtualization_type'),
+                header: _t('Virtualization type'),
                 width: 90
             },{
                 id: 'hypervisor',
