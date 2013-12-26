@@ -24,6 +24,7 @@ class TestAWSCollector(BaseTestCase):
         self.test.tags = [sentinel.name, ]
         self.test.state = sentinel.state
         self.test.public_ip = sentinel.public_ip
+        self.test.block_device_mapping = {}
         self.tests = [self.test, ]
 
     def test_tags_string(self):
@@ -42,6 +43,22 @@ class TestAWSCollector(BaseTestCase):
         self.assertEquals(EC2.path_to_pem('test', values), 'path')
         self.assertEquals(EC2.path_to_pem('test1', values), '')
 
+    def test_block_device(self):
+        block_device = Mock()
+        block_device_properties = (
+            'ephemeral_name',
+            'snapshot_id',
+            'size',
+            'delete_on_termination',
+            'volume_type'
+        )
+        for prop in block_device_properties:
+            setattr(block_device, prop, 'test')
+        values = {"test": block_device}
+        result = "test=test:test:test:test:test"
+        self.assertEquals(EC2.block_device(values), result)
+        self.assertEquals(EC2.block_device(None), '')
+
     def test_vpn_gateways_rm(self):
         self.assertEquals(
             EC2.vpn_gateways_rm('test', self.tests).__dict__['maps'][0].state,
@@ -57,7 +74,7 @@ class TestAWSCollector(BaseTestCase):
     def test_images_rm(self):
         self.assertEquals(
             EC2.images_rm('test', self.tests).__dict__['maps'][0].title,
-            sentinel.id
+            sentinel.name
         )
 
     def test_elastic_ips_rm(self):
