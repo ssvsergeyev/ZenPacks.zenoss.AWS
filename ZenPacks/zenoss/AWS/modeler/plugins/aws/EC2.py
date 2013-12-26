@@ -238,6 +238,33 @@ def check_tag(values, tags):
     return True if check > 0 else False
 
 
+def block_device(devices):
+    """
+    Return comma separated list of volumes associated with AMI.
+    Indicates if it's the root device, provides device name,
+    the snapshot ID, capacity of volume in GiB when launched,
+    and whether that volume should be deleted on instance termination.
+    """
+    if not devices:
+        return ''
+
+    block_device_properties = (
+        'ephemeral_name',
+        'snapshot_id',
+        'size',
+        'delete_on_termination',
+        'volume_type'
+    )
+    result = []
+    for dev in devices:
+        res = '%s%s' % (dev, '=')
+        for prop in block_device_properties:
+            if getattr(devices[dev], prop):
+                res += '%s%s' % (getattr(devices[dev], prop), ':')
+        result.append(res[:-1])
+    return ', '.join(result)
+
+
 def path_to_pem(region_name, values):
     '''
     Return path to PEM file of the region.
@@ -429,7 +456,7 @@ def images_rm(region_id, images):
     for image in images:
         image_data.append({
             'id': prepId(image.id),
-            'title': image.id,
+            'title': image.name if image.name else image.id,
             'location': image.location,
             'state': image.state,
             'owner_id': image.owner_id,
@@ -439,12 +466,11 @@ def images_rm(region_id, images):
             'kernel_id': image.kernel_id,
             'ramdisk_id': image.ramdisk_id,
             'description': image.description,
-            'block_device_mapping': str(image.block_device_mapping),
+            'block_device_mapping': block_device(image.block_device_mapping),
             'root_device_type': image.root_device_type,
             'root_device_name': image.root_device_name,
             'virtualization_type': image.virtualization_type,
             'hypervisor': image.hypervisor,
-            'instance_lifecycle': image.instance_lifecycle,
         })
 
     return RelationshipMap(

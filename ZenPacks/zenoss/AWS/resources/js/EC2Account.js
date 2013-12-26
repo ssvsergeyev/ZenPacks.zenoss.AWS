@@ -517,9 +517,9 @@ ZC.EC2SnapshotPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'size',
                 dataIndex: 'size',
-                header: _t('Size'),
+                header: _t('Volume size'),
                 renderer: Zenoss.render.bytesString,
-                width: 55
+                width: 75
             },{
                 id: 'progress',
                 dataIndex: 'progress',
@@ -740,7 +740,7 @@ ZC.VPNGatewayPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'region'},
                 {name: 'gateway_type'},
                 {name: 'state'},
-                {name: 'availability_zone'}
+                //{name: 'availability_zone'}
             ],
             columns: [{
                 id: 'severity',
@@ -771,11 +771,11 @@ ZC.VPNGatewayPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Gateway type'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 95
-            },{
-                id: 'availability_zone',
-                dataIndex: 'availability_zone',
-                header: _t('Availability zone'),
-                width: 95
+            // },{
+            //     id: 'availability_zone',
+            //     dataIndex: 'availability_zone',
+            //     header: _t('Availability zone'),
+            //     width: 95
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
@@ -1086,14 +1086,14 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Name'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid
             },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('Status'),
+                width: 80
+            },{
                 id: 'location',
                 dataIndex: 'location',
                 header: _t('Location'),
-                width: 80
-            },{
-                id: 'state',
-                dataIndex: 'state',
-                header: _t('State'),
                 width: 80
             },{
                 id: 'region',
@@ -1160,11 +1160,6 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'hypervisor',
                 dataIndex: 'hypervisor',
                 header: _t('Hypervisor'),
-                width: 90
-            },{
-                id: 'instance_lifecycle',
-                dataIndex: 'instance_lifecycle',
-                header: _t('Instance lifecycle'),
                 width: 90
             },{
                 id: 'instance_count',
@@ -1349,7 +1344,7 @@ Zenoss.nav.appendTo('Component', [{
 
 Zenoss.nav.appendTo('Component', [{
     id: 'component_elastic_ips',
-    text: _t('ElasticIPs'),
+    text: _t('Elastic IPs'),
     xtype: 'EC2ElasticIPPanel',
     subComponentGridPanel: true,
     filterNav: function(navpanel) {

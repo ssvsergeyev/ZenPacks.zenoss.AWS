@@ -45,7 +45,6 @@ class EC2Image(AWSComponent):
     root_device_name = None
     virtualization_type = None
     hypervisor = None
-    instance_lifecycle = None
 
     _properties = AWSComponent._properties + (
         {'id': 'location', 'type': 'string'},
@@ -62,7 +61,6 @@ class EC2Image(AWSComponent):
         {'id': 'root_device_name', 'type': 'string'},
         {'id': 'virtualization_type', 'type': 'string'},
         {'id': 'hypervisor', 'type': 'boolean'},
-        {'id': 'instance_lifecycle', 'type': 'string'},
     )
 
     _relations = AWSComponent._relations + (
@@ -92,7 +90,7 @@ class IEC2ImageInfo(IComponentInfo):
     account = schema.Entity(title=_t(u'Account'))
     region = schema.Entity(title=_t(u'Region'))
     location = schema.TextLine(title=_t(u'Location'))
-    state = schema.TextLine(title=_t(u'State'))
+    # state = schema.TextLine(title=_t(u'State'))
     owner_id = schema.TextLine(title=_t(u'Owner ID'))
     architecture = schema.TextLine(title=_t(u'Architecture'))
     # platform = schema.TextLine(title=_t(u'Platform'))
@@ -105,7 +103,6 @@ class IEC2ImageInfo(IComponentInfo):
     root_device_name = schema.TextLine(title=_t(u'Root device name'))
     virtualization_type = schema.TextLine(title=_t(u'Virtualization type'))
     hypervisor = schema.TextLine(title=_t(u'Hypervisor'))
-    instance_lifecycle = schema.TextLine(title=_t(u'Instance lifecycle'))
     instance_count = schema.Int(title=_t(u'Number of Instances'))
 
 
@@ -131,7 +128,6 @@ class EC2ImageInfo(ComponentInfo):
     root_device_name = ProxyProperty('root_device_name')
     virtualization_type = ProxyProperty('virtualization_type')
     hypervisor = ProxyProperty('hypervisor')
-    instance_lifecycle = ProxyProperty('instance_lifecycle')
 
     @property
     @info
@@ -146,3 +142,8 @@ class EC2ImageInfo(ComponentInfo):
     @property
     def instance_count(self):
         return self._object.instances.countObjects()
+
+    @property
+    @info
+    def status(self):
+        return self.state
