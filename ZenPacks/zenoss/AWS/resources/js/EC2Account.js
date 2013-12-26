@@ -1349,7 +1349,7 @@ Zenoss.nav.appendTo('Component', [{
 
 Zenoss.nav.appendTo('Component', [{
     id: 'component_elastic_ips',
-    text: _t('ElasticIPs'),
+    text: _t('Elastic IPs'),
     xtype: 'EC2ElasticIPPanel',
     subComponentGridPanel: true,
     filterNav: function(navpanel) {
