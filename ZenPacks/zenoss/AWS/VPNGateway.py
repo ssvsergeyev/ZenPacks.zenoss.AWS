@@ -47,7 +47,7 @@ class IVPNGatewayInfo(IComponentInfo):
     account = schema.Entity(title=_t(u'Account'))
     gateway_type = schema.Entity(title=_t(u'Gateway type'))
     state = schema.TextLine(title=_t(u'State'))
-    availability_zone = schema.TextLine(title=_t(u'Availability zone'))
+    # availability_zone = schema.TextLine(title=_t(u'Availability zone'))
     region = schema.Entity(title=_t(u'Region'))
 
 
@@ -57,7 +57,7 @@ class VPNGatewayInfo(ComponentInfo):
 
     gateway_type = ProxyProperty('gateway_type')
     state = ProxyProperty('state')
-    availability_zone = ProxyProperty('availability_zone')
+    # availability_zone = ProxyProperty('availability_zone')
 
     @property
     @info

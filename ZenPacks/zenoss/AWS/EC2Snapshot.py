@@ -75,7 +75,7 @@ class IEC2SnapshotInfo(IComponentInfo):
     account = schema.Entity(title=_t(u'Account'))
     region = schema.Entity(title=_t(u'Region'))
     volume = schema.Entity(title=_t(u'Volume'))
-    size = schema.Int(title=_t(u'Size in Bytes'))
+    size = schema.Int(title=_t(u'Volume size in Bytes'))
     status = schema.TextLine(title=_t(u'Status'))
     progress = schema.TextLine(title=_t(u'Type'))
     start_time = schema.TextLine(title=_t(u'Started'))
