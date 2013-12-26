@@ -46,10 +46,6 @@ class AWSBasePlugin(PythonDataSourcePlugin):
             'region': region,
         }
 
-    @defer.inlineCallbacks
-    def collect(self, config):
-        pass
-
     def onSuccess(self, result, config):
         for component in result["values"].keys():
             result['events'].insert(0, {
@@ -385,60 +381,71 @@ class EC2VolumeStatePlugin(EC2BaseStatePlugin):
 
 class EC2UnreservedInstancesPlugin(AWSBasePlugin):
     def collect(self, config):
-        data = self.new_data()
-        for ds in config.datasources:
-            region = ds.params['region']
-            ec2_conn = boto.ec2.connect_to_region(region,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
-            instance = ec2_conn.get_only_instances(ds.component).pop()
-            c = unreserved_instance_count(ec2_conn, instance)
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                region = ds.params['region']
+                ec2_conn = boto.ec2.connect_to_region(region,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+                instance = ec2_conn.get_only_instances(ds.component).pop()
+                c = unreserved_instance_count(ec2_conn, instance)
 
-            event = None
-            if c == 1:
-                event = 'This instance could be reserved'
-            elif c > 1:
-                event = 'There is %s instances of this type in this availability zone which could be reserved' % c
+                event = None
+                if c == 1:
+                    event = 'This instance could be reserved'
+                elif c > 1:
+                    event = 'There is %s instances of this type in this availability zone which could be reserved' % c
 
-            if event:
-                data['events'].append({
-                    'summary': event,
-                    'device': config.id,
-                    'component': ds.component,
-                    'severity': ZenEventClasses.Error,
-                    'eventClass': '/AWS/Suggestion',
-                })
-
-        return defer.maybeDeferred(lambda : data)
+                if event:
+                    data['events'].append({
+                        'summary': event,
+                        'device': config.id,
+                        'component': ds.component,
+                        'severity': ZenEventClasses.Error,
+                        'eventClass': '/AWS/Suggestion',
+                    })
+            return data
+        return defer.maybeDeferred(inner)
 
 
 class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
     def collect(self, config):
-        print '!' * 100
-        data = self.new_data()
-        for ds in config.datasources:
-            region = ds.params['region']
-            ec2_conn = boto.ec2.connect_to_region(region,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
-            reserved_instance = ec2_conn.get_reserved_instances(ds.component).pop()
-            c = unused_reserved_instances_count(ec2_conn, reserved_instance)
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                region = ds.params['region']
+                ec2_conn = boto.ec2.connect_to_region(region,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+                try:
+                    reserved_instance = ec2_conn.get_all_reserved_instances(ds.component).pop()
+                except boto.exception.EC2ResponseError as e:
+                    data['events'].append({
+                        'summary': str(e),
+                        'device': config.id,
+                        'component': ds.component,
+                        'severity': ZenEventClasses.Error,
+                        'eventClass': '/Status',
+                    })
+                    return data
+                c = unused_reserved_instances_count(ec2_conn, reserved_instance)
 
-            event = None
-            if c == 1:
-                event = 'This reserved instance is unused'
-            elif c > 1:
-                event = 'There is %s reserved instances of this type in this availability zone which are unused' % c
+                event = None
+                if c == 1:
+                    event = 'This reserved instance is unused'
+                elif c > 1:
+                    event = 'There is %s reserved instances of this type in this availability zone which are unused' % c
 
-            if event:
-                data['events'].append({
-                    'summary': event,
-                    'device': config.id,
-                    'component': ds.component,
-                    'severity': ZenEventClasses.Error,
-                    'eventClass': '/AWS/Suggestion',
-                })
-
-        return defer.maybeDeferred(lambda : data)
+                if event:
+                    data['events'].append({
+                        'summary': event,
+                        'device': config.id,
+                        'component': ds.component,
+                        'severity': ZenEventClasses.Error,
+                        'eventClass': '/AWS/Suggestion',
+                    })
+            return data
+        return defer.maybeDeferred(inner)

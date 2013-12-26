@@ -601,15 +601,6 @@ def reserved_instances_rm(region_id, reserved_instances):
             'availability_zone': ri.availability_zone,
             'state': ri.state,
         })
-
-    obj_map.append({
-        'id': prepId('test_test'),
-        'title': 'test test',
-        'instance_type': 'test',
-        'availability_zone': 'ap-northeast-1',
-        'state': 'active',
-    })
-
     return RelationshipMap(
         compname='regions/%s' % region_id,
         relname='reserved_instances',

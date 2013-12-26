@@ -10,6 +10,8 @@
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
+from mock import Mock
+
 class TestSomething(BaseTestCase):
     def test_imports(self):
         import ZenPacks.zenoss.AWS.dsplugins
