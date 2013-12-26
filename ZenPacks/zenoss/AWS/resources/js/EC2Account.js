@@ -740,7 +740,7 @@ ZC.VPNGatewayPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'region'},
                 {name: 'gateway_type'},
                 {name: 'state'},
-                {name: 'availability_zone'}
+                //{name: 'availability_zone'}
             ],
             columns: [{
                 id: 'severity',
@@ -771,11 +771,11 @@ ZC.VPNGatewayPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Gateway type'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 95
-            },{
-                id: 'availability_zone',
-                dataIndex: 'availability_zone',
-                header: _t('Availability zone'),
-                width: 95
+            // },{
+            //     id: 'availability_zone',
+            //     dataIndex: 'availability_zone',
+            //     header: _t('Availability zone'),
+            //     width: 95
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
