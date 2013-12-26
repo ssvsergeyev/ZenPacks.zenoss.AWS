@@ -422,7 +422,7 @@ def images_rm(region_id, images):
     for image in images:
         image_data.append({
             'id': prepId(image.id),
-            'title': image.id,
+            'title': image.name,
             'location': image.location,
             'state': image.state,
             'owner_id': image.owner_id,
@@ -437,7 +437,6 @@ def images_rm(region_id, images):
             'root_device_name': image.root_device_name,
             'virtualization_type': image.virtualization_type,
             'hypervisor': image.hypervisor,
-            'instance_lifecycle': image.instance_lifecycle,
             })
 
     return RelationshipMap(

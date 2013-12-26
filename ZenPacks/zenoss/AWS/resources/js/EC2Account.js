@@ -1086,14 +1086,14 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Name'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid
             },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('Status'),
+                width: 80
+            },{
                 id: 'location',
                 dataIndex: 'location',
                 header: _t('Location'),
-                width: 80
-            },{
-                id: 'state',
-                dataIndex: 'state',
-                header: _t('State'),
                 width: 80
             },{
                 id: 'region',
@@ -1160,11 +1160,6 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'hypervisor',
                 dataIndex: 'hypervisor',
                 header: _t('Hypervisor'),
-                width: 90
-            },{
-                id: 'instance_lifecycle',
-                dataIndex: 'instance_lifecycle',
-                header: _t('Instance_lifecycle'),
                 width: 90
             },{
                 id: 'instance_count',
