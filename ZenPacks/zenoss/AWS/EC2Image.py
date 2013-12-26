@@ -35,7 +35,7 @@ class EC2Image(AWSComponent):
     state = None
     owner_id = None
     architecture = None
-    platform = None
+    # platform = None
     image_type = None
     kernel_id = None
     ramdisk_id = None
@@ -51,7 +51,7 @@ class EC2Image(AWSComponent):
         {'id': 'state', 'type': 'string'},
         {'id': 'owner_id', 'type': 'boolean'},
         {'id': 'architecture', 'type': 'string'},
-        {'id': 'platform', 'type': 'string'},
+        # {'id': 'platform', 'type': 'string'},
         {'id': 'image_type', 'type': 'string'},
         {'id': 'kernel_id', 'type': 'string'},
         {'id': 'ramdisk_id', 'type': 'string'},
@@ -93,7 +93,7 @@ class IEC2ImageInfo(IComponentInfo):
     # state = schema.TextLine(title=_t(u'State'))
     owner_id = schema.TextLine(title=_t(u'Owner ID'))
     architecture = schema.TextLine(title=_t(u'Architecture'))
-    platform = schema.TextLine(title=_t(u'Platform'))
+    # platform = schema.TextLine(title=_t(u'Platform'))
     image_type = schema.TextLine(title=_t(u'Image type'))
     kernel_id = schema.TextLine(title=_t(u'Kernel ID'))
     ramdisk_id = schema.TextLine(title=_t(u'Ramdisk ID'))
@@ -118,7 +118,7 @@ class EC2ImageInfo(ComponentInfo):
     state = ProxyProperty('state')
     owner_id = ProxyProperty('owner_id')
     architecture = ProxyProperty('architecture')
-    platform = ProxyProperty('platform')
+    # platform = ProxyProperty('platform')
     image_type = ProxyProperty('image_type')
     kernel_id = ProxyProperty('kernel_id')
     ramdisk_id = ProxyProperty('ramdisk_id')

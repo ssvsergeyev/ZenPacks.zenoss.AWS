@@ -77,9 +77,9 @@ class IEC2SnapshotInfo(IComponentInfo):
     volume = schema.Entity(title=_t(u'Volume'))
     size = schema.Int(title=_t(u'Volume size in Bytes'))
     status = schema.TextLine(title=_t(u'Status'))
-    progress = schema.TextLine(title=_t(u'Type'))
+    progress = schema.TextLine(title=_t(u'Progress'))
     start_time = schema.TextLine(title=_t(u'Started'))
-    description = schema.TextLine(title=_t(u'Created Time'))
+    description = schema.TextLine(title=_t(u'Description'))
 
 
 class EC2SnapshotInfo(ComponentInfo):

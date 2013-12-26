@@ -31,6 +31,7 @@ Models regions, instance types, zones, instances, volumes, VPCs and VPC
 subnets for an Amazon EC2 account.
 '''
 
+
 class EC2(PythonPlugin):
     deviceProperties = PythonPlugin.deviceProperties + (
         'ec2accesskey',
@@ -178,7 +179,6 @@ class EC2(PythonPlugin):
                 reservations_rm(
                     region_id, ec2regionconn.get_all_reserved_instances())
             )
-            
 
         # Regions
         maps['regions'].append(RelationshipMap(
@@ -241,8 +241,8 @@ def check_tag(values, tags):
 def block_device(devices):
     """
     Return comma separated list of volumes associated with AMI.
-    Indicates if it's the root device, provides device name, 
-    the snapshot ID, capacity of volume in GiB when launched, 
+    Indicates if it's the root device, provides device name,
+    the snapshot ID, capacity of volume in GiB when launched,
     and whether that volume should be deleted on instance termination.
     """
     if not devices:
@@ -279,6 +279,13 @@ def path_to_pem(region_name, values):
     if not region_name in results:
         return ''
     return results[region_name]
+
+
+def format_time(time):
+    '''
+    Return formated time string.
+    '''
+    return time[:time.rfind('.')].replace('T', ' ')
 
 
 def to_boolean(string):
@@ -422,7 +429,7 @@ def instances_rm(region_id, device, reservations, image_filters):
             'public_ip': instance.ip_address,
             'private_ip_address': instance.private_ip_address,
             'instance_type': instance.instance_type,
-            'launch_time': instance.launch_time,
+            'launch_time': format_time(instance.launch_time),
             'state': instance.state,
             'platform': getattr(instance, 'platform', ''),
             'detailed_monitoring': instance.monitored,
@@ -454,7 +461,7 @@ def images_rm(region_id, images):
             'state': image.state,
             'owner_id': image.owner_id,
             'architecture': image.architecture,
-            'platform': image.platform,
+            # 'platform': getattr(image, 'platform', ''),
             'image_type': image.type,
             'kernel_id': image.kernel_id,
             'ramdisk_id': image.ramdisk_id,
@@ -464,7 +471,7 @@ def images_rm(region_id, images):
             'root_device_name': image.root_device_name,
             'virtualization_type': image.virtualization_type,
             'hypervisor': image.hypervisor,
-            })
+        })
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
@@ -490,7 +497,7 @@ def volumes_rm(region_id, volumes):
             'id': prepId(volume.id),
             'title': name_or(volume.tags, volume.id),
             'volume_type': volume.type,
-            'create_time': volume.create_time,
+            'create_time': format_time(volume.create_time),
             'size': volume.size / (1024 ** 3),
             'iops': volume.iops,
             'status': volume.status,
@@ -526,7 +533,7 @@ def snapshots_rm(region_id, snapshots):
             'size': snapshot.volume_size / (1024 ** 3),
             'status': snapshot.status,
             'progress': snapshot.progress,
-            'start_time': snapshot.start_time,
+            'start_time': format_time(snapshot.start_time),
             'setVolumeId': volume_id,
         })
 
@@ -599,7 +606,7 @@ def s3buckets_rm(buckets):
         bucket_oms.append(ObjectMap(data={
             'id': prepId(bucket.name),
             'title': bucket.name,
-            'creation_date': bucket.creation_date,
+            'creation_date': format_time(bucket.creation_date),
         }))
 
     return RelationshipMap(
