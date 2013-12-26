@@ -10,15 +10,43 @@
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
-from mock import Mock
+from mock import Mock, patch, MagicMock
 
-class TestSomething(BaseTestCase):
-    def test_imports(self):
-        import ZenPacks.zenoss.AWS.dsplugins
+class TestPlugins(BaseTestCase):
+    @patch('ZenPacks.zenoss.AWS.dsplugins.unreserved_instance_count')
+    @patch('ZenPacks.zenoss.AWS.dsplugins.boto')
+    @patch('ZenPacks.zenoss.AWS.dsplugins.defer')
+    def test_unreserved_instances_plugin(self, defer, boto, unreserved_instance_count):
+        unreserved_instance_count.return_value = 1
+        defer.maybeDeferred = lambda x: x()
+        config = Mock()
+        config.datasources = [MagicMock()]
+        from ZenPacks.zenoss.AWS.dsplugins import EC2UnreservedInstancesPlugin
+
+        plugin = EC2UnreservedInstancesPlugin()
+        data = plugin.collect(config)
+
+        self.assertEquals(data['events'][0]['eventClass'], '/AWS/Suggestion')
+
+    @patch('ZenPacks.zenoss.AWS.dsplugins.unused_reserved_instances_count')
+    @patch('ZenPacks.zenoss.AWS.dsplugins.boto')
+    @patch('ZenPacks.zenoss.AWS.dsplugins.defer')
+    def test_unused_reserved_instance_plugin(self, defer, boto, unused_reserved_instances_count):
+        unused_reserved_instances_count.return_value = 1
+        defer.maybeDeferred = lambda x: x()
+        config = Mock()
+        config.datasources = [MagicMock()]
+        from ZenPacks.zenoss.AWS.dsplugins import EC2UnusedReservedInstancesPlugin
+
+        plugin = EC2UnusedReservedInstancesPlugin()
+        data = plugin.collect(config)
+
+        self.assertEquals(data['events'][0]['eventClass'], '/AWS/Suggestion')
+
 
 
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(TestSomething))
+    suite.addTest(makeSuite(TestPlugins))
     return suite
