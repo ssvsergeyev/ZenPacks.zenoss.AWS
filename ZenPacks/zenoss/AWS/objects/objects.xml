@@ -2968,7 +2968,7 @@ LINE
 False
 </property>
 <property type="string" id="format" mode="w" >
-%7.2lf%%
+%7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
 Elastic IPs count
@@ -2997,7 +2997,7 @@ LINE
 False
 </property>
 <property type="string" id="format" mode="w" >
-%7.2lf%%
+%7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
 Instances count
@@ -3026,7 +3026,7 @@ LINE
 False
 </property>
 <property type="string" id="format" mode="w" >
-%7.2lf%%
+%7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
 Subnets count
@@ -3055,7 +3055,7 @@ LINE
 False
 </property>
 <property type="string" id="format" mode="w" >
-%7.2lf%%
+%7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
 VPC Security Groups count
@@ -3084,7 +3084,7 @@ LINE
 False
 </property>
 <property type="string" id="format" mode="w" >
-%7.2lf%%
+%7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
 VPC Security Groups Rules max
@@ -3113,7 +3113,7 @@ LINE
 False
 </property>
 <property type="string" id="format" mode="w" >
-%7.2lf%%
+%7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
 Volumes count

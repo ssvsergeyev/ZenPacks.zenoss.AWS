@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from mock import Mock, patch, sentinel
+from mock import Mock, sentinel
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 # from Products.ZenCollector.services.config import DeviceProxy
@@ -16,6 +16,16 @@ from ZenPacks.zenoss.AWS.modeler.plugins.aws import EC2
 
 
 class TestAWSCollector(BaseTestCase):
+
+    def afterSetUp(self):
+        self.test = Mock()
+        self.test.id = sentinel.id
+        self.test.name = sentinel.name
+        self.test.tags = [sentinel.name, ]
+        self.test.state = sentinel.state
+        self.test.public_ip = sentinel.public_ip
+        self.test.block_device_mapping = {}
+        self.tests = [self.test, ]
 
     def test_tags_string(self):
         tags = {u'tag': u'test', u'tag1': u'test1'}
@@ -33,22 +43,55 @@ class TestAWSCollector(BaseTestCase):
         self.assertEquals(EC2.path_to_pem('test', values), 'path')
         self.assertEquals(EC2.path_to_pem('test1', values), '')
 
+    def test_block_device(self):
+        block_device = Mock()
+        block_device_properties = (
+            'ephemeral_name',
+            'snapshot_id',
+            'size',
+            'delete_on_termination',
+            'volume_type'
+        )
+        for prop in block_device_properties:
+            setattr(block_device, prop, 'test')
+        values = {"test": block_device}
+        result = "test=test:test:test:test:test"
+        self.assertEquals(EC2.block_device(values), result)
+        self.assertEquals(EC2.block_device(None), '')
+
     def test_vpn_gateways_rm(self):
-        gateway = Mock()
-        gateway.tags = [sentinel.name, ]
-        gateways = [gateway, ]
-        gateway.state = sentinel.state
         self.assertEquals(
-            EC2.vpn_gateways_rm('test', gateways).__dict__['maps'][0].state,
+            EC2.vpn_gateways_rm('test', self.tests).__dict__['maps'][0].state,
             sentinel.state
         )
 
     def test_vpn_queues_rm(self):
-        q = Mock()
-        q.name = sentinel.name
-        qs = [q, ]
         self.assertEquals(
-            EC2.vpn_queues_rm('test', qs).__dict__['maps'][0].title,
+            EC2.vpn_queues_rm('test', self.tests).__dict__['maps'][0].title,
+            sentinel.name
+        )
+
+    def test_images_rm(self):
+        self.assertEquals(
+            EC2.images_rm('test', self.tests).__dict__['maps'][0].title,
+            sentinel.name
+        )
+
+    def test_elastic_ips_rm(self):
+        self.assertEquals(
+            EC2.elastic_ips_rm('test', self.tests).__dict__['maps'][0].title,
+            sentinel.public_ip
+        )
+
+    def test_reservations_rm(self):
+        self.assertEquals(
+            EC2.reservations_rm('test', self.tests).__dict__['maps'][0].title,
+            sentinel.id
+        )
+
+    def test_s3buckets_rm(self):
+        self.assertEquals(
+            EC2.s3buckets_rm(self.tests).__dict__['maps'][0].title,
             sentinel.name
         )
 
