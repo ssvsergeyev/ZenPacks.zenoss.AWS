@@ -197,10 +197,10 @@ class ZonePlugin(AWSBasePlugin):
                 aws_secret_access_key=ds.ec2secretkey
             )
             zone = yield ec2regionconn.get_all_zones(ds.component).pop()
-            if not zone.state == 'available':
-                severity = ZenEventClasses.Warning
-            else:
+            if zone.state == 'available':
                 severity = ZenEventClasses.Clear
+            else:
+                severity = ZenEventClasses.Warning
 
             data['events'].append({
                 'summary': 'Zone state is {0}'.format(zone.state),
