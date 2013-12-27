@@ -83,17 +83,18 @@ class TestAWSCollector(BaseTestCase):
             sentinel.public_ip
         )
 
-    def test_reservations_rm(self):
+    def test_reserved_instances_rm(self):
         self.assertEquals(
-            EC2.reservations_rm('test', self.tests).__dict__['maps'][0].title,
+            EC2.reserved_instances_rm('test', self.tests).__dict__['maps'][0].title,
             sentinel.id
         )
 
     def test_s3buckets_rm(self):
-        self.assertEquals(
-            EC2.s3buckets_rm(self.tests).__dict__['maps'][0].title,
-            sentinel.name
-        )
+        self.tests[0].creation_date = 'DDTHH.asdf'
+        map = EC2.s3buckets_rm(self.tests).__dict__['maps'][0]
+
+        self.assertEquals(map.title, sentinel.name)
+        self.assertEquals(map.creation_date, 'DD HH')
 
 
 def test_suite():
