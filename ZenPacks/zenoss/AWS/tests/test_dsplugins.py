@@ -61,7 +61,7 @@ class TestAWSBasePlugin(BaseTestCase):
         ds.component = 'world'
         config.datasources = [ds]
 
-        e = self.plugin.onError('<Message>Hello world!</Message>', config)
+        e = self.plugin.onError('<Message>Hello</Message> world', config)
 
         self.assertEquals(len(e['events']), 1)
         e = e['events'][0]

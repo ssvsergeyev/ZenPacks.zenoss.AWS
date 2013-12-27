@@ -60,6 +60,7 @@ class AWSBasePlugin(PythonDataSourcePlugin):
 
     def onError(self, result, config):
         res = str(result)
+        res2 = res
 
         m = re.search('<Message>(.+?)</Message>', res)
         if m:
@@ -72,7 +73,7 @@ class AWSBasePlugin(PythonDataSourcePlugin):
             }
 
             for ds in config.datasources:
-                if ds.component in res:
+                if ds.component in res2:
                     ret['events'].append({
                         'component': ds.component,
                         'summary': res,
