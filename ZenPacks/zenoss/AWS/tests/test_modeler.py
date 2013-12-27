@@ -90,10 +90,11 @@ class TestAWSCollector(BaseTestCase):
         )
 
     def test_s3buckets_rm(self):
-        self.assertEquals(
-            EC2.s3buckets_rm(self.tests).__dict__['maps'][0].title,
-            sentinel.name
-        )
+        self.tests[0].creation_date = 'DDTHH.asdf'
+        map = EC2.s3buckets_rm(self.tests).__dict__['maps'][0]
+
+        self.assertEquals(map.title, sentinel.name)
+        self.assertEquals(map.creation_date, 'DD HH')
 
 
 def test_suite():
