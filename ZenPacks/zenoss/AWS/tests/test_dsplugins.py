@@ -12,7 +12,7 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from mock import Mock, patch, MagicMock
 
-class TestPlugins(BaseTestCase):
+class TestReservedInstancesPlugins(BaseTestCase):
     @patch('ZenPacks.zenoss.AWS.dsplugins.unreserved_instance_count')
     @patch('ZenPacks.zenoss.AWS.dsplugins.boto')
     @patch('ZenPacks.zenoss.AWS.dsplugins.defer')
@@ -48,5 +48,5 @@ class TestPlugins(BaseTestCase):
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(TestPlugins))
+    suite.addTest(makeSuite(TestReservedInstancesPlugins))
     return suite

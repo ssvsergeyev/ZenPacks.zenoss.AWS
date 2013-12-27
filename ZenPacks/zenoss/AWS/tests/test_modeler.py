@@ -83,9 +83,9 @@ class TestAWSCollector(BaseTestCase):
             sentinel.public_ip
         )
 
-    def test_reservations_rm(self):
+    def test_reserved_instances_rm(self):
         self.assertEquals(
-            EC2.reservations_rm('test', self.tests).__dict__['maps'][0].title,
+            EC2.reserved_instances_rm('test', self.tests).__dict__['maps'][0].title,
             sentinel.id
         )
 
