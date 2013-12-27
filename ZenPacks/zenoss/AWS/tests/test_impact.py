@@ -134,9 +134,18 @@ class TestImpact(BaseTestCase):
         # Region -> VPC
         self.assertTrue('vpc0-0-0' in region_impacts)
 
+        # Region -> Elastic_ips
+        self.assertTrue('elastic_ip0-0' in region_impacts)
+
+        # Region -> VPN gateways
+        self.assertTrue('vpn_gateway0-0' in region_impacts)
+
+        # Region -> SQS Queues
+        self.assertTrue('queue0-0' in region_impacts)
+
         # Negative check to verify no other impacts exist.
         self.assertEqual(len(region_impacted_by), 1)
-        self.assertEqual(len(region_impacts), 2)
+        self.assertEqual(len(region_impacts), 5)
 
     @require_impact
     def test_EC2ZoneImpacts(self):
@@ -280,7 +289,7 @@ class TestImpact(BaseTestCase):
     @require_impact
     def test_SQSQueueImpacts(self):
         queue = self.account().getObjByPath(
-            'regions/region0/queues/queuet0-0')
+            'regions/region0/queues/queue0-0')
 
         queue_impacts, queue_impacted_by = impacts_for(queue)
 

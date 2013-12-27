@@ -90,7 +90,7 @@ class EC2AccountRelationsProvider(BaseRelationsProvider):
 
 class EC2RegionRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['account']
-    impact_relationships = ['zones', 'vpcs', 'elastic_ips', 'reservations',
+    impact_relationships = ['zones', 'vpcs', 'elastic_ips',
                             'vpn_gateways', 'queues']
 
 
@@ -107,10 +107,6 @@ class EC2VPCRelationsProvider(BaseRelationsProvider):
 class EC2VPCSubnetRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['vpc', 'zone']
     impact_relationships = ['instances']
-
-
-class EC2ReservationRelationsProvider(BaseRelationsProvider):
-    impact_relationships = ['region']
 
 
 class EC2ElasticIPRelationsProvider(BaseRelationsProvider):
