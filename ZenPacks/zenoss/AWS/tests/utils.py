@@ -123,6 +123,7 @@ def test_account(dmd, factor=1):
                         instance.setImageId(image.id)
                         instance.setVPCSubnetId(subnet.id)
                         instance.private_ip_address = '10.77.77.77'
+                        instance.guest = True
                         instance.create_guest()
 
                         # Volumes

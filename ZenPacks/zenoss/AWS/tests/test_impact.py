@@ -276,7 +276,7 @@ class TestImpact(BaseTestCase):
     @require_impact
     def test_S3BucketImpacts(self):
         bucket = self.account().getObjByPath(
-            'buckets/bucket0-0')
+            's3buckets/s3bucket0')
 
         bucket_impacts, bucket_impacted_by = impacts_for(bucket)
 
