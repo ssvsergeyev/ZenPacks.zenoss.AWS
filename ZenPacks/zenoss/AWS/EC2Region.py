@@ -53,9 +53,6 @@ class EC2Region(AWSComponent):
         ('elastic_ips', ToManyCont(
             ToOne, MODULE_NAME['EC2ElasticIP'], 'region')
         ),
-        ('reservations', ToManyCont(
-            ToOne, MODULE_NAME['EC2Reservation'], 'region')
-        ),
         ('vpn_gateways', ToManyCont(
             ToOne, MODULE_NAME['VPNGateway'], 'region')
         ),
@@ -64,6 +61,9 @@ class EC2Region(AWSComponent):
         ),
         ('images', ToManyCont(
             ToOne, MODULE_NAME['EC2Image'], 'region')
+        ),
+        ('reserved_instances', ToManyCont(
+            ToOne, MODULE_NAME['EC2ReservedInstance'], 'region')
         ),
     )
 
