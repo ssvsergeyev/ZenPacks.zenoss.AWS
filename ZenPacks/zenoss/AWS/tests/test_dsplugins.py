@@ -126,10 +126,32 @@ class TestReservedInstancesPlugins(BaseTestCase):
         self.assertEquals(data['events'][0]['severity'], ZenEventClasses.Info)
 
 
+class TestEC2BaseStatePlugin(BaseTestCase):
+
+    @patch('ZenPacks.zenoss.AWS.dsplugins.boto')
+    @patch('ZenPacks.zenoss.AWS.dsplugins.defer')
+    def test_collect(self, defer, boto):
+        defer.maybeDeferred = lambda x: x()
+
+        config = Mock()
+        config.datasources = [MagicMock()]
+        config.datasources[0].component = sentinel.component
+
+        from ZenPacks.zenoss.AWS.dsplugins import EC2BaseStatePlugin
+        plugin = EC2BaseStatePlugin()
+        plugin.results_to_maps = lambda *args: sentinel.map
+        data = plugin.collect(config)
+
+        self.assertEquals(len(data['maps']), 1)
+        self.assertEquals(data['maps'][0], sentinel.map)
+
+
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(TestAWSBasePlugin))
     suite.addTest(makeSuite(TestS3BucketPlugin))
     suite.addTest(makeSuite(TestReservedInstancesPlugins))
+    suite.addTest(makeSuite(TestEC2BaseStatePlugin))
     return suite
