@@ -99,12 +99,6 @@
         />
 
     <adapter
-        provides=".EC2Reservation.IEC2ReservationInfo"
-        for=".EC2Reservation.EC2Reservation"
-        factory=".EC2Reservation.EC2ReservationInfo"
-        />
-
-    <adapter
         provides=".EC2ElasticIP.IEC2ElasticIPInfo"
         for=".EC2ElasticIP.EC2ElasticIP"
         factory=".EC2ElasticIP.EC2ElasticIPInfo"
@@ -126,6 +120,12 @@
         provides=".SQSQueue.ISQSQueueInfo"
         for=".SQSQueue.SQSQueue"
         factory=".SQSQueue.SQSQueueInfo"
+        />
+
+    <adapter
+        provides=".EC2ReservedInstance.IEC2ReservedInstanceInfo"
+        for=".EC2ReservedInstance.EC2ReservedInstance"
+        factory=".EC2ReservedInstance.EC2ReservedInstanceInfo"
         />
 
     <!-- Path Reporters -->
@@ -214,12 +214,6 @@
             provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
             for=".EC2Volume.EC2Volume"
             factory=".impact.EC2VolumeRelationsProvider"
-            />
-
-        <subscriber
-            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
-            for=".EC2Reservation.EC2Reservation"
-            factory=".impact.EC2ReservationRelationsProvider"
             />
 
         <subscriber

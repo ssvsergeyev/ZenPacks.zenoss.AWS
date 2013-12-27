@@ -769,7 +769,7 @@ ZC.VPNGatewayPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'gateway_type',
                 dataIndex: 'gateway_type',
                 header: _t('Gateway type'),
-                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                //renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 95
             // },{
             //     id: 'availability_zone',

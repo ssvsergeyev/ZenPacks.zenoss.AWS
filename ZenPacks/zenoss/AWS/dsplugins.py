@@ -8,6 +8,7 @@
 #
 ######################################################################
 
+import re
 from logging import getLogger
 log = getLogger('zen.python')
 
@@ -23,6 +24,9 @@ from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.ZenEvents import ZenEventClasses
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
+
+from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
+from ZenPacks.zenoss.AWS.utils import unused_reserved_instances_count
 
 
 class AWSBasePlugin(PythonDataSourcePlugin):
@@ -43,10 +47,6 @@ class AWSBasePlugin(PythonDataSourcePlugin):
             'region': region,
         }
 
-    @defer.inlineCallbacks
-    def collect(self, config):
-        pass
-
     def onSuccess(self, result, config):
         for component in result["values"].keys():
             result['events'].insert(0, {
@@ -59,11 +59,34 @@ class AWSBasePlugin(PythonDataSourcePlugin):
         return result
 
     def onError(self, result, config):
-        log.error(result)
+        res = str(result)
+
+        m = re.search('<Message>(.+?)</Message>', res)
+        if m:
+            res = m.group(1)
+            log.info(res)
+            ret = {
+                'values': {},
+                'events': [],
+                'maps': [],
+            }
+
+            for ds in config.datasources:
+                if ds.component in res:
+                    ret['events'].append({
+                        'component': ds.component,
+                        'summary': res,
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Info,
+                    })
+            return ret
+
+        log.error(res)
         return {
-            'vaues': {},
+            'values': {},
             'events': [{
-                'summary': 'error: %s' % result,
+                'summary': 'error: %s' % res,
                 'eventClass': '/Status',
                 'eventKey': 'aws_result',
                 'severity': ZenEventClasses.Error,
@@ -170,7 +193,7 @@ class SQSQueuePlugin(AWSBasePlugin):
                         'component': queue.name,
                         'eventKey': message.id,
                         'severity': ZenEventClasses.Info,
-                        'eventClass': '/SQS/Message',
+                        'eventClass': '/AWS/SQSMessage',
                     })
 
         data['events'].append({
@@ -198,10 +221,10 @@ class ZonePlugin(AWSBasePlugin):
                 aws_secret_access_key=ds.ec2secretkey
             )
             zone = yield ec2regionconn.get_all_zones(ds.component).pop()
-            if not zone.state == 'available':
-                severity = ZenEventClasses.Warning
-            else:
+            if zone.state == 'available':
                 severity = ZenEventClasses.Clear
+            else:
+                severity = ZenEventClasses.Warning
 
             data['events'].append({
                 'summary': 'Zone state is {0}'.format(zone.state),
@@ -387,3 +410,75 @@ class EC2VolumeStatePlugin(EC2BaseStatePlugin):
             "modname": "Volume status",
             "status": volume.status
         })
+
+
+class EC2UnreservedInstancesPlugin(AWSBasePlugin):
+    def collect(self, config):
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                region = ds.params['region']
+                ec2_conn = boto.ec2.connect_to_region(region,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+                instance = ec2_conn.get_only_instances(ds.component).pop()
+                c = unreserved_instance_count(ec2_conn, instance)
+
+                event = None
+                if c == 1:
+                    event = 'This instance could be reserved'
+                elif c > 1:
+                    event = 'There is %s instances of this type in this availability zone which could be reserved' % c
+
+                if event:
+                    data['events'].append({
+                        'summary': event,
+                        'device': config.id,
+                        'component': ds.component,
+                        'severity': ZenEventClasses.Error,
+                        'eventClass': '/AWS/Suggestion',
+                    })
+            return data
+        return defer.maybeDeferred(inner)
+
+
+class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
+    def collect(self, config):
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                region = ds.params['region']
+                ec2_conn = boto.ec2.connect_to_region(region,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+                try:
+                    reserved_instance = ec2_conn.get_all_reserved_instances(ds.component).pop()
+                except boto.exception.EC2ResponseError as e:
+                    data['events'].append({
+                        'summary': str(e),
+                        'device': config.id,
+                        'component': ds.component,
+                        'severity': ZenEventClasses.Error,
+                        'eventClass': '/Status',
+                    })
+                    return data
+                c = unused_reserved_instances_count(ec2_conn, reserved_instance)
+
+                event = None
+                if c == 1:
+                    event = 'This reserved instance is unused'
+                elif c > 1:
+                    event = 'There is %s reserved instances of this type in this availability zone which are unused' % c
+
+                if event:
+                    data['events'].append({
+                        'summary': event,
+                        'device': config.id,
+                        'component': ds.component,
+                        'severity': ZenEventClasses.Error,
+                        'eventClass': '/AWS/Suggestion',
+                    })
+            return data
+        return defer.maybeDeferred(inner)

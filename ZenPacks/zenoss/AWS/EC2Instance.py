@@ -113,10 +113,7 @@ class EC2Instance(AWSComponent):
         Return True if this instance should be monitored. False
         otherwise.
         '''
-        if self.state and self.state.lower() == 'running':
-            return True
-
-        return False
+        return self.state and self.state.lower() == 'running'
 
     def getRRDTemplates(self):
         template_names = []
