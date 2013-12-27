@@ -135,7 +135,7 @@ ZC.EC2RegionPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'image_count',
                 dataIndex: 'image_count',
-                header: _t('Number of Images'),
+                header: _t('Images'),
                 width: 55
             },{
                 id: 'zone_count',
@@ -990,7 +990,7 @@ ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'private_ip_address',
                 dataIndex: 'private_ip_address',
-                header: _t('Private IP address'),
+                header: _t('Private IP'),
                 width: 100
             },{
                 id: 'region',
@@ -1060,7 +1060,6 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'state'},
                 {name: 'owner_id'},
                 {name: 'architecture'},
-                {name: 'platform'},
                 {name: 'image_type'},
                 {name: 'kernel_id'},
                 {name: 'ramdisk_id'},
@@ -1111,11 +1110,6 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 dataIndex: 'architecture',
                 header: _t('Architecture'),
                 width: 100
-            },{
-                id: 'platform',
-                dataIndex: 'platform',
-                header: _t('Platform'),
-                width: 90
             },{
                 id: 'image_type',
                 dataIndex: 'image_type',
@@ -1251,7 +1245,6 @@ Zenoss.nav.appendTo('Component', [{
     filterNav: function(navpanel) {
         switch (navpanel.refOwner.componentType) {
             case 'EC2Region': return true;
-            case 'EC2Zone': return true;
             default: return false;
         }
     },
