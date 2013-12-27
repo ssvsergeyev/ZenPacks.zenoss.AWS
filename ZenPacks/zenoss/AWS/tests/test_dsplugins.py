@@ -43,6 +43,38 @@ class TestReservedInstancesPlugins(BaseTestCase):
 
         self.assertEquals(data['events'][0]['eventClass'], '/AWS/Suggestion')
 
+class TestAWSBasePlugin(BaseTestCase):
+    def asterSetUp(self):
+        from ZenPacks.zenoss.AWS.dsplugins import AWSBasePlugin
+        self.plugin = AWSBasePlugin()
+
+    def test_params_empty(self):
+        ds = Mock()
+        # method will rise TypeError when called with two args
+        ds.talesEval = lambda x: None
+
+        self.assertEquals(self.plugin.params(ds, Mock()), {})
+
+    def test_params_region(self):
+        ds = Mock()
+        ds.talesEval = lambda x, y: sentinel.region
+
+        self.assertEquals(
+            self.plugin.params(ds, Mock()),
+            {'region': sentinel.region}
+        )
+
+    def test_onSuccess(self):
+        result = self.plugin.new_data()
+        result['values'] = {'c1': 1, 'c2': 2}
+        result['events'] = []
+
+        res = self.plugin.onSuccess(result, sentilen.any_value)
+
+        self.assertEquals(len(result['events']), 2)
+        self.assertEquals(result['events'][0]['severity'], 0)
+        self.assertEquals(result['events'][1]['eventClass'], '/Status')
+
 
 
 def test_suite():
