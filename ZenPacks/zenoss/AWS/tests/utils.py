@@ -60,9 +60,10 @@ def test_account(dmd, factor=1):
     from ZenPacks.zenoss.AWS.EC2Volume import EC2Volume
     from ZenPacks.zenoss.AWS.S3Bucket import S3Bucket
     from ZenPacks.zenoss.AWS.EC2ElasticIP import EC2ElasticIP
-    from ZenPacks.zenoss.AWS.EC2Reservation import EC2Reservation
+    # from ZenPacks.zenoss.AWS.EC2Reservation import EC2Reservation
     from ZenPacks.zenoss.AWS.EC2Image import EC2Image
     from ZenPacks.zenoss.AWS.VPNGateway import VPNGateway
+    from ZenPacks.zenoss.AWS.SQSQueue import SQSQueue
 
     dc = dmd.Devices.createOrganizer('/AWS/EC2')
     dc.setZenProperty('zPythonClass', 'ZenPacks.zenoss.AWS.EC2Account')
@@ -143,12 +144,19 @@ def test_account(dmd, factor=1):
                 EC2ElasticIP('elastic_ip%s-%s' % (
                     region_id, elastic_ip_id)))
 
-        # Reserved instances
-        for reservation_id in range(factor):
-            reservation = add_obj(
-                region.reservations,
-                EC2Reservation('reservation%s-%s' % (
-                    region_id, reservation_id)))
+        # SQS Queue
+        for queue_id in range(factor):
+            queue = add_obj(
+                region.queues,
+                SQSQueue('queue%s-%s' % (
+                    region_id, queue_id)))
+
+        # # Reserved instances
+        # for reservation_id in range(factor):
+        #     reservation = add_obj(
+        #         region.reservations,
+        #         EC2Reservation('reservation%s-%s' % (
+        #             region_id, reservation_id)))
 
         # VPNGateways
         for vpn_gateway_id in range(factor):
