@@ -52,8 +52,20 @@ class TestAWSBasePlugin(BaseTestCase):
 
         self.assertEquals(len(e['events']), 1)
         self.assertEquals(e['events'][0]['severity'], ZenEventClasses.Error)
-        log.error.assert_called_with(sentinel.error)
+        log.error.assert_called_with(str(sentinel.error))
         
+    @patch('ZenPacks.zenoss.AWS.dsplugins.log')
+    def test_onErrorMessage(self, log):
+        config = Mock()
+        ds = Mock()
+        ds.component = 'world'
+        config.datasources = [ds]
+
+        e = self.plugin.onError('<Message>Hello world!</Message>', config)
+
+        self.assertEquals(len(e['events']), 1)
+        e = e['events'][0]
+        self.assertEquals(e['severity'], ZenEventClasses.Info)
 
 class TestS3BucketPlugin(BaseTestCase):
 
