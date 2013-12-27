@@ -803,7 +803,7 @@ ZC.EC2ReservationPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
     constructor: function(config) {
         config = Ext.applyIf(config||{}, {
             autoExpandColumn: 'name',
-            componentType: 'EC2Reservation',
+            componentType: 'EC2ReservedInstance',
             fields: [
                 {name: 'uid'},
                 {name: 'name'},
@@ -814,13 +814,8 @@ ZC.EC2ReservationPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'monitored'},
                 {name: 'locking'},
                 {name: 'region'},
-                {name: 'instance_type'},
-                {name: 'availability_zone'},
-                {name: 'duration'},
-                {name: 'description'},
-                {name: 'instance_tenancy'},
-                {name: 'offering_type'},
-                {name: 'state'}
+                {name: 'state'},
+                {name: 'instance_type'}
             ],
             columns: [{
                 id: 'severity',
@@ -840,36 +835,11 @@ ZC.EC2ReservationPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Instance type'),
                 width: 80
             },{
-                id: 'availability_zone',
-                dataIndex: 'availability_zone',
-                header: _t('Availability zone'),
-                width: 80
-            },{
                 id: 'region',
                 dataIndex: 'region',
                 header: _t('Region'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 90
-            },{
-                id: 'duration',
-                dataIndex: 'duration',
-                header: _t('Duration'),
-                width: 95
-            },{
-                id: 'description',
-                dataIndex: 'description',
-                header: _t('Description'),
-                width: 95
-            },{
-                id: 'instance_tenancy',
-                dataIndex: 'instance_tenancy',
-                header: _t('Instance tenancy'),
-                width: 95
-            },{
-                id: 'offering_type',
-                dataIndex: 'offering_type',
-                header: _t('Offering type'),
-                width: 95
             },{
                 id: 'state',
                 dataIndex: 'state',
@@ -1289,7 +1259,7 @@ Zenoss.nav.appendTo('Component', [{
 
 Zenoss.nav.appendTo('Component', [{
     id: 'component_vpn_gateways',
-    text: _t('Gateways'),
+    text: _t('VPN Gateways'),
     xtype: 'VPNGatewayPanel',
     subComponentGridPanel: true,
     filterNav: function(navpanel) {
@@ -1305,7 +1275,7 @@ Zenoss.nav.appendTo('Component', [{
 
 Zenoss.nav.appendTo('Component', [{
     id: 'component_reservations',
-    text: _t('Reservations'),
+    text: _t('Reserved Instances'),
     xtype: 'EC2ReservationPanel',
     subComponentGridPanel: true,
     filterNav: function(navpanel) {

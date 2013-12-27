@@ -20,7 +20,7 @@ ZC.registerName('EC2VPC', _t('VPC'), _t('VPCs'));
 ZC.registerName('EC2VPCSubnet', _t('Subnet'), _t('Subnets'));
 ZC.registerName('EC2Zone', _t('Zone'), _t('Zones'));
 ZC.registerName('VPNGateway', _t('VPN Gateway'), _t('VPN Gateways'));
-ZC.registerName('EC2Reservation', _t('Reservation'), _t('Reservations'))
+ZC.registerName('EC2ReservedInstance', _t('Reserved Instance'), _t('Reserved Instances'))
 ZC.registerName('S3Bucket', _t('S3 Bucket'), _t('S3 Buckets'))
 ZC.registerName('EC2ElasticIP', _t('Elastic IP'), _t('Elastic IPs'))
 ZC.registerName('EC2Image', _t('Image'), _t('Images'))
