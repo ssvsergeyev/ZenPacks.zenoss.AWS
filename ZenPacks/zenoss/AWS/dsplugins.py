@@ -8,6 +8,7 @@
 #
 ######################################################################
 
+import re
 from logging import getLogger
 log = getLogger('zen.python')
 
@@ -59,11 +60,34 @@ class AWSBasePlugin(PythonDataSourcePlugin):
         return result
 
     def onError(self, result, config):
-        log.error(result)
+        res = str(result)
+
+        m = re.search('<Message>(.+?)</Message>', res)
+        if m:
+            res = m.group(1)
+            log.info(res)
+            ret = {
+                'values': {},
+                'events': [],
+                'maps': [],
+            }
+
+            for ds in config.datasources:
+                if ds.component in res:
+                    ret['events'].append({
+                        'component': ds.component,
+                        'summary': res,
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Info,
+                    })
+            return ret
+
+        log.error(res)
         return {
-            'vaues': {},
+            'values': {},
             'events': [{
-                'summary': 'error: %s' % result,
+                'summary': 'error: %s' % res,
                 'eventClass': '/Status',
                 'eventKey': 'aws_result',
                 'severity': ZenEventClasses.Error,
