@@ -100,20 +100,21 @@ class S3BucketPlugin(AWSBasePlugin):
     Subclass of AWSBasePlugin to monitor AWS S3Buckets.
     """
 
-    @defer.inlineCallbacks
     def collect(self, config):
-        data = self.new_data()
-        for ds in config.datasources:
-            s3connection = S3Connection(ds.ec2accesskey, ds.ec2secretkey)
-            bucket = s3connection.get_bucket(ds.component)
-            keys = yield bucket.get_all_keys()
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                s3connection = S3Connection(ds.ec2accesskey, ds.ec2secretkey)
+                bucket = s3connection.get_bucket(ds.component)
+                keys = bucket.get_all_keys()
 
-            data['values'][ds.component] = dict(
-                keys_count=(len(keys), 'N'),
-                total_size=(sum([key.size for key in keys]), 'N'),
-            )
+                data['values'][ds.component] = dict(
+                    keys_count=(len(keys), 'N'),
+                    total_size=(sum([key.size for key in keys]), 'N'),
+                )
+            return data
 
-        defer.returnValue(data)
+        return defer.maybeDeferred(inner)
 
 
 class EC2RegionPlugin(AWSBasePlugin):
@@ -436,7 +437,7 @@ class EC2UnreservedInstancesPlugin(AWSBasePlugin):
                         'summary': event,
                         'device': config.id,
                         'component': ds.component,
-                        'severity': ZenEventClasses.Error,
+                        'severity': ZenEventClasses.Info,
                         'eventClass': '/AWS/Suggestion',
                     })
             return data
@@ -477,7 +478,7 @@ class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
                         'summary': event,
                         'device': config.id,
                         'component': ds.component,
-                        'severity': ZenEventClasses.Error,
+                        'severity': ZenEventClasses.Info,
                         'eventClass': '/AWS/Suggestion',
                     })
             return data
