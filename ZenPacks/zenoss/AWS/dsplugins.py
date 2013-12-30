@@ -36,6 +36,7 @@ class AWSBasePlugin(PythonDataSourcePlugin):
     proxy_attributes = (
         'ec2accesskey', 'ec2secretkey',
     )
+    component = None
 
     @classmethod
     def params(cls, datasource, context):
@@ -59,40 +60,44 @@ class AWSBasePlugin(PythonDataSourcePlugin):
         return result
 
     def onError(self, result, config):
-        res = str(result)
-
-        m = re.search('<Message>(.+?)</Message>', res)
-        if m:
-            res = m.group(1)
-            log.info(res)
-            ret = {
+        if "<Message>" in str(result):
+            result = str(result)
+            m = re.search('<Message>(.+?)</Message>', result)
+            if m:
+                res = m.group(1)
+                log.info(res)
+                if self.component in result:
+                    return {
+                        'values': {},
+                        'events': [{
+                            'component': self.component,
+                            'summary': res,
+                            'eventClass': '/Status',
+                            'eventKey': 'aws_result',
+                            'severity': ZenEventClasses.Info,
+                        }],
+                        'maps': [],
+                    }
+        else:
+            if 'IndexError' in str(result.type):
+                summary = 'The component {0} does not exist.'.format(
+                    self.component
+                )
+                severity = ZenEventClasses.Info
+            else:
+                summary = str(result)
+                severity = ZenEventClasses.Error
+            return {
                 'values': {},
-                'events': [],
+                'events': [{
+                    'component': self.component,
+                    'summary': summary,
+                    'eventClass': '/Status',
+                    'eventKey': 'aws_result',
+                    'severity': severity,
+                }],
                 'maps': [],
             }
-
-            for ds in config.datasources:
-                if ds.component in res:
-                    ret['events'].append({
-                        'component': ds.component,
-                        'summary': res,
-                        'eventClass': '/Status',
-                        'eventKey': 'aws_result',
-                        'severity': ZenEventClasses.Info,
-                    })
-            return ret
-
-        log.error(res)
-        return {
-            'values': {},
-            'events': [{
-                'summary': 'error: %s' % res,
-                'eventClass': '/Status',
-                'eventKey': 'aws_result',
-                'severity': ZenEventClasses.Error,
-            }],
-            'maps': [],
-        }
 
 
 class S3BucketPlugin(AWSBasePlugin):
@@ -104,6 +109,7 @@ class S3BucketPlugin(AWSBasePlugin):
     def collect(self, config):
         data = self.new_data()
         for ds in config.datasources:
+            self.component = ds.component
             s3connection = S3Connection(ds.ec2accesskey, ds.ec2secretkey)
             bucket = s3connection.get_bucket(ds.component)
             keys = yield bucket.get_all_keys()
@@ -135,6 +141,7 @@ class EC2RegionPlugin(AWSBasePlugin):
         }
 
         for ds in config.datasources:
+            self.component = ds.component
             ec2regionconn = boto.ec2.connect_to_region(
                 ds.component,
                 aws_access_key_id=ds.ec2accesskey,
@@ -179,6 +186,7 @@ class SQSQueuePlugin(AWSBasePlugin):
     def collect(self, config):
         data = self.new_data()
         for ds in config.datasources:
+            self.component = ds.component
             region = ds.params['region']
             sqsconnection = yield boto.sqs.connect_to_region(
                 region,
@@ -214,6 +222,7 @@ class ZonePlugin(AWSBasePlugin):
     def collect(self, config):
         data = self.new_data()
         for ds in config.datasources:
+            self.component = ds.component
             region = ds.params['region']
             ec2regionconn = boto.ec2.connect_to_region(
                 region,
@@ -253,6 +262,7 @@ class EC2VPCSubnetPlugin(AWSBasePlugin):
     def collect(self, config):
         data = self.new_data()
         for ds in config.datasources:
+            self.component = ds.component
             region = ds.params['region']
             vpcregionconn = boto.vpc.connect_to_region(
                 region,
@@ -285,6 +295,7 @@ CONNECTION_TYPE = {
     'EC2Instance': 'ec2'
 }
 
+
 # Plugins for components' state remodeling.
 class EC2BaseStatePlugin(AWSBasePlugin):
     """
@@ -302,6 +313,7 @@ class EC2BaseStatePlugin(AWSBasePlugin):
     def collect(self, config):
         data = self.new_data()
         for ds in config.datasources:
+            self.component = ds.component
             region = yield ds.params['region']
             if CONNECTION_TYPE.get(ds.template) == 'ec2':
                 self.ec2regionconn = boto.ec2.connect_to_region(
@@ -417,8 +429,10 @@ class EC2UnreservedInstancesPlugin(AWSBasePlugin):
         def inner():
             data = self.new_data()
             for ds in config.datasources:
+                self.component = ds.component
                 region = ds.params['region']
-                ec2_conn = boto.ec2.connect_to_region(region,
+                ec2_conn = boto.ec2.connect_to_region(
+                    region,
                     aws_access_key_id=ds.ec2accesskey,
                     aws_secret_access_key=ds.ec2secretkey,
                 )
@@ -429,7 +443,8 @@ class EC2UnreservedInstancesPlugin(AWSBasePlugin):
                 if c == 1:
                     event = 'This instance could be reserved'
                 elif c > 1:
-                    event = 'There is %s instances of this type in this availability zone which could be reserved' % c
+                    event = 'There is %s instances of this type in this '
+                    'availability zone which could be reserved' % c
 
                 if event:
                     data['events'].append({
@@ -448,29 +463,29 @@ class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
         def inner():
             data = self.new_data()
             for ds in config.datasources:
+                self.component = ds.component
                 region = ds.params['region']
-                ec2_conn = boto.ec2.connect_to_region(region,
+                ec2_conn = boto.ec2.connect_to_region(
+                    region,
                     aws_access_key_id=ds.ec2accesskey,
                     aws_secret_access_key=ds.ec2secretkey,
                 )
-                try:
-                    reserved_instance = ec2_conn.get_all_reserved_instances(ds.component).pop()
-                except boto.exception.EC2ResponseError as e:
-                    data['events'].append({
-                        'summary': str(e),
-                        'device': config.id,
-                        'component': ds.component,
-                        'severity': ZenEventClasses.Error,
-                        'eventClass': '/Status',
-                    })
-                    return data
-                c = unused_reserved_instances_count(ec2_conn, reserved_instance)
+
+                reserved_instance = ec2_conn.get_all_reserved_instances(
+                    ds.component
+                ).pop()
+
+                c = unused_reserved_instances_count(
+                    ec2_conn,
+                    reserved_instance
+                )
 
                 event = None
                 if c == 1:
                     event = 'This reserved instance is unused'
                 elif c > 1:
-                    event = 'There is %s reserved instances of this type in this availability zone which are unused' % c
+                    event = 'There is %s reserved instances of this type in '
+                    'this availability zone which are unused' % c
 
                 if event:
                     data['events'].append({

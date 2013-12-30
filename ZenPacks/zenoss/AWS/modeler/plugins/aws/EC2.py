@@ -181,7 +181,6 @@ class EC2(PythonPlugin):
                     ec2regionconn.get_all_reserved_instances(),
                 )
             )
-            
 
         # Regions
         maps['regions'].append(RelationshipMap(
@@ -219,7 +218,8 @@ def tags_string(tegs):
     res = ''
     for teg in tegs:
         res = res + "{0}: {1}, ".format(teg, tegs[teg])
-    return res[:-2] + ';'
+    if res:
+        return res[:-2] + ';'
 
 
 def check_tag(values, tags):
@@ -591,6 +591,7 @@ def s3buckets_rm(buckets):
         modname=MODULE_NAME['S3Bucket'],
         objmaps=bucket_oms
     )
+
 
 def reserved_instances_rm(region_id, reserved_instances):
     obj_map = []
