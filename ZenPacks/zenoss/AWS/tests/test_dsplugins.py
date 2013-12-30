@@ -13,6 +13,7 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from mock import Mock, patch, MagicMock, sentinel
 
+
 class TestAWSBasePlugin(BaseTestCase):
     def afterSetUp(self):
         from ZenPacks.zenoss.AWS.dsplugins import AWSBasePlugin
@@ -42,9 +43,11 @@ class TestAWSBasePlugin(BaseTestCase):
         res = self.plugin.onSuccess(result, sentinel.any_value)
 
         self.assertEquals(len(result['events']), 2)
-        self.assertEquals(result['events'][0]['severity'], ZenEventClasses.Clear)
+        self.assertEquals(
+            result['events'][0]['severity'],
+            ZenEventClasses.Clear
+        )
         self.assertEquals(result['events'][1]['eventClass'], '/Status')
-
 
     @patch('ZenPacks.zenoss.AWS.dsplugins.log')
     def test_onError(self, log):
@@ -54,7 +57,7 @@ class TestAWSBasePlugin(BaseTestCase):
 
         self.assertEquals(len(e['events']), 1)
         self.assertEquals(e['events'][0]['severity'], ZenEventClasses.Error)
-        
+
     @patch('ZenPacks.zenoss.AWS.dsplugins.log')
     def test_onErrorMessage(self, log):
         config = Mock()
@@ -68,6 +71,7 @@ class TestAWSBasePlugin(BaseTestCase):
         e = e['events'][0]
         self.assertEquals(e['severity'], ZenEventClasses.Info)
 
+
 class TestS3BucketPlugin(BaseTestCase):
 
     @patch('ZenPacks.zenoss.AWS.dsplugins.S3Connection')
@@ -75,7 +79,9 @@ class TestS3BucketPlugin(BaseTestCase):
     def test_collect(self, defer, S3Connection):
         key = Mock()
         key.size = 3
-        S3Connection.return_value.get_bucket.return_value.get_all_keys.return_value = [key] * 2
+        S3Connection.return_value\
+            .get_bucket.return_value\
+            .get_all_keys.return_value = [key] * 2
 
         defer.maybeDeferred = lambda x: x()
 
@@ -97,7 +103,9 @@ class TestReservedInstancesPlugins(BaseTestCase):
     @patch('ZenPacks.zenoss.AWS.dsplugins.unreserved_instance_count')
     @patch('ZenPacks.zenoss.AWS.dsplugins.boto')
     @patch('ZenPacks.zenoss.AWS.dsplugins.defer')
-    def test_unreserved_instances_plugin(self, defer, boto, unreserved_instance_count):
+    def test_unreserved_instances_plugin(
+        self, defer, boto, unreserved_instance_count
+    ):
         unreserved_instance_count.return_value = 1
         defer.maybeDeferred = lambda x: x()
         config = Mock()
@@ -113,7 +121,9 @@ class TestReservedInstancesPlugins(BaseTestCase):
     @patch('ZenPacks.zenoss.AWS.dsplugins.unused_reserved_instances_count')
     @patch('ZenPacks.zenoss.AWS.dsplugins.boto')
     @patch('ZenPacks.zenoss.AWS.dsplugins.defer')
-    def test_unused_reserved_instance_plugin(self, defer, boto, unused_reserved_instances_count):
+    def test_unused_reserved_instance_plugin(
+        self, defer, boto, unused_reserved_instances_count
+    ):
         unused_reserved_instances_count.return_value = 1
         defer.maybeDeferred = lambda x: x()
         config = Mock()
@@ -145,7 +155,6 @@ class TestEC2BaseStatePlugin(BaseTestCase):
 
         self.assertEquals(len(data['maps']), 1)
         self.assertEquals(data['maps'][0], sentinel.map)
-
 
 
 def test_suite():

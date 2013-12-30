@@ -99,6 +99,7 @@ class AWSBasePlugin(PythonDataSourcePlugin):
                 'maps': [],
             }
 
+
 class S3BucketPlugin(AWSBasePlugin):
     """
     Subclass of AWSBasePlugin to monitor AWS S3Buckets.

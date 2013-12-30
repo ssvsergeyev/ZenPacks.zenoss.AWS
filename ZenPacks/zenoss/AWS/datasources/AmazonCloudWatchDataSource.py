@@ -58,7 +58,8 @@ class AmazonCloudWatchDataSource(PythonDataSource):
     cycletime = 300
 
     # PythonDataSource
-    plugin_classname = 'ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin'
+    plugin_classname = 'ZenPacks.zenoss.AWS.datasources.'\
+        'AmazonCloudWatchDataSource.AmazonCloudWatchDataSourcePlugin'
 
     # AmazonCloudWatchDataSource
     namespace = ''
@@ -259,11 +260,12 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                 hostHeader = 'ec2.amazonaws.com'
 
                 getURL = awsUrlSign(
-                        httpVerb,
-                        hostHeader,
-                        uriRequest,
-                        volumeRequest,
-                        [accesskey, secretkey])
+                    httpVerb,
+                    hostHeader,
+                    uriRequest,
+                    volumeRequest,
+                    [accesskey, secretkey]
+                )
 
                 getURL = 'http://%s' % getURL
 
@@ -297,7 +299,9 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
                     for vol in volumes:
                         volumeID = str(vol.xpath('volumeId[last()]/text()')[0])
-                        volumeStatus = str(vol.xpath('volumeStatus/status/text()')[0])
+                        volumeStatus = str(vol.xpath(
+                            'volumeStatus/status/text()'
+                        )[0])
 
                         if volumeStatus == 'ok':
                             data['events'].append({
@@ -307,17 +311,18 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                                 'severity': ZenEventClasses.Clear,
                                 'eventClass': '/Status',
                                 'eventClassKey': 'AWSVolume',
-                                })
+                            })
                         else:
                             data['events'].append({
                                 'component': volumeID,
                                 'device': config.id,
-                                'summary': "AWS Volume Status: {volumeStatus}".format(
-                                    volumeStatus=volumeStatus),
+                                'summary': "AWS Volume Status: {}".format(
+                                    volumeStatus
+                                ),
                                 'severity': ZenEventClasses.Critical,
                                 'eventClass': '/Status',
                                 'eventClassKey': 'AWSVolume',
-                                })
+                            })
 
                 except IndexError:
                     continue
@@ -335,7 +340,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     # No value in response. This is usually normal.
                     continue
 
-                data['values'][ds.component][ds.datasource] = (value, timestamp)
+                data['values'][ds.component][ds.datasource] = value, timestamp
 
         data['events'].append({
             'device': config.id,

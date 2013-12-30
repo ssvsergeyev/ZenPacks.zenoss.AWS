@@ -43,3 +43,6 @@ json:
 
 test:
 	runtests ZenPacks.zenoss.AWS
+
+pep8:
+	./check_pep8.sh
