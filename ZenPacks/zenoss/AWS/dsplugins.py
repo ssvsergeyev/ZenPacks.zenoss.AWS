@@ -444,8 +444,8 @@ class EC2UnreservedInstancesPlugin(AWSBasePlugin):
                 if c == 1:
                     event = 'This instance could be reserved'
                 elif c > 1:
-                    event = 'There is %s instances of this type in this '
-                    'availability zone which could be reserved' % c
+                    event = 'There is {0} instances of this type in this ' \
+                    'availability zone which could be reserved'.format(c)
 
                 if event:
                     data['events'].append({
@@ -485,8 +485,8 @@ class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
                 if c == 1:
                     event = 'This reserved instance is unused'
                 elif c > 1:
-                    event = 'There is %s reserved instances of this type in '
-                    'this availability zone which are unused' % c
+                    event = 'There is {0} reserved instances of this type in ' \
+                    'this availability zone which are unused'.format(c)
 
                 if event:
                     data['events'].append({
