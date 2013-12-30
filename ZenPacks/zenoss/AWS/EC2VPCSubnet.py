@@ -44,14 +44,14 @@ class EC2VPCSubnet(AWSComponent):
         {'id': 'defaultForAz', 'type': 'boolean'},
         {'id': 'mapPublicIpOnLaunch', 'type': 'boolean'},
         {'id': 'state', 'type': 'string'},
-        )
+    )
 
     _relations = AWSComponent._relations + (
         ('region', ToOne(ToManyCont, MODULE_NAME['EC2Region'], 'vpc_subnets')),
         ('vpc', ToOne(ToMany, MODULE_NAME['EC2VPC'], 'vpc_subnets')),
         ('zone', ToOne(ToMany, MODULE_NAME['EC2Zone'], 'vpc_subnets')),
         ('instances', ToMany(ToOne, MODULE_NAME['EC2Instance'], 'vpc_subnet')),
-        )
+    )
 
     def getRegionId(self):
         return self.region().id
@@ -66,7 +66,8 @@ class EC2VPCSubnet(AWSComponent):
             self.vpc,
             self.region().vpcs,
             CLASS_NAME['EC2VPC'],
-            id_)
+            id_
+        )
 
     def getZoneId(self):
         zone = self.zone()
@@ -78,7 +79,8 @@ class EC2VPCSubnet(AWSComponent):
             self.zone,
             self.region().zones,
             CLASS_NAME['EC2Zone'],
-            id_)
+            id_
+        )
 
     def getInstanceIds(self):
         return sorted(self.instances.objectIds())
@@ -88,7 +90,8 @@ class EC2VPCSubnet(AWSComponent):
             relationship=self.instances,
             root=self.region().instances,
             type_=CLASS_NAME['EC2Instance'],
-            ids=ids)
+            ids=ids
+        )
 
 
 class IEC2VPCSubnetInfo(IComponentInfo):
@@ -103,7 +106,9 @@ class IEC2VPCSubnetInfo(IComponentInfo):
     vpc = schema.Entity(title=_t(u'VPC'))
     instance_count = schema.Int(title=_t(u'Number of Instances'))
     cidr_block = schema.TextLine(title=_t(u'CIDR Block'))
-    available_ip_address_count = schema.Int(title=_t(u'Number of Available IP Addresses'))
+    available_ip_address_count = schema.Int(
+        title=_t(u'Number of Available IP Addresses')
+    )
     defaultForAz = schema.Bool(title=_t(u'Default for Zone'))
     mapPublicIpOnLaunch = schema.Bool(title=_t(u'Map Public IP on Launch'))
 

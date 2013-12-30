@@ -33,7 +33,9 @@ class IAWSEmailHostActionContentInfo(IInfo):
 
     body_content_type = schema.Choice(
         title=_t(u'Body Content Type'),
-        vocabulary=SimpleVocabulary.fromValues(actions.getNotificationBodyTypes()),
+        vocabulary=SimpleVocabulary.fromValues(
+            actions.getNotificationBodyTypes()
+        ),
         description=_t(u'The content type of the body for emails.'),
         default=u'html'
     )
@@ -85,7 +87,9 @@ class IAWSEmailHostActionContentInfo(IInfo):
 
     email_from = schema.Text(
         title=_t(u'From Address for Emails'),
-        description=_t(u'The user from which the e-mail originated on the Zenoss server.'),
+        description=_t(
+            u'The user from which the e-mail originated on the Zenoss server.'
+        ),
         default=u'root@localhost.localdomain'
     )
 
@@ -115,13 +119,33 @@ class IAWSEmailHostActionContentInfo(IInfo):
 class AWSEmailHostActionContentInfo(InfoBase):
     implements(IAWSEmailHostActionContentInfo)
 
-    body_content_type = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'body_content_type')
-    subject_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'subject_format')
-    body_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'body_format')
-    clear_subject_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'clear_subject_format')
-    clear_body_format = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'clear_body_format')
-    email_from = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'email_from')
-    aws_account_name = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_account_name')
-    aws_region = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_region')
-    aws_access_key = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_access_key')
-    aws_secret_key = ActionFieldProperty(IAWSEmailHostActionContentInfo, 'aws_secret_key')
+    body_content_type = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'body_content_type'
+    )
+    subject_format = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'subject_format'
+    )
+    body_format = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'body_format'
+    )
+    clear_subject_format = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'clear_subject_format'
+    )
+    clear_body_format = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'clear_body_format'
+    )
+    email_from = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'email_from'
+    )
+    aws_account_name = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'aws_account_name'
+    )
+    aws_region = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'aws_region'
+    )
+    aws_access_key = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'aws_access_key'
+    )
+    aws_secret_key = ActionFieldProperty(
+        IAWSEmailHostActionContentInfo, 'aws_secret_key'
+    )

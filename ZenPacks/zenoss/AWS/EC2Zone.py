@@ -42,7 +42,9 @@ class EC2Zone(AWSComponent):
         ('instances', ToMany(ToOne, MODULE_NAME['EC2Instance'], 'zone')),
         ('volumes', ToMany(ToOne, MODULE_NAME['EC2Volume'], 'zone')),
         ('vpc_subnets', ToMany(ToOne, MODULE_NAME['EC2VPCSubnet'], 'zone')),
-        ('reserved_instances', ToMany(ToOne, MODULE_NAME['EC2ReservedInstance'], 'zone')),
+        ('reserved_instances', ToMany(
+            ToOne, MODULE_NAME['EC2ReservedInstance'], 'zone'
+        )),
     )
 
     def getRegionId(self):

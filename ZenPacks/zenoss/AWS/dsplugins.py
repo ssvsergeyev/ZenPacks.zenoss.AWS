@@ -310,29 +310,31 @@ class EC2BaseStatePlugin(AWSBasePlugin):
         """
         pass
 
-    @defer.inlineCallbacks
     def collect(self, config):
-        data = self.new_data()
-        for ds in config.datasources:
-            self.component = ds.component
-            region = yield ds.params['region']
-            if CONNECTION_TYPE.get(ds.template) == 'ec2':
-                self.ec2regionconn = boto.ec2.connect_to_region(
-                    region,
-                    aws_access_key_id=ds.ec2accesskey,
-                    aws_secret_access_key=ds.ec2secretkey,
-                )
-            else:
-                self.vpcregionconn = boto.vpc.connect_to_region(
-                    region,
-                    aws_access_key_id=ds.ec2accesskey,
-                    aws_secret_access_key=ds.ec2secretkey,
-                )
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                self.component = ds.component
+                region = ds.params['region']
+                if CONNECTION_TYPE.get(ds.template) == 'ec2':
+                    self.ec2regionconn = boto.ec2.connect_to_region(
+                        region,
+                        aws_access_key_id=ds.ec2accesskey,
+                        aws_secret_access_key=ds.ec2secretkey,
+                    )
+                else:
+                    self.vpcregionconn = boto.vpc.connect_to_region(
+                        region,
+                        aws_access_key_id=ds.ec2accesskey,
+                        aws_secret_access_key=ds.ec2secretkey,
+                    )
 
-            data['maps'].append(
-                self.results_to_maps(region, ds.component)
-            )
-        defer.returnValue(data)
+                data['maps'].append(
+                    self.results_to_maps(region, ds.component)
+                )
+            return data
+
+        return defer.maybeDeferred(inner)
 
 
 class EC2InstanceStatePlugin(EC2BaseStatePlugin):
