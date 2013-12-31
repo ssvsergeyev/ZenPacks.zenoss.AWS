@@ -66,18 +66,17 @@ class AWSBasePlugin(PythonDataSourcePlugin):
             if m:
                 res = m.group(1)
                 log.info(res)
-                if self.component in result:
-                    return {
-                        'values': {},
-                        'events': [{
-                            'component': self.component,
-                            'summary': res,
-                            'eventClass': '/Status',
-                            'eventKey': 'aws_result',
-                            'severity': ZenEventClasses.Info,
-                        }],
-                        'maps': [],
-                    }
+                return {
+                    'values': {},
+                    'events': [{
+                        'component': self.component,
+                        'summary': res,
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Info,
+                    }],
+                    'maps': [],
+                }
         else:
             if 'IndexError' in str(result.type):
                 summary = 'The component {0} does not exist.'.format(
@@ -183,35 +182,39 @@ class SQSQueuePlugin(AWSBasePlugin):
     Subclass of AWSBasePlugin to monitor AWS SQSQueue.
     """
 
-    @defer.inlineCallbacks
     def collect(self, config):
-        data = self.new_data()
-        for ds in config.datasources:
-            self.component = ds.component
-            region = ds.params['region']
-            sqsconnection = yield boto.sqs.connect_to_region(
-                region,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
-            for queue in sqsconnection.get_all_queues():
-                for message in queue.get_messages():
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                self.component = ds.component
+                region = ds.params['region']
+                sqsconnection = boto.sqs.connect_to_region(
+                    region,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+                queue = sqsconnection.get_queue(self.component)
+                if queue:
+                    for message in queue.get_messages():
+                        data['events'].append({
+                            'summary': message._body,
+                            'device': config.id,
+                            'component': self.component,
+                            'eventKey': message.id,
+                            'severity': ZenEventClasses.Info,
+                            'eventClass': '/AWS/SQSMessage',
+                        })
+                else:
                     data['events'].append({
-                        'summary': message._body,
+                        'summary': 'Queue "%s" is not found' % self.component,
                         'device': config.id,
-                        'component': queue.name,
-                        'eventKey': message.id,
+                        'component': self.component,
                         'severity': ZenEventClasses.Info,
-                        'eventClass': '/AWS/SQSMessage',
+                        'eventClass': '/Status',
                     })
+            return data
 
-        data['events'].append({
-            'device': config.id,
-            'summary': 'successful collection',
-            'eventKey': 'SQSDataSource_result',
-            'severity': ZenEventClasses.Clear,
-        })
-        defer.returnValue(data)
+        return defer.maybeDeferred(inner)
 
 
 class ZonePlugin(AWSBasePlugin):
