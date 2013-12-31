@@ -188,13 +188,14 @@ class SQSQueuePlugin(AWSBasePlugin):
             data = self.new_data()
             for ds in config.datasources:
                 self.component = ds.component
+                name = ds.component[len('queue_'):]
                 region = ds.params['region']
                 sqsconnection = boto.sqs.connect_to_region(
                     region,
                     aws_access_key_id=ds.ec2accesskey,
                     aws_secret_access_key=ds.ec2secretkey,
                 )
-                queue = sqsconnection.get_queue(self.component)
+                queue = sqsconnection.get_queue(name)
                 if queue:
                     for message in queue.get_messages():
                         data['events'].append({
@@ -207,7 +208,7 @@ class SQSQueuePlugin(AWSBasePlugin):
                         })
                 else:
                     data['events'].append({
-                        'summary': 'Queue "%s" is not found' % self.component,
+                        'summary': 'Queue "%s" does not exists' % name,
                         'device': config.id,
                         'component': self.component,
                         'severity': ZenEventClasses.Info,

@@ -373,7 +373,7 @@ def vpn_queues_rm(region_id, qs):
     objmaps = []
     for q in qs:
         objmaps.append({
-            'id': prepId(q.id),
+            'id': prepId('queue_' + q.name),
             'title': q.name,
         })
 

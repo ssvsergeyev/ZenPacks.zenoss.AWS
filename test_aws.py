@@ -21,10 +21,13 @@ def get_instances(ec2):
 def get_queues(region_name):
     sqs = boto.sqs.connect_to_region(region_name, **credentials)
     res = []
-    for queue in sqsconnection.get_all_queues():
+    for queue in sqs.get_all_queues():
         q_scheme = vars(queue)
-        q_scheme['messages'] = map(vars, queue.get_messages())
+        # q_scheme['messages'] = map(vars, queue.get_messages())
+        q_scheme['id'] = queue.id
+        q_scheme['name'] = queue.name
         res.append(q_scheme)
+    return res
 
 def get_balancers(region_name):
     res = []
@@ -37,6 +40,7 @@ def get_balancers(region_name):
             for instance in elb.instances
         ]
         res.append(balancer_scheme)
+    return res
 
 def get_buckets(region_name):
     s3_conn = boto.s3.connect_to_region(region.name, **credentials)
@@ -47,8 +51,8 @@ for region in ec2conn.get_all_regions():
     region_scheme = {}
 
     ec2_r_conn = boto.ec2.connect_to_region(region.name, **credentials)
-    region_scheme['instances'] = get_instances(ec2_r_conn)
-    # region_scheme['queues'] = get_queues(region.name)
+    # region_scheme['instances'] = get_instances(ec2_r_conn)
+    region_scheme['queues'] = get_queues(region.name)
     # region_scheme['balancers'] = get_balancers(region.name)
     # region_scheme['buckets'] = get_buckets(region.name)
 
