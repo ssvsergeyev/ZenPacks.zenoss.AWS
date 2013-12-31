@@ -15,43 +15,42 @@ ec2conn = EC2Connection(**credentials)
 
 aws_scheme = {}
 
-for region in ec2conn.get_all_regions():
+def get_instances(ec2):
+    return map(vars, ec2.get_only_instances())
 
-    region_scheme = {}
+def get_queues(region_name):
+    sqs = boto.sqs.connect_to_region(region_name, **credentials)
+    res = []
+    for queue in sqsconnection.get_all_queues():
+        q_scheme = vars(queue)
+        q_scheme['messages'] = map(vars, queue.get_messages())
+        res.append(q_scheme)
 
-    s3_conn = boto.s3.connect_to_region(region.name, **credentials)
-    print s3_conn.get_all_buckets()
-
-    continue
-
-    elb_conn = boto.ec2.elb.connect_to_region(region.name, **credentials)
-    elbs = elb_conn.get_all_load_balancers()
-    for elb in elbs:
+def get_balancers(region_name):
+    res = []
+    elb_conn = boto.ec2.elb.connect_to_region(region_name, **credentials)
+    for elb in elb_conn.get_all_load_balancers():
         balancer_scheme = vars(elb)
 
         balancer_scheme['instances'] = [
             vars(instance)
             for instance in elb.instances
         ]
+        res.append(balancer_scheme)
 
-        region_scheme[elb.name] = balancer_scheme
+def get_buckets(region_name):
+    s3_conn = boto.s3.connect_to_region(region.name, **credentials)
+    return map(vars, s3_conn.get_all_buckets())
+
+for region in ec2conn.get_all_regions():
+
+    region_scheme = {}
 
     ec2_r_conn = boto.ec2.connect_to_region(region.name, **credentials)
-
-    for reservation in ec2_r_conn.get_all_instances():
-        reservation_scheme = vars(reservation)
-        reservation_scheme['instances'] = dict(
-            (instance.id, vars(instance))
-            for instance in reservation.instances
-        )
-        region_scheme[reservation.id] = reservation_scheme
-
-    
-    sqsconnection = boto.sqs.connect_to_region(region.name, **credentials)    
-    for queue in sqsconnection.get_all_queues():
-        q_scheme = vars(queue)
-        q_scheme['messages'] = map(vars, queue.get_messages())
-        region_scheme[queue.id] = q_scheme
+    region_scheme['instances'] = get_instances(ec2_r_conn)
+    # region_scheme['queues'] = get_queues(region.name)
+    # region_scheme['balancers'] = get_balancers(region.name)
+    # region_scheme['buckets'] = get_buckets(region.name)
 
     aws_scheme[region.name] = region_scheme
 
