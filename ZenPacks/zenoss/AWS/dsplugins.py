@@ -66,17 +66,18 @@ class AWSBasePlugin(PythonDataSourcePlugin):
             if m:
                 res = m.group(1)
                 log.info(res)
-                return {
-                    'values': {},
-                    'events': [{
-                        'component': self.component,
-                        'summary': res,
-                        'eventClass': '/Status',
-                        'eventKey': 'aws_result',
-                        'severity': ZenEventClasses.Info,
-                    }],
-                    'maps': [],
-                }
+                if self.component in result:
+                    return {
+                        'values': {},
+                        'events': [{
+                            'component': self.component,
+                            'summary': res,
+                            'eventClass': '/Status',
+                            'eventKey': 'aws_result',
+                            'severity': ZenEventClasses.Info,
+                        }],
+                        'maps': [],
+                    }
         else:
             if 'IndexError' in str(result.type):
                 summary = 'The component {0} does not exist.'.format(
