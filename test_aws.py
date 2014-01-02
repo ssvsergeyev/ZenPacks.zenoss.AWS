@@ -23,7 +23,7 @@ def get_queues(region_name):
     res = []
     for queue in sqs.get_all_queues():
         q_scheme = vars(queue)
-        # q_scheme['messages'] = map(vars, queue.get_messages())
+        q_scheme['messages'] = [message._body for message in queue.get_messages(10)]
         q_scheme['id'] = queue.id
         q_scheme['name'] = queue.name
         res.append(q_scheme)
@@ -50,7 +50,7 @@ for region in ec2conn.get_all_regions():
 
     region_scheme = {}
 
-    ec2_r_conn = boto.ec2.connect_to_region(region.name, **credentials)
+    #ec2_r_conn = boto.ec2.connect_to_region(region.name, **credentials)
     # region_scheme['instances'] = get_instances(ec2_r_conn)
     region_scheme['queues'] = get_queues(region.name)
     # region_scheme['balancers'] = get_balancers(region.name)
