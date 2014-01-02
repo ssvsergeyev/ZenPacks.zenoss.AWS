@@ -915,11 +915,61 @@ ZC.S3BucketPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 width: 65
             }]
         });
-        ZC.EC2VPCSubnetPanel.superclass.constructor.call(this, config);
+        ZC.S3BucketPanel.superclass.constructor.call(this, config);
     }
 });
 
 Ext.reg('S3BucketPanel', ZC.S3BucketPanel);
+
+
+ZC.SQSQueuePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'SQSQueue',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.SQSQueuePanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('SQSQueuePanel', ZC.SQSQueuePanel);
 
 
 ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
