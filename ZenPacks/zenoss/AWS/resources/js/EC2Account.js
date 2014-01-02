@@ -1391,6 +1391,7 @@ Zenoss.nav.appendTo('Component', [{
 Ext.onReady(function(){
     var REMOTE = Zenoss.remote.AWSRouter;
 
+    try {
     Ext.define("Zenoss.devices.DeviceClassDataStore", {
         extend:"Zenoss.NonPaginatedStore",
         constructor: function(config) {
@@ -1428,6 +1429,8 @@ Ext.onReady(function(){
             this.callParent([config]);
         }
     });
+    /* workaround for zenoss 4.1.1 */
+    } catch (err) {}
 
     function editDeviceClassInfo(vals, uid) {
         function name(uid) {
@@ -1598,7 +1601,6 @@ Ext.onReady(function(){
         var snmppanel = Ext.getCmp(DEVICE_SNMP_PANEL);
         snmppanel.hide();
     });
-
 });
 
 })();
