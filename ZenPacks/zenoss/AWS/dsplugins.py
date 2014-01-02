@@ -197,7 +197,7 @@ class SQSQueuePlugin(AWSBasePlugin):
                 )
                 queue = sqsconnection.get_queue(name)
                 if queue:
-                    for message in queue.get_messages():
+                    for message in queue.get_messages(10):
                         data['events'].append({
                             'summary': message._body,
                             'device': config.id,
