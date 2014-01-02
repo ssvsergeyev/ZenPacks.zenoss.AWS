@@ -165,12 +165,13 @@ Ext.define("Zenoss.form.MultilineKeyPath", {
                 dataIndex: 'value',
                 flex: 1,
                 renderer: function(value) {
-                    try {
-                        value = JSON.parse(value);
-                        return value.region_name + ":"  + value.pem_path;
-                    } catch (err) {
-                        return "ERROR: Invalid entered string!";
-                    }
+                    // try {
+                    //     value = JSON.parse(value);
+                    //     return value.region_name + ":"  + value.pem_path;
+                    // } catch (err) {
+                    //     return "ERROR: Invalid entered string!";
+                    // }
+                    return value;
                 }
             }],
 
