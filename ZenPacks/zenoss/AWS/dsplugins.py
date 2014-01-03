@@ -17,6 +17,7 @@ import boto.ec2
 import boto.sqs
 import boto.vpc
 
+from boto.sqs.message import RawMessage
 from boto.s3.connection import S3Connection
 from twisted.internet import defer
 
@@ -205,6 +206,7 @@ class SQSQueuePlugin(AWSBasePlugin):
                     aws_secret_access_key=ds.ec2secretkey,
                 )
                 queue = sqsconnection.get_queue(name)
+                queue.set_message_class(RawMessage)
                 if queue:
                     messages = get_messages(queue)
                     for id, text in messages.iteritems():
