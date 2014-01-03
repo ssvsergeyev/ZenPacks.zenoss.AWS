@@ -18,13 +18,25 @@ aws_scheme = {}
 def get_instances(ec2):
     return map(vars, ec2.get_only_instances())
 
+from time import sleep
+
+def get_messages(queue):
+    messages = {}
+    message_count = -1
+    while message_count < len(messages):
+        message_count = len(messages)
+        res = queue.get_messages(num_messages=10, visibility_timeout=3)
+        for message in res:
+            messages[message.id] = message._body
+    return messages
+
 def get_queues(region_name):
     sqs = boto.sqs.connect_to_region(region_name, **credentials)
     res = []
     for queue in sqs.get_all_queues():
-        q_scheme = vars(queue)
-        q_scheme['messages'] = [message._body for message in queue.get_messages(10)]
-        q_scheme['id'] = queue.id
+        q_scheme = {}
+        # q_scheme = vars(queue)
+        q_scheme['messages'] = get_messages(queue)
         q_scheme['name'] = queue.name
         res.append(q_scheme)
     return res

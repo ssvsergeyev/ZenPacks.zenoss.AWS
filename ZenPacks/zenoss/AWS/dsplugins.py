@@ -177,6 +177,15 @@ class EC2RegionPlugin(AWSBasePlugin):
 
         defer.returnValue(data)
 
+def get_messages(queue):
+    messages = {}
+    message_count = -1
+    while message_count < len(messages):
+        message_count = len(messages)
+        res = queue.get_messages(num_messages=10, visibility_timeout=3)
+        for message in res:
+            messages[message.id] = message._body
+    return messages
 
 class SQSQueuePlugin(AWSBasePlugin):
     """
@@ -197,12 +206,13 @@ class SQSQueuePlugin(AWSBasePlugin):
                 )
                 queue = sqsconnection.get_queue(name)
                 if queue:
-                    for message in queue.get_messages(10):
+                    messages = get_messages(queue)
+                    for id, text in messages.iteritems():
                         data['events'].append({
-                            'summary': message._body,
+                            'summary': text,
                             'device': config.id,
                             'component': self.component,
-                            'eventKey': message.id,
+                            'eventKey': id,
                             'severity': ZenEventClasses.Info,
                             'eventClass': '/AWS/SQSMessage',
                         })
