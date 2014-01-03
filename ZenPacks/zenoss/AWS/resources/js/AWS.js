@@ -155,7 +155,7 @@ Ext.define("Zenoss.form.MultilineKeyPath", {
             triggerAction: 'all',
         });
         config.fieldLabel = "PEM file to region";
-        Zenoss.form.MultilineCredentials.superclass.constructor.call(this, config);
+        Zenoss.form.MultilineKeyPath.superclass.constructor.call(this, config);
     },
 
     initComponent: function() {
@@ -165,13 +165,12 @@ Ext.define("Zenoss.form.MultilineKeyPath", {
                 dataIndex: 'value',
                 flex: 1,
                 renderer: function(value) {
-                    // try {
-                    //     value = JSON.parse(value);
-                    //     return value.region_name + ":"  + value.pem_path;
-                    // } catch (err) {
-                    //     return "ERROR: Invalid entered string!";
-                    // }
-                    return value;
+                    try {
+                        value = JSON.parse(value);
+                        return value.region_name + ":"  + value.pem_path;
+                    } catch (err) {
+                        return "ERROR: Invalid entered string!";
+                    }
                 }
             }],
 
@@ -297,9 +296,9 @@ function renderzAWSRegionPEM(value) {
         var v = JSON.parse(value);
         Ext.each(v, function (val) {
             result.push(value.region_name + ":"  + value.pem_path);
-        })
+        });
     } catch (err) {
-        result.push("ERROR: Invalid data!");
+        result.push("ERROR: Invalid entered string!");
     }
     return result.join(';');
 }
@@ -632,10 +631,10 @@ ConfigPropertyGrid = Ext.extend(Zenoss.FilterGridPanel, {
                     width: 180,
                     renderer: function(v, row, record) {
                         // renderer for zAWSRegionPEM
-                        if (record.id == 'zAWSRegionPEM' &&
-                            record.get('value') !== "") {
-                            return renderzAWSRegionPEM(record.get('value'));
-                        }
+                        // if (record.id == 'zAWSRegionPEM' &&
+                        //     record.get('value') !== "") {
+                        //     return renderzAWSRegionPEM(record.get('value'));
+                        // }
                         if (Zenoss.Security.doesNotHavePermission("Manage Device") &&
                             record.data.id == 'zSnmpCommunity') {
                             return "*******";
