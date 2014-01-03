@@ -7,6 +7,7 @@ import boto
 from boto.ec2.connection import EC2Connection
 import boto.ec2.elb
 import boto.sqs
+from boto.sqs.message import RawMessage
 import boto.s3
 
 print '-' * 100
@@ -34,6 +35,7 @@ def get_queues(region_name):
     sqs = boto.sqs.connect_to_region(region_name, **credentials)
     res = []
     for queue in sqs.get_all_queues():
+        queue.set_message_class(RawMessage)
         q_scheme = {}
         # q_scheme = vars(queue)
         q_scheme['messages'] = get_messages(queue)
