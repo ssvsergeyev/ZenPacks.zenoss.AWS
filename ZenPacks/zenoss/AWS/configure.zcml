@@ -39,6 +39,12 @@
         />
 
     <adapter
+        provides=".datasources.AWSDataSource.IAWSDataSourceInfo"
+        for=".datasources.AWSDataSource.AWSDataSource"
+        factory=".datasources.AWSDataSource.AWSDataSourceInfo"
+        />
+
+    <adapter
         provides=".EC2Account.IEC2AccountInfo"
         for=".EC2Account.EC2Account"
         factory=".EC2Account.EC2AccountInfo"
@@ -63,6 +69,12 @@
         />
 
     <adapter
+        provides=".EC2Snapshot.IEC2SnapshotInfo"
+        for=".EC2Snapshot.EC2Snapshot"
+        factory=".EC2Snapshot.EC2SnapshotInfo"
+        />
+
+    <adapter
         provides=".EC2VPC.IEC2VPCInfo"
         for=".EC2VPC.EC2VPC"
         factory=".EC2VPC.EC2VPCInfo"
@@ -78,6 +90,42 @@
         provides=".EC2Zone.IEC2ZoneInfo"
         for=".EC2Zone.EC2Zone"
         factory=".EC2Zone.EC2ZoneInfo"
+        />
+
+    <adapter
+        provides=".VPNGateway.IVPNGatewayInfo"
+        for=".VPNGateway.VPNGateway"
+        factory=".VPNGateway.VPNGatewayInfo"
+        />
+
+    <adapter
+        provides=".EC2ElasticIP.IEC2ElasticIPInfo"
+        for=".EC2ElasticIP.EC2ElasticIP"
+        factory=".EC2ElasticIP.EC2ElasticIPInfo"
+        />
+
+    <adapter
+        provides=".EC2Image.IEC2ImageInfo"
+        for=".EC2Image.EC2Image"
+        factory=".EC2Image.EC2ImageInfo"
+        />
+
+    <adapter
+        provides=".S3Bucket.IS3BucketInfo"
+        for=".S3Bucket.S3Bucket"
+        factory=".S3Bucket.S3BucketInfo"
+        />
+
+    <adapter
+        provides=".SQSQueue.ISQSQueueInfo"
+        for=".SQSQueue.SQSQueue"
+        factory=".SQSQueue.SQSQueueInfo"
+        />
+
+    <adapter
+        provides=".EC2ReservedInstance.IEC2ReservedInstanceInfo"
+        for=".EC2ReservedInstance.EC2ReservedInstance"
+        factory=".EC2ReservedInstance.EC2ReservedInstanceInfo"
         />
 
     <!-- Path Reporters -->
@@ -166,6 +214,36 @@
             provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
             for=".EC2Volume.EC2Volume"
             factory=".impact.EC2VolumeRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2ElasticIP.EC2ElasticIP"
+            factory=".impact.EC2ElasticIPRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".EC2Image.EC2Image"
+            factory=".impact.EC2ImageRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".S3Bucket.S3Bucket"
+            factory=".impact.S3BucketRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".VPNGateway.VPNGateway"
+            factory=".impact.VPNGatewayRelationsProvider"
+            />
+
+        <subscriber
+            provides="ZenPacks.zenoss.Impact.impactd.interfaces.IRelationshipDataProvider"
+            for=".SQSQueue.SQSQueue"
+            factory=".impact.SQSQueueRelationsProvider"
             />
 
         <subscriber

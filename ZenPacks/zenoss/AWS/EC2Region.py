@@ -45,10 +45,27 @@ class EC2Region(AWSComponent):
         ('zones', ToManyCont(ToOne, MODULE_NAME['EC2Zone'], 'region')),
         ('instances', ToManyCont(ToOne, MODULE_NAME['EC2Instance'], 'region')),
         ('volumes', ToManyCont(ToOne, MODULE_NAME['EC2Volume'], 'region')),
+        ('snapshots', ToManyCont(ToOne, MODULE_NAME['EC2Snapshot'], 'region')),
         ('vpcs', ToManyCont(ToOne, MODULE_NAME['EC2VPC'], 'region')),
         ('vpc_subnets', ToManyCont(
-            ToOne, MODULE_NAME['EC2VPCSubnet'], 'region')),
-        )
+            ToOne, MODULE_NAME['EC2VPCSubnet'], 'region'
+        )),
+        ('elastic_ips', ToManyCont(
+            ToOne, MODULE_NAME['EC2ElasticIP'], 'region'
+        )),
+        ('vpn_gateways', ToManyCont(
+            ToOne, MODULE_NAME['VPNGateway'], 'region'
+        )),
+        ('queues', ToManyCont(
+            ToOne, MODULE_NAME['SQSQueue'], 'region'
+        )),
+        ('images', ToManyCont(
+            ToOne, MODULE_NAME['EC2Image'], 'region'
+        )),
+        ('reserved_instances', ToManyCont(
+            ToOne, MODULE_NAME['EC2ReservedInstance'], 'region'
+        )),
+    )
 
     def getDimension(self):
         return ''
@@ -94,6 +111,7 @@ class IEC2RegionInfo(IComponentInfo):
 
     account = schema.Entity(title=_t(u'Account'))
     zone_count = schema.Int(title=_t(u'Number of Zones'))
+    image_count = schema.Int(title=_t(u'Number of Images'))
     instance_count = schema.Int(title=_t(u'Number of Instances'))
     volume_count = schema.Int(title=_t(u'Number of Volumes'))
     vpc_count = schema.Int(title=_t(u'Number of VPCs'))
@@ -116,6 +134,10 @@ class EC2RegionInfo(ComponentInfo):
     @property
     def zone_count(self):
         return self._object.zones.countObjects()
+
+    @property
+    def image_count(self):
+        return self._object.images.countObjects()
 
     @property
     def instance_count(self):

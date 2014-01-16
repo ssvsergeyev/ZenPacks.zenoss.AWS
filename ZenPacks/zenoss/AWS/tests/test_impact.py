@@ -134,9 +134,18 @@ class TestImpact(BaseTestCase):
         # Region -> VPC
         self.assertTrue('vpc0-0-0' in region_impacts)
 
+        # Region -> Elastic_ips
+        self.assertTrue('elastic_ip0-0' in region_impacts)
+
+        # Region -> VPN gateways
+        self.assertTrue('vpn_gateway0-0' in region_impacts)
+
+        # Region -> SQS Queues
+        self.assertTrue('queue0-0' in region_impacts)
+
         # Negative check to verify no other impacts exist.
         self.assertEqual(len(region_impacted_by), 1)
-        self.assertEqual(len(region_impacts), 2)
+        self.assertEqual(len(region_impacts), 5)
 
     @require_impact
     def test_EC2ZoneImpacts(self):
@@ -237,6 +246,58 @@ class TestImpact(BaseTestCase):
         # Negative check to verify no other impacts exist.
         self.assertEqual(len(volume_impacted_by), 1)
         self.assertEqual(len(volume_impacts), 1)
+
+    @require_impact
+    def test_EC2ElasticIPImpacts(self):
+        elastic_ip = self.account().getObjByPath(
+            'regions/region0/elastic_ips/elastic_ip0-0')
+
+        elastic_ip_impacts, elastic_ip_impacted_by = impacts_for(elastic_ip)
+
+        # Elastic IP -> Region
+        self.assertTrue('region0' in elastic_ip_impacts)
+
+        # Negative check to verify no other impacts exist.
+        self.assertEqual(len(elastic_ip_impacts), 1)
+
+    @require_impact
+    def test_VPNGatewayImpacts(self):
+        vpn_gateway = self.account().getObjByPath(
+            'regions/region0/vpn_gateways/vpn_gateway0-0')
+
+        vpn_gateway_impacts, vpn_gateway_impacted_by = impacts_for(vpn_gateway)
+
+        # VPN Gateway -> Region
+        self.assertTrue('region0' in vpn_gateway_impacts)
+
+        # Negative check to verify no other impacts exist.
+        self.assertEqual(len(vpn_gateway_impacts), 1)
+
+    @require_impact
+    def test_S3BucketImpacts(self):
+        bucket = self.account().getObjByPath(
+            's3buckets/s3bucket0')
+
+        bucket_impacts, bucket_impacted_by = impacts_for(bucket)
+
+        # S3 Bucket -> Account
+        self.assertTrue('account' in bucket_impacts)
+
+        # Negative check to verify no other impacts exist.
+        self.assertEqual(len(bucket_impacts), 1)
+
+    @require_impact
+    def test_SQSQueueImpacts(self):
+        queue = self.account().getObjByPath(
+            'regions/region0/queues/queue0-0')
+
+        queue_impacts, queue_impacted_by = impacts_for(queue)
+
+        # SQS Queue -> Region
+        self.assertTrue('region0' in queue_impacts)
+
+        # Negative check to verify no other impacts exist.
+        self.assertEqual(len(queue_impacts), 1)
 
     @require_impact
     def test_DeviceImpacts(self):

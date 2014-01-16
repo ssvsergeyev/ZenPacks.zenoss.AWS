@@ -85,12 +85,13 @@ class BaseRelationsProvider(object):
 
 
 class EC2AccountRelationsProvider(BaseRelationsProvider):
-    impact_relationships = ['regions']
+    impact_relationships = ['regions', 's3buckets']
 
 
 class EC2RegionRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['account']
-    impact_relationships = ['zones', 'vpcs']
+    impact_relationships = ['zones', 'vpcs', 'elastic_ips',
+                            'vpn_gateways', 'queues']
 
 
 class EC2ZoneRelationsProvider(BaseRelationsProvider):
@@ -106,6 +107,28 @@ class EC2VPCRelationsProvider(BaseRelationsProvider):
 class EC2VPCSubnetRelationsProvider(BaseRelationsProvider):
     impacted_by_relationships = ['vpc', 'zone']
     impact_relationships = ['instances']
+
+
+class EC2ElasticIPRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['region']
+
+
+class EC2ImageRelationsProvider(BaseRelationsProvider):
+    # impact_relationships = ['region']
+    # impacted_by_relationships = ['instances']
+    pass
+
+
+class S3BucketRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['account']
+
+
+class VPNGatewayRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['region']
+
+
+class SQSQueueRelationsProvider(BaseRelationsProvider):
+    impact_relationships = ['region']
 
 
 class EC2InstanceRelationsProvider(BaseRelationsProvider):

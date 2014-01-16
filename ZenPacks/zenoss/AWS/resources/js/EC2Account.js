@@ -98,7 +98,6 @@ ZC.EC2ComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
     }
 });
 
-
 ZC.EC2RegionPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
     subComponentGridPanel: false,
 
@@ -115,6 +114,7 @@ ZC.EC2RegionPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'monitor'},
                 {name: 'monitored'},
                 {name: 'locking'},
+                {name: 'image_count'},
                 {name: 'zone_count'},
                 {name: 'instance_count'},
                 {name: 'volume_count'},
@@ -132,6 +132,11 @@ ZC.EC2RegionPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 dataIndex: 'name',
                 header: _t('Name'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'image_count',
+                dataIndex: 'image_count',
+                header: _t('Images'),
+                width: 55
             },{
                 id: 'zone_count',
                 dataIndex: 'zone_count',
@@ -276,11 +281,13 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 {name: 'locking'},
                 {name: 'guest_device'},
                 {name: 'zone'},
+                {name: 'image'},
                 {name: 'vpc'},
                 {name: 'vpc_subnet'},
                 {name: 'instance_type'},
                 {name: 'platform'},
                 {name: 'private_ip_address'},
+                {name: 'public_ip'},
                 {name: 'volume_count'},
                 {name: 'state'}
             ],
@@ -304,6 +311,12 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'zone',
                 dataIndex: 'zone',
                 header: _t('Zone'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 95
+            },{
+                id: 'image',
+                dataIndex: 'image',
+                header: _t('Image'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 95
             },{
@@ -332,6 +345,11 @@ ZC.EC2InstancePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'private_ip_address',
                 dataIndex: 'private_ip_address',
                 header: _t('Private IP'),
+                width: 85
+            },{
+                id: 'public_ip',
+                dataIndex: 'public_ip',
+                header: _t('Public IP'),
                 width: 85
             },{
                 id: 'volume_count',
@@ -451,6 +469,81 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 });
 
 Ext.reg('EC2VolumePanel', ZC.EC2VolumePanel);
+
+
+ZC.EC2SnapshotPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'EC2Snapshot',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'volume'},
+                {name: 'size'},
+                {name: 'status'},
+                {name: 'progress'},
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'status',
+                dataIndex: 'status',
+                header: _t('Status'),
+                width: 80
+            },{
+                id: 'volume',
+                dataIndex: 'volume',
+                header: _t('Volume'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 95
+            },{
+                id: 'size',
+                dataIndex: 'size',
+                header: _t('Volume size'),
+                renderer: Zenoss.render.bytesString,
+                width: 75
+            },{
+                id: 'progress',
+                dataIndex: 'progress',
+                header: _t('Progress'),
+                width: 55
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.EC2SnapshotPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('EC2SnapshotPanel', ZC.EC2SnapshotPanel);
 
 
 ZC.EC2VPCPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
@@ -628,6 +721,486 @@ ZC.EC2VPCSubnetPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
 Ext.reg('EC2VPCSubnetPanel', ZC.EC2VPCSubnetPanel);
 
 
+ZC.VPNGatewayPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'VPNGateway',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'region'},
+                {name: 'gateway_type'},
+                {name: 'state'},
+                //{name: 'availability_zone'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('State'),
+                width: 80
+            },{
+                id: 'region',
+                dataIndex: 'region',
+                header: _t('Region'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 90
+            },{
+                id: 'gateway_type',
+                dataIndex: 'gateway_type',
+                header: _t('Gateway type'),
+                //renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 95
+            // },{
+            //     id: 'availability_zone',
+            //     dataIndex: 'availability_zone',
+            //     header: _t('Availability zone'),
+            //     width: 95
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.VPNGatewayPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('VPNGatewayPanel', ZC.VPNGatewayPanel);
+
+
+ZC.EC2ReservationPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'EC2ReservedInstance',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'region'},
+                {name: 'state'},
+                {name: 'instance_type'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'instance_type',
+                dataIndex: 'instance_type',
+                header: _t('Instance type'),
+                width: 80
+            },{
+                id: 'region',
+                dataIndex: 'region',
+                header: _t('Region'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 90
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('State'),
+                width: 95
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.EC2ReservationPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('EC2ReservationPanel', ZC.EC2ReservationPanel);
+
+
+ZC.S3BucketPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'S3Bucket',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'creation_date'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'creation_date',
+                dataIndex: 'creation_date',
+                header: _t('Creation date'),
+                width: 100
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.S3BucketPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('S3BucketPanel', ZC.S3BucketPanel);
+
+
+ZC.SQSQueuePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'SQSQueue',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.SQSQueuePanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('SQSQueuePanel', ZC.SQSQueuePanel);
+
+
+ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'EC2ElasticIP',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'region'},
+                {name: 'private_ip_address'},
+                {name: 'instance_id'},
+                {name: 'domain'},
+                {name: 'network_interface_id'},
+                {name: 'network_interface_owner_id'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Public IP'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'private_ip_address',
+                dataIndex: 'private_ip_address',
+                header: _t('Private IP'),
+                width: 100
+            },{
+                id: 'region',
+                dataIndex: 'region',
+                header: _t('Region'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 90
+            },{
+                id: 'instance_id',
+                dataIndex: 'instance_id',
+                header: _t('Instance ID'),
+                width: 100
+            },{
+                id: 'domain',
+                dataIndex: 'domain',
+                header: _t('Domain'),
+                width: 60
+            },{
+                id: 'network_interface_id',
+                dataIndex: 'network_interface_id',
+                header: _t('Network interface ID'),
+                width: 110
+            },{
+                id: 'network_interface_owner_id',
+                dataIndex: 'network_interface_owner_id',
+                header: _t('Network interface owner ID'),
+                width: 150
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.EC2ElasticIPPanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('EC2ElasticIPPanel', ZC.EC2ElasticIPPanel);
+
+
+ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
+    subComponentGridPanel: false,
+
+    constructor: function(config) {
+        config = Ext.applyIf(config||{}, {
+            autoExpandColumn: 'name',
+            componentType: 'EC2Image',
+            fields: [
+                {name: 'uid'},
+                {name: 'name'},
+                {name: 'status'},
+                {name: 'severity'},
+                {name: 'usesMonitorAttribute'},
+                {name: 'monitor'},
+                {name: 'monitored'},
+                {name: 'locking'},
+                {name: 'region'},
+                {name: 'location'},
+                {name: 'state'},
+                {name: 'owner_id'},
+                {name: 'architecture'},
+                {name: 'image_type'},
+                {name: 'kernel_id'},
+                {name: 'ramdisk_id'},
+                {name: 'description'},
+                {name: 'block_device_mapping'},
+                {name: 'root_device_type'},
+                {name: 'root_device_name'},
+                {name: 'virtualization_type'},
+                {name: 'hypervisor'},
+                {name: 'instance_lifecycle'},
+                {name: 'instance_count'}
+            ],
+            columns: [{
+                id: 'severity',
+                dataIndex: 'severity',
+                header: _t('Events'),
+                renderer: Zenoss.render.severity,
+                sortable: true,
+                width: 50
+            },{
+                id: 'name',
+                dataIndex: 'name',
+                header: _t('Name'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid
+            },{
+                id: 'state',
+                dataIndex: 'state',
+                header: _t('Status'),
+                width: 80
+            },{
+                id: 'location',
+                dataIndex: 'location',
+                header: _t('Location'),
+                width: 80
+            },{
+                id: 'region',
+                dataIndex: 'region',
+                header: _t('Region'),
+                renderer: Zenoss.render.aws_entityLinkFromGrid,
+                width: 90
+            },{
+                id: 'owner_id',
+                dataIndex: 'owner_id',
+                header: _t('Owner ID'),
+                width: 100
+            },{
+                id: 'architecture',
+                dataIndex: 'architecture',
+                header: _t('Architecture'),
+                width: 100
+            },{
+                id: 'image_type',
+                dataIndex: 'image_type',
+                header: _t('Image type'),
+                width: 90
+            },{
+                id: 'kernel_id',
+                dataIndex: 'kernel_id',
+                header: _t('Kernel ID'),
+                width: 90
+            },{
+                id: 'ramdisk_id',
+                dataIndex: 'ramdisk_id',
+                header: _t('Ramdisk ID'),
+                width: 90
+            },{
+                id: 'description',
+                dataIndex: 'description',
+                header: _t('Description'),
+                width: 90
+            },{
+                id: 'block_device_mapping',
+                dataIndex: 'block_device_mapping',
+                header: _t('Block device mapping'),
+                width: 90
+            },{
+                id: 'root_device_type',
+                dataIndex: 'root_device_type',
+                header: _t('Root device type'),
+                width: 90
+            },{
+                id: 'root_device_name',
+                dataIndex: 'root_device_name',
+                header: _t('Root device name'),
+                width: 90
+            },{
+                id: 'virtualization_type',
+                dataIndex: 'virtualization_type',
+                header: _t('Virtualization type'),
+                width: 90
+            },{
+                id: 'hypervisor',
+                dataIndex: 'hypervisor',
+                header: _t('Hypervisor'),
+                width: 90
+            },{
+                id: 'instance_count',
+                dataIndex: 'instance_count',
+                header: _t('Number of Instances'),
+                width: 90
+            },{
+                id: 'monitored',
+                dataIndex: 'monitored',
+                header: _t('Monitored'),
+                renderer: Zenoss.render.checkbox,
+                width: 70
+            },{
+                id: 'locking',
+                dataIndex: 'locking',
+                header: _t('Locking'),
+                renderer: Zenoss.render.locking_icons,
+                width: 65
+            }]
+        });
+        ZC.EC2ImagePanel.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('EC2ImagePanel', ZC.EC2ImagePanel);
+
+
 /* Subcomponent Panels */
 
 Zenoss.nav.appendTo('Component', [{
@@ -668,6 +1241,23 @@ Zenoss.nav.appendTo('Component', [{
 }]);
 
 Zenoss.nav.appendTo('Component', [{
+    id: 'component_snapshots',
+    text: _t('Snapshots'),
+    xtype: 'EC2SnapshotPanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            case 'EC2Volume': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2SnapshotPanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
     id: 'component_vpcs',
     text: _t('VPCs'),
     xtype: 'EC2VPCPanel',
@@ -675,7 +1265,6 @@ Zenoss.nav.appendTo('Component', [{
     filterNav: function(navpanel) {
         switch (navpanel.refOwner.componentType) {
             case 'EC2Region': return true;
-            case 'EC2Zone': return true;
             default: return false;
         }
     },
@@ -718,11 +1307,91 @@ Zenoss.nav.appendTo('Component', [{
     }
 }]);
 
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_vpn_gateways',
+    text: _t('VPN Gateways'),
+    xtype: 'VPNGatewayPanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.VPNGatewayPanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_reservations',
+    text: _t('Reserved Instances'),
+    xtype: 'EC2ReservationPanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2ReservationPanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_s3buckets',
+    text: _t('Buckets'),
+    xtype: 'S3BucketPanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Account': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.S3BucketPanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_elastic_ips',
+    text: _t('Elastic IPs'),
+    xtype: 'EC2ElasticIPPanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2ElasticIPPanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
+    id: 'component_images',
+    text: _t('Images'),
+    xtype: 'EC2ImagePanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.EC2ImagePanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
 
 /* Overview Panel Override */
 Ext.onReady(function(){
     var REMOTE = Zenoss.remote.AWSRouter;
 
+    try {
     Ext.define("Zenoss.devices.DeviceClassDataStore", {
         extend:"Zenoss.NonPaginatedStore",
         constructor: function(config) {
@@ -760,6 +1429,8 @@ Ext.onReady(function(){
             this.callParent([config]);
         }
     });
+    /* workaround for zenoss 4.1.1 */
+    } catch (err) {}
 
     function editDeviceClassInfo(vals, uid) {
         function name(uid) {
@@ -844,16 +1515,25 @@ Ext.onReady(function(){
     var DEVICE_DESCRIPTION_PANEL = 'deviceoverviewpanel_descriptionsummary';
     var DEVICE_CUSTOM_PANEL = 'deviceoverviewpanel_customsummary';
     var DEVICE_SNMP_PANEL = 'deviceoverviewpanel_snmpsummary';
-    
+    var DEVICE_SYSTEM_PANEL = 'deviceoverviewpanel_systemsummary';
+
     /* Summary Panel Override */
     Ext.ComponentMgr.onAvailable(DEVICE_SUMMARY_PANEL, function(){
         var summarypanel = Ext.getCmp(DEVICE_SUMMARY_PANEL);
         summarypanel.hide();
         });
 
+    /* System Panel Override */
+    Ext.ComponentMgr.onAvailable(DEVICE_SYSTEM_PANEL, function(){
+        var systempanel = Ext.getCmp(DEVICE_SYSTEM_PANEL);
+        systempanel.minHeight = 100;
+        });
+
     /* ID Panel Override */
     Ext.ComponentMgr.onAvailable(DEVICE_ID_PANEL, function(){
         var idpanel = Ext.getCmp(DEVICE_ID_PANEL);
+        idpanel.defaultType = 'devformpanel';
+        idpanel.minHeight = 300;
         
         idpanel.removeField('serialNumber');
         idpanel.removeField('tagNumber');
@@ -877,6 +1557,7 @@ Ext.onReady(function(){
         var descriptionpanel = Ext.getCmp(DEVICE_DESCRIPTION_PANEL);
 
         descriptionpanel.defaultType = 'devformpanel';
+        descriptionpanel.minHeight = 310;
         
         descriptionpanel.removeField('rackSlot');
         descriptionpanel.removeField('hwManufacturer');
@@ -920,7 +1601,6 @@ Ext.onReady(function(){
         var snmppanel = Ext.getCmp(DEVICE_SNMP_PANEL);
         snmppanel.hide();
     });
-
 });
 
 })();

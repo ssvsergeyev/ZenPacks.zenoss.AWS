@@ -22,7 +22,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME
 from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
-from ZenPacks.zenoss.AWS.utils import updateToOne
+from ZenPacks.zenoss.AWS.utils import updateToOne, updateToMany
 
 
 class EC2Volume(AWSComponent):
@@ -55,6 +55,7 @@ class EC2Volume(AWSComponent):
         ('region', ToOne(ToManyCont, MODULE_NAME['EC2Region'], 'volumes')),
         ('zone', ToOne(ToMany, MODULE_NAME['EC2Zone'], 'volumes')),
         ('instance', ToOne(ToMany, MODULE_NAME['EC2Instance'], 'volumes')),
+        ('snapshots', ToMany(ToOne, MODULE_NAME['EC2Snapshot'], 'volume')),
         )
 
     def getRRDTemplates(self):
@@ -100,6 +101,16 @@ class EC2Volume(AWSComponent):
             self.region().instances,
             CLASS_NAME['EC2Instance'],
             id_)
+
+    def getSnapshotIds(self):
+        return sorted(self.snapshots.objectIds())
+
+    def setSnapshotIds(self, ids):
+        updateToMany(
+            relationship=self.snapshots,
+            root=self.region().snapshots,
+            type_=CLASS_NAME['EC2Snapshot'],
+            ids=ids)
 
 
 class IEC2VolumeInfo(IComponentInfo):
