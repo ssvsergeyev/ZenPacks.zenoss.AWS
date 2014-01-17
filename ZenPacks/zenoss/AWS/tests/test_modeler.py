@@ -66,9 +66,10 @@ class TestAWSCollector(BaseTestCase):
         )
 
     def test_vpn_queues_rm(self):
+        self.tests[0].name = 'name'
         self.assertEquals(
             EC2.vpn_queues_rm('test', self.tests).__dict__['maps'][0].title,
-            sentinel.name
+            'name',
         )
 
     def test_images_rm(self):
