@@ -206,8 +206,8 @@ class SQSQueuePlugin(AWSBasePlugin):
                     aws_secret_access_key=ds.ec2secretkey,
                 )
                 queue = sqsconnection.get_queue(name)
-                queue.set_message_class(RawMessage)
                 if queue:
+                    queue.set_message_class(RawMessage)
                     messages = get_messages(queue)
                     for id, text in messages.iteritems():
                         data['events'].append({
@@ -346,9 +346,9 @@ class EC2BaseStatePlugin(AWSBasePlugin):
                         aws_secret_access_key=ds.ec2secretkey,
                     )
 
-                data['maps'].append(
-                    self.results_to_maps(region, ds.component)
-                )
+                maps = self.results_to_maps(region, ds.component)
+                if maps:
+                    data['maps'].append(maps)
             return data
 
         return defer.maybeDeferred(inner)
@@ -360,6 +360,8 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
     """
 
     def results_to_maps(self, region, component):
+        if not self.ec2regionconn:
+            return
         instance = self.ec2regionconn.get_only_instances(component).pop()
         return ObjectMap({
             "compname": "regions/%s/instances/%s" % (
