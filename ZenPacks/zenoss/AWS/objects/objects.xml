@@ -2971,7 +2971,7 @@ False
 %7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
-Elastic IPs count
+Elastic IPs
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3000,7 +3000,7 @@ False
 %7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
-Instances count
+Instances
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3029,7 +3029,7 @@ False
 %7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
-Subnets count
+Subnets
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3058,7 +3058,7 @@ False
 %7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
-VPC Security Groups count
+VPC Sec. Groups
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3087,7 +3087,7 @@ False
 %7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
-VPC Security Groups Rules max
+VPC Sec. Gr. Rules
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3116,7 +3116,7 @@ False
 %7.0lf
 </property>
 <property type="string" id="legend" mode="w" >
-Volumes count
+Volumes
 </property>
 <property type="long" id="limit" mode="w" >
 -1
