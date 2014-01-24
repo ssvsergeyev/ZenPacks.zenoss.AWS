@@ -48,23 +48,23 @@ class EC2Region(AWSComponent):
         ('snapshots', ToManyCont(ToOne, MODULE_NAME['EC2Snapshot'], 'region')),
         ('vpcs', ToManyCont(ToOne, MODULE_NAME['EC2VPC'], 'region')),
         ('vpc_subnets', ToManyCont(
-            ToOne, MODULE_NAME['EC2VPCSubnet'], 'region')
-        ),
+            ToOne, MODULE_NAME['EC2VPCSubnet'], 'region'
+        )),
         ('elastic_ips', ToManyCont(
-            ToOne, MODULE_NAME['EC2ElasticIP'], 'region')
-        ),
+            ToOne, MODULE_NAME['EC2ElasticIP'], 'region'
+        )),
         ('vpn_gateways', ToManyCont(
-            ToOne, MODULE_NAME['VPNGateway'], 'region')
-        ),
+            ToOne, MODULE_NAME['VPNGateway'], 'region'
+        )),
         ('queues', ToManyCont(
-            ToOne, MODULE_NAME['SQSQueue'], 'region')
-        ),
+            ToOne, MODULE_NAME['SQSQueue'], 'region'
+        )),
         ('images', ToManyCont(
-            ToOne, MODULE_NAME['EC2Image'], 'region')
-        ),
+            ToOne, MODULE_NAME['EC2Image'], 'region'
+        )),
         ('reserved_instances', ToManyCont(
-            ToOne, MODULE_NAME['EC2ReservedInstance'], 'region')
-        ),
+            ToOne, MODULE_NAME['EC2ReservedInstance'], 'region'
+        )),
     )
 
     def getDimension(self):

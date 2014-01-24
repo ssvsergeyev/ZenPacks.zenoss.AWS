@@ -18,7 +18,8 @@ log = logging.getLogger("zen.useraction.actions")
 from zope.interface import implements
 
 from Products.ZenModel.interfaces import IAction, IProvidesEmailAddresses
-from Products.ZenModel.actions import IActionBase, TargetableAction, processTalSource, _signalToContextDict
+from Products.ZenModel.actions import IActionBase, TargetableAction
+from Products.ZenModel.actions import processTalSource, _signalToContextDict
 from Products.ZenUtils.guid.guid import GUIDManager
 
 from ZenPacks.zenoss.AWS.AWSEmail import IAWSEmailHostActionContentInfo
@@ -45,14 +46,30 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         log.debug("Executing %s action for targets: %s", self.name, targets)
         self.setupAction(notification.dmd)
 
-        data = _signalToContextDict(signal, self.options.get('zopeurl'), notification, self.guidManager)
+        data = _signalToContextDict(
+            signal,
+            self.options.get('zopeurl'),
+            notification,
+            self.guidManager
+        )
         if signal.clear:
             log.debug('This is a clearing signal.')
-            subject = processTalSource(notification.content['clear_subject_format'], **data)
-            body = processTalSource(notification.content['clear_body_format'], **data)
+            subject = processTalSource(
+                notification.content['clear_subject_format'],
+                **data
+            )
+            body = processTalSource(
+                notification.content['clear_body_format'],
+                **data
+            )
         else:
-            subject = processTalSource(notification.content['subject_format'], **data)
-            body = processTalSource(notification.content['body_format'], **data)
+            subject = processTalSource(
+                notification.content['subject_format'],
+                **data
+            )
+            body = processTalSource(
+                notification.content['body_format'], **data
+            )
 
         log.debug('Sending this subject: %s' % subject)
         log.debug('Sending this body: %s' % body)
@@ -90,8 +107,8 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
 
     def getActionableTargets(self, target):
         """
-        @param target: This is an object that implements the IProvidesEmailAddresses
-            interface.
+        @param target: This is an object that implements
+            the IProvidesEmailAddresses interface.
         @type target: UserSettings or GroupSettings.
         """
         if IProvidesEmailAddresses.providedBy(target):
@@ -105,10 +122,16 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
            @todo: needs to be updated for the new data structure?
         """
         tags = re.compile(r'<(.|\n)+?>', re.I | re.M)
-        aattrs = re.compile(r'<a(.|\n)+?href=["\']([^"\']*)[^>]*?>([^<>]*?)</a>', re.I | re.M)
+        aattrs = re.compile(
+            r'<a(.|\n)+?href=["\']([^"\']*)[^>]*?>([^<>]*?)</a>',
+            re.I | re.M
+        )
         anchors = re.finditer(aattrs, data)
         for x in anchors:
-            data = data.replace(x.group(), "%s: %s" % (x.groups()[2], x.groups()[1]))
+            data = data.replace(
+                x.group(),
+                "%s: %s" % (x.groups()[2], x.groups()[1])
+            )
         data = re.sub(tags, '', data)
         return data
 
@@ -116,8 +139,19 @@ class AWSEmailHostAction(IActionBase, TargetableAction):
         updates = dict()
         updates['body_content_type'] = data.get('body_content_type', 'html')
 
-        properties = ['subject_format', 'body_format', 'clear_subject_format', 'clear_body_format']
-        properties.extend(['aws_account_name', 'aws_access_key', 'aws_secret_key', 'aws_region', 'email_from'])
+        properties = [
+            'subject_format',
+            'body_format',
+            'clear_subject_format',
+            'clear_body_format'
+        ]
+        properties.extend([
+            'aws_account_name',
+            'aws_access_key',
+            'aws_secret_key',
+            'aws_region',
+            'email_from'
+        ])
         for k in properties:
             updates[k] = data.get(k)
 

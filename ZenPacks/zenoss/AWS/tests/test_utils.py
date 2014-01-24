@@ -176,6 +176,7 @@ class TestUtils(BaseTestCase):
         self.assertEqual(zone1.instances.countObjects(), 0)
         self.assertEqual(zone2.instances.countObjects(), 0)
 
+
 class TestReservedUtils(BaseTestCase):
     def test_unreserved_instance_count(self):
         from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
@@ -201,7 +202,7 @@ class TestReservedUtils(BaseTestCase):
         ec2_conn.get_all_reserved_instances.return_value = range(10)
 
         self.assertEquals(unused_reserved_instances_count(ec2_conn, Mock()), 5)
-        
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

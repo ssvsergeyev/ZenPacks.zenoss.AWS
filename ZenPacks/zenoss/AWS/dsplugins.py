@@ -17,6 +17,7 @@ import boto.ec2
 import boto.sqs
 import boto.vpc
 
+from boto.sqs.message import RawMessage
 from boto.s3.connection import S3Connection
 from twisted.internet import defer
 
@@ -177,41 +178,57 @@ class EC2RegionPlugin(AWSBasePlugin):
 
         defer.returnValue(data)
 
+def get_messages(queue):
+    messages = {}
+    message_count = -1
+    while message_count < len(messages):
+        message_count = len(messages)
+        res = queue.get_messages(num_messages=10, visibility_timeout=3)
+        for message in res:
+            messages[message.id] = message._body
+    return messages
 
 class SQSQueuePlugin(AWSBasePlugin):
     """
     Subclass of AWSBasePlugin to monitor AWS SQSQueue.
     """
 
-    @defer.inlineCallbacks
     def collect(self, config):
-        data = self.new_data()
-        for ds in config.datasources:
-            self.component = ds.component
-            region = ds.params['region']
-            sqsconnection = yield boto.sqs.connect_to_region(
-                region,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
-            for queue in sqsconnection.get_all_queues():
-                for message in queue.get_messages():
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                self.component = ds.component
+                name = ds.component[len('queue_'):]
+                region = ds.params['region']
+                sqsconnection = boto.sqs.connect_to_region(
+                    region,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+                queue = sqsconnection.get_queue(name)
+                if queue:
+                    queue.set_message_class(RawMessage)
+                    messages = get_messages(queue)
+                    for id, text in messages.iteritems():
+                        data['events'].append({
+                            'summary': text,
+                            'device': config.id,
+                            'component': self.component,
+                            'eventKey': id,
+                            'severity': ZenEventClasses.Info,
+                            'eventClass': '/AWS/SQSMessage',
+                        })
+                else:
                     data['events'].append({
-                        'summary': message._body,
+                        'summary': 'Queue "%s" does not exists' % name,
                         'device': config.id,
-                        'component': queue.name,
-                        'eventKey': message.id,
+                        'component': self.component,
                         'severity': ZenEventClasses.Info,
-                        'eventClass': '/AWS/SQSMessage',
+                        'eventClass': '/Status',
                     })
+            return data
 
-        data['events'].append({
-            'device': config.id,
-            'summary': 'successful collection',
-            'eventKey': 'SQSDataSource_result',
-            'severity': ZenEventClasses.Clear,
-        })
-        defer.returnValue(data)
+        return defer.maybeDeferred(inner)
 
 
 class ZonePlugin(AWSBasePlugin):
@@ -310,29 +327,31 @@ class EC2BaseStatePlugin(AWSBasePlugin):
         """
         pass
 
-    @defer.inlineCallbacks
     def collect(self, config):
-        data = self.new_data()
-        for ds in config.datasources:
-            self.component = ds.component
-            region = yield ds.params['region']
-            if CONNECTION_TYPE.get(ds.template) == 'ec2':
-                self.ec2regionconn = boto.ec2.connect_to_region(
-                    region,
-                    aws_access_key_id=ds.ec2accesskey,
-                    aws_secret_access_key=ds.ec2secretkey,
-                )
-            else:
-                self.vpcregionconn = boto.vpc.connect_to_region(
-                    region,
-                    aws_access_key_id=ds.ec2accesskey,
-                    aws_secret_access_key=ds.ec2secretkey,
-                )
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                self.component = ds.component
+                region = ds.params['region']
+                if CONNECTION_TYPE.get(ds.template) == 'ec2':
+                    self.ec2regionconn = boto.ec2.connect_to_region(
+                        region,
+                        aws_access_key_id=ds.ec2accesskey,
+                        aws_secret_access_key=ds.ec2secretkey,
+                    )
+                else:
+                    self.vpcregionconn = boto.vpc.connect_to_region(
+                        region,
+                        aws_access_key_id=ds.ec2accesskey,
+                        aws_secret_access_key=ds.ec2secretkey,
+                    )
 
-            data['maps'].append(
-                self.results_to_maps(region, ds.component)
-            )
-        defer.returnValue(data)
+                maps = self.results_to_maps(region, ds.component)
+                if maps:
+                    data['maps'].append(maps)
+            return data
+
+        return defer.maybeDeferred(inner)
 
 
 class EC2InstanceStatePlugin(EC2BaseStatePlugin):
@@ -341,6 +360,8 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
     """
 
     def results_to_maps(self, region, component):
+        if not self.ec2regionconn:
+            return
         instance = self.ec2regionconn.get_only_instances(component).pop()
         return ObjectMap({
             "compname": "regions/%s/instances/%s" % (
