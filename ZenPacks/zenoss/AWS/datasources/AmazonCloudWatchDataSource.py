@@ -161,7 +161,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
     @inlineCallbacks
     def collect(self, config):
-        defer.returnValue([])
+        # defer.returnValue([])
 
         log.debug("Collect for AWS")
         results = []
@@ -338,9 +338,12 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
                 except IndexError:
                     # No value in response. This is usually normal.
+                    print "==" * 20
+                    print ds.component
+                    print value
                     continue
 
-                data['values'][ds.component][ds.datasource] = value, timestamp
+                data['values'][ds.component][ds.datasource] = value, 'N' # timestamp
 
         data['events'].append({
             'device': config.id,

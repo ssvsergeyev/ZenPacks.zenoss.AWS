@@ -1533,7 +1533,7 @@ Ext.onReady(function(){
     Ext.ComponentMgr.onAvailable(DEVICE_ID_PANEL, function(){
         var idpanel = Ext.getCmp(DEVICE_ID_PANEL);
         idpanel.defaultType = 'devformpanel';
-        idpanel.minHeight = 300;
+        idpanel.minHeight = 390;
         
         idpanel.removeField('serialNumber');
         idpanel.removeField('tagNumber');
@@ -1557,7 +1557,7 @@ Ext.onReady(function(){
         var descriptionpanel = Ext.getCmp(DEVICE_DESCRIPTION_PANEL);
 
         descriptionpanel.defaultType = 'devformpanel';
-        descriptionpanel.minHeight = 310;
+        descriptionpanel.minHeight = 390;
         
         descriptionpanel.removeField('rackSlot');
         descriptionpanel.removeField('hwManufacturer');
@@ -1593,6 +1593,38 @@ Ext.onReady(function(){
                 },
                 scope: this
             }
+        });
+
+        descriptionpanel.addField({
+            id: 'firstSeen-view',
+            xtype: 'displayfield',
+            name: 'firstSeen',
+            fieldLabel: _t('First Seen'),
+            permission: 'Manage Device'
+        });
+
+        descriptionpanel.addField({
+            id: 'lastChanged-view',
+            xtype: 'displayfield',
+            name: 'lastChanged',
+            fieldLabel: _t('Last change'),
+            permission: 'Manage Device'
+        });
+
+        descriptionpanel.addField({
+            id: 'lastCollected-view',
+            xtype: 'displayfield',
+            name: 'lastCollected',
+            fieldLabel: _t('Model Time'),
+            permission: 'Manage Device'
+        });
+
+        descriptionpanel.addField({
+            id: 'locking-view',
+            xtype: 'displayfield',
+            name: 'locking',
+            fieldLabel: _t('Locking'),
+            permission: 'Manage Device'
         });
     });
 

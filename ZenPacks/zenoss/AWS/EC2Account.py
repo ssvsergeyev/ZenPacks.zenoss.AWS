@@ -49,6 +49,10 @@ class EC2Account(Device):
             ToOne, MODULE_NAME['S3Bucket'], 'account')),
     )
 
+    def getIconPath(self):
+        ''' Return the path to an icon for this component.  '''
+        return '/++resource++aws/img/%s.png' % self.meta_type
+
     def getDiscoverGuests(self):
         '''
         Attempt to discover and link instance guest devices.

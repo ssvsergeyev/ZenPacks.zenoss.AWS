@@ -21,7 +21,7 @@ from ZenPacks.zenoss.AWS.utils import addLocalLibPath
 
 addLocalLibPath()
 
-from boto.ec2.connection import EC2Connection
+from boto.ec2.connection import EC2Connection, EC2ResponseError
 from boto.vpc import VPCConnection
 from boto.s3.connection import S3Connection
 import boto.sqs
@@ -49,14 +49,22 @@ class EC2(PythonPlugin):
             self.name(), device.id)
 
         accesskey = getattr(device, 'ec2accesskey', None)
-        if not accesskey:
-            log.error('%s: EC2 access key not set. Not discovering.')
-            return
-
         secretkey = getattr(device, 'ec2secretkey', None)
-        if not secretkey:
-            log.error('%s: EC2 secret key not set. Not discovering.')
+
+        old_logger = boto.log.error
+        boto.log.error = lambda x: x
+        try:
+            if not secretkey or not accesskey:
+                raise EC2ResponseError('', '', '')
+            ec2conn = EC2Connection(accesskey, secretkey)
+            s3connection = S3Connection(accesskey, secretkey)
+            ec2_regions = ec2conn.get_all_regions()
+        except EC2ResponseError:
+            log.error('Invalid Keys. '
+                      'Check your EC2 Access Key and EC2 Secret Key.')
             return
+        finally:
+            boto.log.error = old_logger
 
         maps = collections.OrderedDict([
             ('regions', []),
@@ -89,11 +97,8 @@ class EC2(PythonPlugin):
 
         image_filters = []
 
-        ec2conn = EC2Connection(accesskey, secretkey)
-        s3connection = S3Connection(accesskey, secretkey)
-
         region_oms = []
-        for region in ec2conn.get_all_regions():
+        for region in ec2_regions:
             region_id = prepId(region.name)
 
             region_oms.append(ObjectMap(data={
