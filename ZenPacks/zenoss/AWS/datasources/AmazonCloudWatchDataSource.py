@@ -338,10 +338,8 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
                 except IndexError:
                     # No value in response. This is usually normal.
-                    print "==" * 20
-                    print ds.component
-                    print value
-                    continue
+                    value = 0
+                    # continue
 
                 data['values'][ds.component][ds.datasource] = value, 'N' # timestamp
 
