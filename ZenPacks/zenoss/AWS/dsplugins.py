@@ -310,7 +310,9 @@ CONNECTION_TYPE = {
     'EC2Volume': 'ec2',
     'VPNGateway': 'vpc',
     'EC2Image': 'ec2',
-    'EC2Instance': 'ec2'
+    'EC2Instance': 'ec2',
+    'EC2Instance-Detailed': 'ec2',
+    'EC2Instance-Custom': 'ec2',
 }
 
 
