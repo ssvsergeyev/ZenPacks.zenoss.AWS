@@ -68,9 +68,13 @@ class ZenPack(ZenPackBase):
 
     def install(self, app):
         super(ZenPack, self).install(app)
+        # Update relations after zenpack upgrade.
         self._updateDeviceRelations()
 
     def _updateDeviceRelations(self):
+        '''
+        Update relations of the existing AWS devices and their components.
+        '''
         for d in self.dmd.Devices.getSubDevicesGen():
             if 'aws' in d.getPrimaryUrlPath().lower():
                 d.buildRelations()
