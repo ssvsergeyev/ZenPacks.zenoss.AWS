@@ -178,6 +178,7 @@ class EC2RegionPlugin(AWSBasePlugin):
 
         defer.returnValue(data)
 
+
 def get_messages(queue):
     messages = {}
     message_count = -1
@@ -187,6 +188,7 @@ def get_messages(queue):
         for message in res:
             messages[message.id] = message._body
     return messages
+
 
 class SQSQueuePlugin(AWSBasePlugin):
     """
@@ -312,7 +314,7 @@ CONNECTION_TYPE = {
     'EC2Image': 'ec2',
     'EC2Instance': 'ec2',
     'EC2Instance-Detailed': 'ec2',
-    'EC2Instance-Custom': 'ec2',
+    # 'EC2Instance-Custom': 'ec2',
 }
 
 
