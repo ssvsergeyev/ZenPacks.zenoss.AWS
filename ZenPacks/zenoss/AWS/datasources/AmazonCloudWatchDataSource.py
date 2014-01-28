@@ -251,28 +251,28 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     results.append((ds, result))
                     break
 
-            if ds.params['metric'] == 'VolumeTotalWriteTime':
-                # Get Volume Status
-                volumeRequest = baseRequest.copy()
-                volumeRequest['Action'] = 'DescribeVolumeStatus'
-                volumeRequest['Version'] = '2013-02-01'
-                volumeRequest['VolumeId.1'] = dim_value
-                hostHeader = 'ec2.amazonaws.com'
+            # if ds.params['metric'] == 'VolumeTotalWriteTime':
+            #     # Get Volume Status
+            #     volumeRequest = baseRequest.copy()
+            #     volumeRequest['Action'] = 'DescribeVolumeStatus'
+            #     volumeRequest['Version'] = '2013-02-01'
+            #     volumeRequest['VolumeId.1'] = dim_value
+            #     hostHeader = 'ec2.amazonaws.com'
 
-                getURL = awsUrlSign(
-                    httpVerb,
-                    hostHeader,
-                    uriRequest,
-                    volumeRequest,
-                    [accesskey, secretkey]
-                )
+            #     getURL = awsUrlSign(
+            #         httpVerb,
+            #         hostHeader,
+            #         uriRequest,
+            #         volumeRequest,
+            #         [accesskey, secretkey]
+            #     )
 
-                getURL = 'http://%s' % getURL
+            #     getURL = 'http://%s' % getURL
 
-                log.debug('Get Volume Information: %s', getURL)
+            #     log.debug('Get Volume Information: %s', getURL)
 
-                result = yield getPage(getURL)
-                results.append(('volumestatus', result))
+            #     result = yield getPage(getURL)
+            #     results.append(('volumestatus', result))
 
         defer.returnValue(results)
 
@@ -339,9 +339,11 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                 except IndexError:
                     # No value in response. This is usually normal.
                     value = 0
+                    timestamp = 'N'
                     # continue
 
-                data['values'][ds.component][ds.datasource] = value, 'N'  # timestamp
+                # data['values'][ds.component][ds.datasource] = value, 'N'  # timestamp
+                data['values'][ds.component][ds.datasource] = (value, timestamp)
 
         data['events'].append({
             'device': config.id,
