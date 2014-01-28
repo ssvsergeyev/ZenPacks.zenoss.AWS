@@ -108,12 +108,12 @@ class EC2Instance(AWSComponent):
 
         return '/++resource++aws/img/%s.png' % img_name
 
-    def monitored(self):
-        '''
-        Return True if this instance should be monitored. False
-        otherwise.
-        '''
-        return self.state and self.state.lower() == 'running'
+    # def monitored(self):
+    #     '''
+    #     Return True if this instance should be monitored. False
+    #     otherwise.
+    #     '''
+    #     return self.state and self.state.lower() == 'running'
 
     def getRRDTemplates(self):
         template_names = []
