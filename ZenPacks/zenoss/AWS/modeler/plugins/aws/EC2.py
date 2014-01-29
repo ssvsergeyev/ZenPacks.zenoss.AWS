@@ -9,7 +9,11 @@
 
 import collections
 import json
+
 from itertools import chain
+from logging import getLogger
+log = getLogger('zen.ZenModeler')
+
 
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
@@ -232,8 +236,16 @@ def check_tag(values, tags):
     Return parsed zproperty.
     '''
     if values.strip():
-        value = dict((k.strip(), v.strip()) for k, v in (x.split(':')
-                     for x in values.split(';') if x.strip()))
+        try:
+            value = dict((k.strip(), v.strip()) for k, v in (x.split(':')
+                         for x in values.split(';') if x.strip()))
+        except:
+            if not check_tag.logged:
+                log.info('zAWSDiscover is incorrect, it must be of type '
+                         '"<tag>:<value>; <tag>:<value>;". '
+                         'Guest device will not be created.')
+                check_tag.logged = True
+            return False
     else:
         return False
     check = False
@@ -244,6 +256,8 @@ def check_tag(values, tags):
         except:
             continue
     return True if check > 0 else False
+
+check_tag.logged = False
 
 
 def block_device(devices):
