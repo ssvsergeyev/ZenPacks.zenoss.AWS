@@ -239,7 +239,7 @@ def check_tag(values, tags):
     check = False
     for key in tags:
         try:
-            if value[key] == tags[key]:
+            if value[key.strip()] == tags[key].strip():
                 check += True
         except:
             continue
