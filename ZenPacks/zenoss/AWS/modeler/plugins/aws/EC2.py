@@ -240,14 +240,14 @@ def check_tag(values, tags):
             value = dict((k.strip(), v.strip()) for k, v in (x.split(':')
                          for x in values.split(';') if x.strip()))
         except:
-            if not check_tag.logged:
-                log.info('zAWSDiscover is incorrect, it must be of type '
-                         '"<tag>:<value>; <tag>:<value>;". '
-                         'Guest device will not be created.')
-                check_tag.logged = True
+            # if not check_tag.logged:
+            #     log.info('zAWSDiscover is incorrect, it must be of type '
+            #              '"<tag>:<value>; <tag>:<value>;". '
+            #              'Guest device will not be created.')
+            #     check_tag.logged = True
             return False
     else:
-        return False
+        return True
     check = False
     for key in tags:
         try:
