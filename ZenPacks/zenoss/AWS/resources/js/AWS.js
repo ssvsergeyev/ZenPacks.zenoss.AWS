@@ -710,3 +710,51 @@ Ext.reg('configpropertypanel', ConfigPropertyPanel);
 }
 
 }());
+
+try {
+/* zAWSDiscover property */
+Zenoss.zproperties.registerZPropertyType('awsdiscoverfield', {xtype: 'awsdiscoverfield'});
+
+Ext.define("Zenoss.form.AWSDiscoverField", {
+    alias:['widget.awsdiscoverfield'],
+    extend: "Ext.form.TextField",
+
+    validator: function(value) {
+        var context = this.context || Zenoss.env.PARENT_CONTEXT;
+
+        // Don't bother with empty values
+        if (Ext.isEmpty(value)) {
+            return true;
+        }
+
+        checkTag = function(value){
+            for (var i = 0; i < value.split(';').length; i++){
+                lists = value.split(';')[i].trim()
+                if((lists.indexOf(':') == -1)&&(lists.length)){
+                    return false
+                }else{
+                    if(lists.length==0){continue}
+                    for(var a = 0; a < lists.split(':').length; a++){
+                        if ((lists.split(':')[a].trim())&&(lists.split(':').length<3)){
+                            continue
+                        }else{
+                            return false
+                        }
+                    }
+                }
+
+            }
+            return true;
+        }
+
+        if (checkTag(value)) {
+            return true;
+        }else{
+            return 'zAWSDiscover is incorrect, it must be of type ' +
+                    '"tag: value; tag: value;". ' +
+                    'Guest device will not be created.';
+        }
+    }
+
+    });
+} catch (err){};
