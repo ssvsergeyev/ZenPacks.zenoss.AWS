@@ -61,13 +61,13 @@ class AWSBasePlugin(PythonDataSourcePlugin):
         return result
 
     def onError(self, result, config):
-        if "<Message>" in str(result):
-            result = str(result)
-            m = re.search('<Message>(.+?)</Message>', result)
+        str_res = str(result)
+        if "<Message>" in str_res:
+            m = re.search('<Message>(.+?)</Message>', str_res)
             if m:
                 res = m.group(1)
                 log.info(res)
-                if self.component in result:
+                if self.component in str_res:
                     return {
                         'values': {},
                         'events': [{
@@ -85,8 +85,11 @@ class AWSBasePlugin(PythonDataSourcePlugin):
                     self.component
                 )
                 severity = ZenEventClasses.Info
+            elif ('timed out' in str_res) or ("name resolution" in str_res) or ("service not known" in str_res):
+                summary = "Connection timed out or network problems."
+                severity = ZenEventClasses.Error
             else:
-                summary = str(result)
+                summary = str_res
                 severity = ZenEventClasses.Error
             return {
                 'values': {},
