@@ -10,7 +10,7 @@
 import os
 import json
 
-from Products.ZenModel.ZenPack import ZenPackBase
+from Products.ZenModel.ZenPack import ZenPackBase, ZenPackDependentsException
 
 from collections import defaultdict
 
@@ -62,11 +62,24 @@ class ZenPack(ZenPackBase):
     ZenPack loader.
     '''
     packZProperties = [
-        ('zAWSDiscover', '', 'string'),
+        ('zAWSDiscover', '', 'awsdiscoverfield'),
         ('zAWSRegionPEM', '', 'multilinekeypath'),
     ]
 
     def install(self, app):
+        try:
+            import ZenPacks.zenoss.ZenAWS
+            available = True
+        except ImportError:
+            available = False
+
+        if available:
+            raise ZenPackDependentsException("This ZenPack supersedes the older ZenAWS (ZenPacks.zenoss.ZenAWS) "
+                            "ZenPack that was installed by default on versions of Zenoss prior to 4.2.4. "
+                            "Please remove ZenAWS before installing this ZenPack. This will remove the /EC2 "
+                            "device class and the EC2Manager device within. After installing this ZenPack, "
+                            "you will be able to add a new EC2 Account with much greater functionality.")
+
         super(ZenPack, self).install(app)
         # Update relations after zenpack upgrade.
         self._updateDeviceRelations()
