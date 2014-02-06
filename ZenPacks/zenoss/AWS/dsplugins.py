@@ -214,6 +214,15 @@ class SQSQueuePlugin(AWSBasePlugin):
                 if queue:
                     queue.set_message_class(RawMessage)
                     messages = get_messages(queue)
+
+                    data['events'].append({
+                        'component': self.component,
+                        'summary': "Monitoring ok",
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Clear,
+                    })
+
                     for id, text in messages.iteritems():
                         data['events'].append({
                             'summary': text,
@@ -255,9 +264,15 @@ class ZonePlugin(AWSBasePlugin):
             zone = yield ec2regionconn.get_all_zones(ds.component).pop()
             if zone.state == 'available':
                 severity = ZenEventClasses.Clear
+                data['events'].append({
+                    'summary': "Monitoring Ok",
+                    'component': ds.component,
+                    'severity': severity,
+                    'eventKey': 'aws_result',
+                    'eventClass': '/Status',
+                })
             else:
                 severity = ZenEventClasses.Warning
-
             data['events'].append({
                 'summary': 'Zone state is {0}'.format(zone.state),
                 'component': ds.component,
@@ -272,7 +287,6 @@ class ZonePlugin(AWSBasePlugin):
                 "modname": "Zone state",
                 "state": zone.state
             }))
-
         defer.returnValue(data)
 
 
@@ -354,7 +368,15 @@ class EC2BaseStatePlugin(AWSBasePlugin):
                     )
 
                 maps = self.results_to_maps(region, ds.component)
+
                 if maps:
+                    data['events'].append({
+                        'component': ds.component,
+                        'summary': "Monitoring ok",
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Clear,
+                    })
                     data['maps'].append(maps)
             return data
 

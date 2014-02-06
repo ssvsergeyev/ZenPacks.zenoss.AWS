@@ -342,8 +342,8 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     timestamp = 'N'
                     # continue
 
-                # data['values'][ds.component][ds.datasource] = value, 'N'  # timestamp
-                data['values'][ds.component][ds.datasource] = (value, timestamp)
+                data['values'][ds.component][ds.datasource] = value, 'N'  # timestamp
+                # data['values'][ds.component][ds.datasource] = (value, timestamp)
 
         data['events'].append({
             'device': config.id,
