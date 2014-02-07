@@ -26,7 +26,7 @@ Products.ZenModel.Device
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -56,7 +56,7 @@ ZenPacks.zenoss.AWS.EC2Instance
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -107,7 +107,7 @@ True
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -130,7 +130,7 @@ ${here/getRegionId}
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -181,7 +181,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -232,7 +232,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -283,7 +283,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -334,7 +334,7 @@ True
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -357,7 +357,7 @@ ${here/getRegionId}
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -408,7 +408,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -459,7 +459,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -510,7 +510,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -569,7 +569,7 @@ True
 ['StatusCheckFailed_Instance_StatusCheckFailed_Instance']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 1
@@ -589,7 +589,7 @@ True
 ['StatusCheckFailed_System_StatusCheckFailed_System']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 1
@@ -1046,7 +1046,7 @@ ZenPacks.zenoss.AWS.EC2Instance
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1097,7 +1097,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1148,7 +1148,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1199,7 +1199,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1250,7 +1250,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1301,7 +1301,7 @@ True
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1324,7 +1324,7 @@ ${here/getRegionId}
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1375,7 +1375,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1426,7 +1426,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1477,7 +1477,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -1536,7 +1536,7 @@ True
 ['StatusCheckFailed_Instance_StatusCheckFailed_Instance']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 1
@@ -1556,7 +1556,7 @@ True
 ['StatusCheckFailed_System_StatusCheckFailed_System']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 1
@@ -2013,7 +2013,7 @@ ZenPacks.zenoss.AWS.EC2Region
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -2064,7 +2064,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -2115,7 +2115,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -2166,7 +2166,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -2217,7 +2217,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -2268,7 +2268,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -2319,7 +2319,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -2370,7 +2370,7 @@ True
 Python
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -2469,7 +2469,7 @@ True
 ['RegionsSoftLimits_elastic_ips']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 5
@@ -2489,7 +2489,7 @@ True
 ['RegionsSoftLimits_instances_count']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 20
@@ -2509,7 +2509,7 @@ True
 ['RegionsSoftLimits_subnets_count']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 20
@@ -2529,7 +2529,7 @@ True
 ['RegionsSoftLimits_volumes_count']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 5000
@@ -2549,7 +2549,7 @@ True
 ['RegionsSoftLimits_vpc_security_groups_count']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 50
@@ -2569,7 +2569,7 @@ True
 ['RegionsSoftLimits_vpc_security_rules_count']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 50
@@ -3142,7 +3142,7 @@ Products.ZenModel.Device
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3172,7 +3172,7 @@ Products.ZenModel.Device
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3202,7 +3202,7 @@ Products.ZenModel.Device
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3232,7 +3232,7 @@ Products.ZenModel.Device
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3334,7 +3334,7 @@ ZenPacks.zenoss.AWS.EC2Volume
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3385,7 +3385,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3436,7 +3436,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3487,7 +3487,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3538,7 +3538,7 @@ True
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3561,7 +3561,7 @@ ${here/getRegionId}
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3612,7 +3612,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3663,7 +3663,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -3714,7 +3714,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -4154,7 +4154,7 @@ ZenPacks.zenoss.AWS.EC2Volume
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -4205,7 +4205,7 @@ True
 Amazon CloudWatch
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -4385,7 +4385,7 @@ Products.ZenModel.Device
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -4415,7 +4415,7 @@ Products.ZenModel.Device
 Python
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -4464,7 +4464,7 @@ True
 ['bucketSize_total_size']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 5497559962838.5
@@ -4484,7 +4484,7 @@ True
 ['bucketSize_keys_count']
 </property>
 <property label="Enabled" type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="maxval" mode="w" >
 10000000
@@ -4627,7 +4627,7 @@ Products.ZenModel.Device
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}
@@ -4657,7 +4657,7 @@ Products.ZenModel.Device
 AWSDataSource
 </property>
 <property type="boolean" id="enabled" mode="w" >
-True
+False
 </property>
 <property type="string" id="component" mode="w" >
 ${here/id}

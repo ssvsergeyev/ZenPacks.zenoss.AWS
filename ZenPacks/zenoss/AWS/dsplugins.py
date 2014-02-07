@@ -26,9 +26,12 @@ from Products.ZenEvents import ZenEventClasses
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
 
+from Products.ZenUtils.Utils import prepId
+
 from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
 from ZenPacks.zenoss.AWS.utils import unused_reserved_instances_count
 
+from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import get_instance_data
 
 class AWSBasePlugin(PythonDataSourcePlugin):
     """
@@ -61,6 +64,7 @@ class AWSBasePlugin(PythonDataSourcePlugin):
         return result
 
     def onError(self, result, config):
+        data = self.new_data()
         if "<Message>" in str(result):
             result = str(result)
             m = re.search('<Message>(.+?)</Message>', result)
@@ -68,17 +72,14 @@ class AWSBasePlugin(PythonDataSourcePlugin):
                 res = m.group(1)
                 log.info(res)
                 if self.component in result:
-                    return {
-                        'values': {},
-                        'events': [{
-                            'component': self.component,
-                            'summary': res,
-                            'eventClass': '/Status',
-                            'eventKey': 'aws_result',
-                            'severity': ZenEventClasses.Info,
-                        }],
-                        'maps': [],
-                    }
+                    data['events'].append({
+                        'component': self.component,
+                        'summary': res,
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Info,
+                    })
+                    return data
         else:
             if 'IndexError' in str(result.type):
                 summary = 'The component {0} does not exist.'.format(
@@ -88,17 +89,16 @@ class AWSBasePlugin(PythonDataSourcePlugin):
             else:
                 summary = str(result)
                 severity = ZenEventClasses.Error
-            return {
-                'values': {},
-                'events': [{
-                    'component': self.component,
-                    'summary': summary,
-                    'eventClass': '/Status',
-                    'eventKey': 'aws_result',
-                    'severity': severity,
-                }],
-                'maps': [],
-            }
+
+            data['events'].append({
+                'component': self.component,
+                'summary': summary,
+                'eventClass': '/Status',
+                'eventKey': 'aws_result',
+                'severity': severity,
+
+            })
+            return data
 
 
 class S3BucketPlugin(AWSBasePlugin):
@@ -143,21 +143,21 @@ class EC2RegionPlugin(AWSBasePlugin):
         }
 
         for ds in config.datasources:
-            self.component = ds.component
+            region_id = self.component = ds.component
             ec2regionconn = boto.ec2.connect_to_region(
-                ds.component,
+                region_id,
                 aws_access_key_id=ds.ec2accesskey,
                 aws_secret_access_key=ds.ec2secretkey,
             )
             vpcregionconn = boto.vpc.connect_to_region(
-                ds.component,
+                region_id,
                 aws_access_key_id=ds.ec2accesskey,
                 aws_secret_access_key=ds.ec2secretkey,
             )
 
-            instances_count = len(ec2regionconn.get_all_instances(
+            instances = ec2regionconn.get_only_instances(
                 filters=instance_filters
-            ))
+            )
             elastic_ips_count = len(ec2regionconn.get_all_addresses())
             subnets_count = len(vpcregionconn.get_all_subnets())
             volumes_count = len(ec2regionconn.get_all_volumes())
@@ -167,14 +167,26 @@ class EC2RegionPlugin(AWSBasePlugin):
             for group in sg:
                 rules_count = max(len(group.rules), rules_count)
 
-            data['values'][ds.component] = dict(
-                instances_count=(instances_count, 'N'),
+            data['values'][region_id] = dict(
+                instances_count=(len(instances), 'N'),
                 elastic_ips_count=(elastic_ips_count, 'N'),
                 subnets_count=(subnets_count, 'N'),
                 volumes_count=(volumes_count, 'N'),
                 vpc_security_groups_count=(sg_count, 'N'),
                 vpc_security_rules_count=(rules_count, 'N')
             )
+
+            for instance in instances:
+                om = ObjectMap()
+                data = get_instance_data(instance)
+                om.updateFromDict({
+                    'id': data['id'],
+                    'compname': '/regions/%s/instances/%s' % (region_id, prepId(instance.id)),
+                    'relname': 'instances',
+                    # 'remove': True,
+                    'data': data,
+                })
+                data['maps'].append(om)
 
         defer.returnValue(data)
 
