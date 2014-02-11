@@ -34,6 +34,16 @@ import boto.sqs
 Models regions, instance types, zones, instances, volumes, VPCs and VPC
 subnets for an Amazon EC2 account.
 '''
+INSTANCE_FILTERS = {
+    'instance-state-name': [
+        'pending',
+        'running',
+        'shutting-down',
+        'stopping',
+        'stopped',
+    ],
+}
+
 
 
 class EC2(PythonPlugin):
@@ -41,7 +51,8 @@ class EC2(PythonPlugin):
         'ec2accesskey',
         'ec2secretkey',
         'zAWSDiscover',
-        'zAWSRegionPEM'
+        'zAWSRegionPEM',
+        # 'zRemodelEnabled',
     )
 
     def collect(self, device, log):
@@ -88,16 +99,6 @@ class EC2(PythonPlugin):
             ('account', []),
             ('reserved_instances', []),
         ])
-
-        instance_filters = {
-            'instance-state-name': [
-                'pending',
-                'running',
-                'shutting-down',
-                'stopping',
-                'stopped',
-            ],
-        }
 
         image_filters = []
 
@@ -148,7 +149,7 @@ class EC2(PythonPlugin):
             maps['instances'].append(instances_rm(
                 region_id,
                 device,
-                ec2regionconn.get_only_instances(filters=instance_filters),
+                ec2regionconn.get_only_instances(filters=INSTANCE_FILTERS),
                 image_filters
             ))
 
@@ -453,12 +454,12 @@ def instances_rm(region_id, device, instances, image_filters):
     for instance in instances:
         image_filters.append(instance.image_id)
 
-        instance_data.append(get_instance_data(
-            instance, region_id, device
-        ).update({
+        data = get_instance_data(instance)
+        data.update({
             'guest': check_tag(device.zAWSDiscover, instance.tags),
             'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
-        }))
+        })
+        instance_data.append(data)
 
     return RelationshipMap(
         compname='regions/%s' % region_id,

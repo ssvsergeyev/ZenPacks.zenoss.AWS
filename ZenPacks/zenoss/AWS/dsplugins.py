@@ -31,7 +31,8 @@ from Products.ZenUtils.Utils import prepId
 from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
 from ZenPacks.zenoss.AWS.utils import unused_reserved_instances_count
 
-from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import get_instance_data
+from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import instances_rm
+from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import INSTANCE_FILTERS
 
 class AWSBasePlugin(PythonDataSourcePlugin):
     """
@@ -128,20 +129,16 @@ class EC2RegionPlugin(AWSBasePlugin):
     """
     Subclass of AWSBasePlugin to monitor AWS EC2Region soft limits.
     """
+    proxy_attributes = (
+        'ec2accesskey',
+        'ec2secretkey',
+        'zAWSDiscover',
+        'zAWSRegionPEM',
+    )
 
     @defer.inlineCallbacks
     def collect(self, config):
         data = self.new_data()
-        instance_filters = {
-            'instance-state-name': [
-                'pending',
-                'running',
-                'shutting-down',
-                'stopping',
-                'stopped',
-            ],
-        }
-
         for ds in config.datasources:
             region_id = self.component = ds.component
             ec2regionconn = boto.ec2.connect_to_region(
@@ -156,7 +153,7 @@ class EC2RegionPlugin(AWSBasePlugin):
             )
 
             instances = ec2regionconn.get_only_instances(
-                filters=instance_filters
+                filters=INSTANCE_FILTERS
             )
             elastic_ips_count = len(ec2regionconn.get_all_addresses())
             subnets_count = len(vpcregionconn.get_all_subnets())
@@ -175,21 +172,14 @@ class EC2RegionPlugin(AWSBasePlugin):
                 vpc_security_groups_count=(sg_count, 'N'),
                 vpc_security_rules_count=(rules_count, 'N')
             )
-
-            for instance in instances:
-                om = ObjectMap()
-                data = get_instance_data(instance)
-                om.updateFromDict({
-                    'id': data['id'],
-                    'compname': '/regions/%s/instances/%s' % (region_id, prepId(instance.id)),
-                    'relname': 'instances',
-                    # 'remove': True,
-                    'data': data,
-                })
-                data['maps'].append(om)
+            data['maps'].append(instances_rm(
+                region_id,
+                ds,
+                instances,
+                []
+            ))
 
         defer.returnValue(data)
-
 
 def get_messages(queue):
     messages = {}
