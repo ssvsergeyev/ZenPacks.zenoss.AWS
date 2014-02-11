@@ -104,4 +104,5 @@ class EC2VPCInfo(ComponentInfo):
     @property
     def instance_count(self):
         return sum(
-            x.instances.countObjects() for x in self._object.vpc_subnets())
+            x.instances.countObjects() for x in self._object.vpc_subnets()
+        )

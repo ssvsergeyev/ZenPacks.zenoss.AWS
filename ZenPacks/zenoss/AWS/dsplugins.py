@@ -26,9 +26,13 @@ from Products.ZenEvents import ZenEventClasses
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
 
+from Products.ZenUtils.Utils import prepId
+
 from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
 from ZenPacks.zenoss.AWS.utils import unused_reserved_instances_count
 
+from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import instances_rm
+from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import INSTANCE_FILTERS
 
 class AWSBasePlugin(PythonDataSourcePlugin):
     """
@@ -61,6 +65,7 @@ class AWSBasePlugin(PythonDataSourcePlugin):
         return result
 
     def onError(self, result, config):
+        data = self.new_data()
         str_res = str(result)
         if "<Message>" in str_res:
             m = re.search('<Message>(.+?)</Message>', str_res)
@@ -68,17 +73,14 @@ class AWSBasePlugin(PythonDataSourcePlugin):
                 res = m.group(1)
                 log.info(res)
                 if self.component in str_res:
-                    return {
-                        'values': {},
-                        'events': [{
-                            'component': self.component,
-                            'summary': res,
-                            'eventClass': '/Status',
-                            'eventKey': 'aws_result',
-                            'severity': ZenEventClasses.Info,
-                        }],
-                        'maps': [],
-                    }
+                    data['events'].append({
+                        'component': self.component,
+                        'summary': res,
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Info,
+                    })
+                    return data
         else:
             if 'IndexError' in str(result.type):
                 summary = 'The component {0} does not exist.'.format(
@@ -91,17 +93,16 @@ class AWSBasePlugin(PythonDataSourcePlugin):
             else:
                 summary = str_res
                 severity = ZenEventClasses.Error
-            return {
-                'values': {},
-                'events': [{
-                    'component': self.component,
-                    'summary': summary,
-                    'eventClass': '/Status',
-                    'eventKey': 'aws_result',
-                    'severity': severity,
-                }],
-                'maps': [],
-            }
+
+            data['events'].append({
+                'component': self.component,
+                'summary': summary,
+                'eventClass': '/Status',
+                'eventKey': 'aws_result',
+                'severity': severity,
+
+            })
+            return data
 
 
 class S3BucketPlugin(AWSBasePlugin):
@@ -128,57 +129,58 @@ class S3BucketPlugin(AWSBasePlugin):
 
 
 class EC2RegionPlugin(AWSBasePlugin):
-    """
-    Subclass of AWSBasePlugin to monitor AWS EC2Region soft limits.
-    """
+    proxy_attributes = (
+       'ec2accesskey',
+       'ec2secretkey',
+       'zAWSDiscover',
+       'zAWSRegionPEM',
+       'zRemodelEnabled',
+   )
 
     @defer.inlineCallbacks
     def collect(self, config):
+        _ = yield
         data = self.new_data()
-        instance_filters = {
-            'instance-state-name': [
-                'pending',
-                'running',
-                'shutting-down',
-                'stopping',
-                'stopped',
-            ],
-        }
-
         for ds in config.datasources:
-            self.component = ds.component
+            region_id = self.component = ds.component
             ec2regionconn = boto.ec2.connect_to_region(
-                ds.component,
+                region_id,
                 aws_access_key_id=ds.ec2accesskey,
                 aws_secret_access_key=ds.ec2secretkey,
             )
             vpcregionconn = boto.vpc.connect_to_region(
-                ds.component,
+                region_id,
                 aws_access_key_id=ds.ec2accesskey,
                 aws_secret_access_key=ds.ec2secretkey,
             )
 
-            instances_count = len(ec2regionconn.get_all_instances(
-                filters=instance_filters
-            ))
+            instances = ec2regionconn.get_only_instances(
+                filters=INSTANCE_FILTERS
+            )
             elastic_ips_count = len(ec2regionconn.get_all_addresses())
             subnets_count = len(vpcregionconn.get_all_subnets())
             volumes_count = len(ec2regionconn.get_all_volumes())
-            sg = yield ec2regionconn.get_all_security_groups()
+            sg = ec2regionconn.get_all_security_groups()
             sg_count = len(sg)
             rules_count = 0
             for group in sg:
                 rules_count = max(len(group.rules), rules_count)
 
-            data['values'][ds.component] = dict(
-                instances_count=(instances_count, 'N'),
+            data['values'][region_id] = dict(
+                instances_count=(len(instances), 'N'),
                 elastic_ips_count=(elastic_ips_count, 'N'),
                 subnets_count=(subnets_count, 'N'),
                 volumes_count=(volumes_count, 'N'),
                 vpc_security_groups_count=(sg_count, 'N'),
                 vpc_security_rules_count=(rules_count, 'N')
             )
-
+            if ds.zRemodelEnabled.lower() == 'true':
+                data['maps'].append(instances_rm(
+                    region_id,
+                    ds,
+                    instances,
+                    []
+                ))
         defer.returnValue(data)
 
 

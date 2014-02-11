@@ -34,6 +34,16 @@ import boto.sqs
 Models regions, instance types, zones, instances, volumes, VPCs and VPC
 subnets for an Amazon EC2 account.
 '''
+INSTANCE_FILTERS = {
+    'instance-state-name': [
+        'pending',
+        'running',
+        'shutting-down',
+        'stopping',
+        'stopped',
+    ],
+}
+
 
 
 class EC2(PythonPlugin):
@@ -41,7 +51,8 @@ class EC2(PythonPlugin):
         'ec2accesskey',
         'ec2secretkey',
         'zAWSDiscover',
-        'zAWSRegionPEM'
+        'zAWSRegionPEM',
+        # 'zRemodelEnabled',
     )
 
     def collect(self, device, log):
@@ -89,16 +100,6 @@ class EC2(PythonPlugin):
             ('reserved_instances', []),
         ])
 
-        instance_filters = {
-            'instance-state-name': [
-                'pending',
-                'running',
-                'shutting-down',
-                'stopping',
-                'stopped',
-            ],
-        }
-
         image_filters = []
 
         region_oms = []
@@ -132,29 +133,25 @@ class EC2(PythonPlugin):
             # VPNGateways
             maps['VPNGateways'].append(
                 vpn_gateways_rm(
-                    region_id, vpcregionconn.get_all_vpn_gateways())
-            )
-
-            maps['queues'].append(
-                vpn_queues_rm(
-                    region_id, sqsconnection.get_all_queues())
-            )
-
-            # VPC Subnets
-            maps['VPC subnets'].append(
-                vpc_subnets_rm(
-                    region_id, vpcregionconn.get_all_subnets())
-            )
-
-            # Instances
-            maps['instances'].append(
-                instances_rm(
-                    region_id,
-                    device,
-                    ec2regionconn.get_all_instances(filters=instance_filters),
-                    image_filters
+                    region_id, vpcregionconn.get_all_vpn_gateways()
                 )
             )
+
+            maps['queues'].append(vpn_queues_rm(
+                region_id, sqsconnection.get_all_queues()
+            ))
+
+            maps['VPC subnets'].append(vpc_subnets_rm(
+                region_id, vpcregionconn.get_all_subnets()
+            ))
+
+            # Instances
+            maps['instances'].append(instances_rm(
+                region_id,
+                device,
+                ec2regionconn.get_only_instances(filters=INSTANCE_FILTERS),
+                image_filters
+            ))
 
             # Images
             if image_filters:
@@ -164,19 +161,15 @@ class EC2(PythonPlugin):
                 )
                 image_filters = []
 
-            # Volumes
-            maps['volumes'].append(
-                volumes_rm(
-                    region_id, ec2regionconn.get_all_volumes())
-            )
+            maps['volumes'].append(volumes_rm(
+                region_id, ec2regionconn.get_all_volumes()
+            ))
 
-            # Volumes
-            maps['snapshots'].append(
-                snapshots_rm(
-                    region_id, ec2regionconn.get_all_snapshots(
-                        owner="self"
-                    ))
-            )
+            maps['snapshots'].append(snapshots_rm(
+                region_id, ec2regionconn.get_all_snapshots(
+                    owner="self"
+                )
+            ))
 
             # Elastic IPs
             maps['elastic_ips'].append(
@@ -429,44 +422,51 @@ def vpc_subnets_rm(region_id, subnets):
         modname=MODULE_NAME['EC2VPCSubnet'],
         objmaps=vpc_subnet_data)
 
+def get_instance_data(instance):
+    zone_id = prepId(instance.placement) if instance.placement else None
+    subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
 
-def instances_rm(region_id, device, reservations, image_filters):
+    return {
+        'id': prepId(instance.id),
+        'title': name_or(instance.tags, instance.id),
+        'instance_id': instance.id,
+        'tags': tags_string(instance.tags),
+        'public_dns_name': instance.public_dns_name,
+        'public_ip': instance.ip_address,
+        'private_ip_address': instance.private_ip_address,
+        'instance_type': instance.instance_type,
+        'launch_time': format_time(instance.launch_time),
+        'state': instance.state,
+        'platform': getattr(instance, 'platform', ''),
+        'detailed_monitoring': instance.monitored,
+        'setZoneId': zone_id,
+        'setImageId': instance.image_id,
+        'setVPCSubnetId': subnet_id,
+    }
+
+
+def instances_rm(region_id, device, instances, image_filters):
     '''
     Return instances RelationshipMap given region_id and an InstanceInfo
     ResultSet.
     '''
     instance_data = []
-    for instance in chain.from_iterable(r.instances for r in reservations):
-        zone_id = prepId(instance.placement) if instance.placement else None
-        subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
-
+    for instance in instances:
         image_filters.append(instance.image_id)
 
-        instance_data.append({
-            'id': prepId(instance.id),
-            'title': name_or(instance.tags, instance.id),
-            'instance_id': instance.id,
-            'tags': tags_string(instance.tags),
-            'public_dns_name': instance.public_dns_name,
-            'public_ip': instance.ip_address,
-            'private_ip_address': instance.private_ip_address,
-            'instance_type': instance.instance_type,
-            'launch_time': format_time(instance.launch_time),
-            'state': instance.state,
-            'platform': getattr(instance, 'platform', ''),
-            'detailed_monitoring': instance.monitored,
-            'setZoneId': zone_id,
-            'setImageId': instance.image_id,
-            'setVPCSubnetId': subnet_id,
+        data = get_instance_data(instance)
+        data.update({
             'guest': check_tag(device.zAWSDiscover, instance.tags),
             'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
         })
+        instance_data.append(data)
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
         relname='instances',
         modname=MODULE_NAME['EC2Instance'],
-        objmaps=instance_data)
+        objmaps=instance_data
+    )
 
 
 def images_rm(region_id, images):
