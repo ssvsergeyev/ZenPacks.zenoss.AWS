@@ -62,7 +62,7 @@ class ZenPack(ZenPackBase):
     ZenPack loader.
     '''
     packZProperties = [
-        ('zAWSDiscover', '', 'string'),
+        ('zAWSDiscover', '', 'awsdiscoverfield'),
         ('zAWSRegionPEM', '', 'multilinekeypath'),
         # ('zRemodelEnabled', 'false', 'bool'),
     ]

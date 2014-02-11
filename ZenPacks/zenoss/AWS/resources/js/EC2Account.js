@@ -1607,7 +1607,7 @@ Ext.onReady(function(){
             id: 'lastChanged-view',
             xtype: 'displayfield',
             name: 'lastChanged',
-            fieldLabel: _t('Last change'),
+            fieldLabel: _t('Last Change'),
             permission: 'Manage Device'
         });
 

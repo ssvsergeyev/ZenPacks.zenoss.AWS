@@ -66,13 +66,13 @@ class AWSBasePlugin(PythonDataSourcePlugin):
 
     def onError(self, result, config):
         data = self.new_data()
-        if "<Message>" in str(result):
-            result = str(result)
-            m = re.search('<Message>(.+?)</Message>', result)
+        str_res = str(result)
+        if "<Message>" in str_res:
+            m = re.search('<Message>(.+?)</Message>', str_res)
             if m:
                 res = m.group(1)
                 log.info(res)
-                if self.component in result:
+                if self.component in str_res:
                     data['events'].append({
                         'component': self.component,
                         'summary': res,
@@ -87,8 +87,11 @@ class AWSBasePlugin(PythonDataSourcePlugin):
                     self.component
                 )
                 severity = ZenEventClasses.Info
+            elif ('timed out' in str_res) or ("name resolution" in str_res) or ("service not known" in str_res):
+                summary = "Connection timed out or network problems."
+                severity = ZenEventClasses.Error
             else:
-                summary = str(result)
+                summary = str_res
                 severity = ZenEventClasses.Error
 
             data['events'].append({
@@ -213,6 +216,15 @@ class SQSQueuePlugin(AWSBasePlugin):
                 if queue:
                     queue.set_message_class(RawMessage)
                     messages = get_messages(queue)
+
+                    data['events'].append({
+                        'component': self.component,
+                        'summary': "Monitoring ok",
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Clear,
+                    })
+
                     for id, text in messages.iteritems():
                         data['events'].append({
                             'summary': text,
@@ -254,9 +266,15 @@ class ZonePlugin(AWSBasePlugin):
             zone = yield ec2regionconn.get_all_zones(ds.component).pop()
             if zone.state == 'available':
                 severity = ZenEventClasses.Clear
+                data['events'].append({
+                    'summary': "Monitoring Ok",
+                    'component': ds.component,
+                    'severity': severity,
+                    'eventKey': 'aws_result',
+                    'eventClass': '/Status',
+                })
             else:
                 severity = ZenEventClasses.Warning
-
             data['events'].append({
                 'summary': 'Zone state is {0}'.format(zone.state),
                 'component': ds.component,
@@ -271,7 +289,6 @@ class ZonePlugin(AWSBasePlugin):
                 "modname": "Zone state",
                 "state": zone.state
             }))
-
         defer.returnValue(data)
 
 
@@ -353,7 +370,15 @@ class EC2BaseStatePlugin(AWSBasePlugin):
                     )
 
                 maps = self.results_to_maps(region, ds.component)
+
                 if maps:
+                    data['events'].append({
+                        'component': ds.component,
+                        'summary': "Monitoring ok",
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Clear,
+                    })
                     data['maps'].append(maps)
             return data
 
