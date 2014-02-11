@@ -234,30 +234,30 @@ def tags_string(tegs):
 def check_tag(values, tags):
     '''
     Return parsed zproperty.
+
+    @param values: zAWSDiscover values
+    @type values: str
+    @param tags: instance's tags
+    @type tags: dict
     '''
     if values.strip():
         try:
-            value = dict((k.strip(), v.strip()) for k, v in (x.split(':')
-                         for x in values.split(';') if x.strip()))
+            value = set((k.strip(), v.strip()) for k, v in (x.split(':')
+                        for x in values.split(';') if x.strip()))
         except:
-            # if not check_tag.logged:
-            #     log.info('zAWSDiscover is incorrect, it must be of type '
-            #              '"<tag>:<value>; <tag>:<value>;". '
-            #              'Guest device will not be created.')
-            #     check_tag.logged = True
             return False
     else:
+        # return True if zAWSDiscover is not set.
         return True
     check = False
     for key in tags:
         try:
-            if value[key.strip()] == tags[key].strip():
-                check += True
+            for k, v in value:
+                if k == key.strip() and v == tags[key].strip():
+                    check += True
         except:
             continue
     return True if check > 0 else False
-
-check_tag.logged = False
 
 
 def block_device(devices):
