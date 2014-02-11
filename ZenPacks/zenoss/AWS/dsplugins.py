@@ -129,18 +129,17 @@ class S3BucketPlugin(AWSBasePlugin):
 
 
 class EC2RegionPlugin(AWSBasePlugin):
-    """
-    Subclass of AWSBasePlugin to monitor AWS EC2Region soft limits.
-    """
     proxy_attributes = (
-        'ec2accesskey',
-        'ec2secretkey',
-        'zAWSDiscover',
-        'zAWSRegionPEM',
-    )
+       'ec2accesskey',
+       'ec2secretkey',
+       'zAWSDiscover',
+       'zAWSRegionPEM',
+       'zRemodelEnabled',
+   )
 
     @defer.inlineCallbacks
     def collect(self, config):
+        _ = yield
         data = self.new_data()
         for ds in config.datasources:
             region_id = self.component = ds.component
@@ -161,7 +160,7 @@ class EC2RegionPlugin(AWSBasePlugin):
             elastic_ips_count = len(ec2regionconn.get_all_addresses())
             subnets_count = len(vpcregionconn.get_all_subnets())
             volumes_count = len(ec2regionconn.get_all_volumes())
-            sg = yield ec2regionconn.get_all_security_groups()
+            sg = ec2regionconn.get_all_security_groups()
             sg_count = len(sg)
             rules_count = 0
             for group in sg:
@@ -175,14 +174,15 @@ class EC2RegionPlugin(AWSBasePlugin):
                 vpc_security_groups_count=(sg_count, 'N'),
                 vpc_security_rules_count=(rules_count, 'N')
             )
-            data['maps'].append(instances_rm(
-                region_id,
-                ds,
-                instances,
-                []
-            ))
-
+            if ds.zRemodelEnabled.lower() == 'true':
+                data['maps'].append(instances_rm(
+                    region_id,
+                    ds,
+                    instances,
+                    []
+                ))
         defer.returnValue(data)
+
 
 def get_messages(queue):
     messages = {}
