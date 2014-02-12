@@ -26,13 +26,12 @@ from Products.ZenEvents import ZenEventClasses
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
 
-from Products.ZenUtils.Utils import prepId
-
 from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
 from ZenPacks.zenoss.AWS.utils import unused_reserved_instances_count
 
 from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import instances_rm
 from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import INSTANCE_FILTERS
+
 
 class AWSBasePlugin(PythonDataSourcePlugin):
     """
@@ -87,7 +86,8 @@ class AWSBasePlugin(PythonDataSourcePlugin):
                     self.component
                 )
                 severity = ZenEventClasses.Info
-            elif ('timed out' in str_res) or ("name resolution" in str_res) or ("service not known" in str_res):
+            elif ('timed out' in str_res) or ("name resolution" in str_res) or\
+                 ("service not known" in str_res):
                 summary = "Connection timed out or network problems."
                 severity = ZenEventClasses.Error
             else:
@@ -130,12 +130,12 @@ class S3BucketPlugin(AWSBasePlugin):
 
 class EC2RegionPlugin(AWSBasePlugin):
     proxy_attributes = (
-       'ec2accesskey',
-       'ec2secretkey',
-       'zAWSDiscover',
-       'zAWSRegionPEM',
-       'zRemodelEnabled',
-   )
+        'ec2accesskey',
+        'ec2secretkey',
+        'zAWSDiscover',
+        'zAWSRegionPEM',
+        'zRemodelEnabled',
+    )
 
     @defer.inlineCallbacks
     def collect(self, config):
@@ -342,11 +342,19 @@ class EC2BaseStatePlugin(AWSBasePlugin):
     """
     Subclass of AWSBasePlugin to monitor AWS components' states.
     """
+    proxy_attributes = AWSBasePlugin.proxy_attributes + ('state',)
+
     ec2regionconn = None
     vpcregionconn = None
 
     def results_to_maps(self, region, component):
         """Return Object map for the component status remodeling.
+        """
+        pass
+
+    def gen_events(self, ds, data):
+        """
+        Generates the event.
         """
         pass
 
@@ -370,6 +378,7 @@ class EC2BaseStatePlugin(AWSBasePlugin):
                     )
 
                 maps = self.results_to_maps(region, ds.component)
+                self.gen_events(ds, data)
 
                 if maps:
                     data['events'].append({
@@ -389,6 +398,20 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
     """
     Subclass of EC2BaseStatePlugin to monitor AWS Instance state.
     """
+    def gen_events(self, ds, data):
+        if ds.state:
+            severity = ZenEventClasses.Clear if\
+                ds.state.lower() != 'stopped' else ZenEventClasses.Critical
+            data['events'].append({
+                'component': ds.component,
+                'summary': "Instance {0} is {1}.".format(
+                    ds.component,
+                    ds.state
+                ),
+                'eventClass': '/Status',
+                'eventKey': '{0}_instance_warning'.format(ds.component),
+                'severity': severity,
+            })
 
     def results_to_maps(self, region, component):
         if not self.ec2regionconn:
