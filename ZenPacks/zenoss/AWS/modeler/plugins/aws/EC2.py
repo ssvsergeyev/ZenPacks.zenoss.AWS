@@ -302,6 +302,16 @@ def format_time(time):
     return time[:time.rfind('.')].replace('T', ' ')
 
 
+def format_size(size):
+    '''
+    Return formated capacity value for volumes or snapshots.
+    The capacity for these components is between 1 GiB and 1 TiB.
+    '''
+    if size:
+        return '{0} GiB'.format(size) if size < 1024 \
+            else '{0} TiB'.format(size/1024)
+
+
 def to_boolean(string):
     '''
     Return a boolean given a string representation of a boolean.
@@ -520,7 +530,7 @@ def volumes_rm(region_id, volumes):
             'title': name_or(volume.tags, volume.id),
             'volume_type': volume.type,
             'create_time': format_time(volume.create_time),
-            'size': volume.size / (1024 ** 3),
+            'size': format_size(volume.size),  # Min:1GiB, Max:1TiB
             'iops': volume.iops,
             'status': volume.status,
             'attach_data_status': volume.attach_data.status,
@@ -552,7 +562,7 @@ def snapshots_rm(region_id, snapshots):
             'id': prepId(snapshot.id),
             'title': name_or(snapshot.tags, snapshot.id),
             'description': snapshot.description,
-            'size': snapshot.volume_size / (1024 ** 3),
+            'size': format_size(snapshot.volume_size),
             'status': snapshot.status,
             'progress': snapshot.progress,
             'start_time': format_time(snapshot.start_time),
