@@ -75,7 +75,7 @@ class EC2ReservedInstance(AWSComponent):
 
 
 class IEC2ReservedInstanceInfo(IComponentInfo):
-    reserved_instance_id = schema.TextLine(title=_t(u'Reserved instance ID'))
+    reserved_instance_id = schema.TextLine(title=_t(u'Reserved Instance ID'))
     region = schema.Entity(title=_t(u'Region'))
     zone = schema.Entity(title=_t(u'Zone'))
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
