@@ -236,7 +236,7 @@ class SQSQueuePlugin(AWSBasePlugin):
                         })
                 else:
                     data['events'].append({
-                        'summary': 'Queue "%s" does not exists' % name,
+                        'summary': 'Queue "%s" does not exist' % name,
                         'device': config.id,
                         'component': self.component,
                         'severity': ZenEventClasses.Info,
@@ -519,7 +519,7 @@ class EC2UnreservedInstancesPlugin(AWSBasePlugin):
                 if c == 1:
                     event = 'This instance could be reserved'
                 elif c > 1:
-                    event = 'There is {0} instances of this type in this ' \
+                    event = 'There are {0} instances of this type in this ' \
                         'availability zone which could be reserved'.format(c)
 
                 if event:
@@ -560,8 +560,8 @@ class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
                 if c == 1:
                     event = 'This reserved instance is unused'
                 elif c > 1:
-                    event = 'There is {0} reserved instances of this type ' \
-                        'in this availability zone which are unused'.format(c)
+                    event = 'There are {0} unused reserved instances of ' \
+                        'this type in this availability zone'.format(c)
 
                 if event:
                     data['events'].append({
