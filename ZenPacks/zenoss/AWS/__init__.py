@@ -87,7 +87,7 @@ class ZenPack(ZenPackBase):
     packZProperties = [
         ('zAWSDiscover', '', 'awsdiscoverfield'),
         ('zAWSRegionPEM', '', 'multilinekeypath'),
-        ('zRemodelEnabled', 'false', 'bool'),
+        ('zAWSRemodelEnabled', 'false', 'bool'),
     ]
 
     def install(self, app):
