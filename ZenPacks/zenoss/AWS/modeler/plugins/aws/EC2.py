@@ -45,7 +45,6 @@ INSTANCE_FILTERS = {
 }
 
 
-
 class EC2(PythonPlugin):
     deviceProperties = PythonPlugin.deviceProperties + (
         'ec2accesskey',
@@ -421,6 +420,7 @@ def vpc_subnets_rm(region_id, subnets):
         relname='vpc_subnets',
         modname=MODULE_NAME['EC2VPCSubnet'],
         objmaps=vpc_subnet_data)
+
 
 def get_instance_data(instance):
     zone_id = prepId(instance.placement) if instance.placement else None
