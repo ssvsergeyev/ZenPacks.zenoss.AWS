@@ -432,9 +432,9 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'size',
                 dataIndex: 'size',
-                header: _t('Size'),
-                renderer: Zenoss.render.bytesString,
-                width: 55
+                header: _t('Capacity'),
+                // renderer: Zenoss.render.bytesString,
+                width: 70
             },{
                 id: 'iops',
                 dataIndex: 'iops',
@@ -517,9 +517,9 @@ ZC.EC2SnapshotPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'size',
                 dataIndex: 'size',
-                header: _t('Volume Size'),
-                renderer: Zenoss.render.bytesString,
-                width: 75
+                header: _t('Capacity'),
+                // renderer: Zenoss.render.bytesString,
+                width: 70
             },{
                 id: 'progress',
                 dataIndex: 'progress',
