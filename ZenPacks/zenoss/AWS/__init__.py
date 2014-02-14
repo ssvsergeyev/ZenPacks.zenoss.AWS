@@ -11,9 +11,14 @@ import os
 import json
 
 from Products.ZenModel.ZenPack import ZenPackBase, ZenPackDependentsException
+from Products.ZenRelations.zPropertyCategory import setzPropertyCategory
 
 from collections import defaultdict
 
+# Categorize zProperties.
+setzPropertyCategory('zAWSDiscover', 'AWS')
+setzPropertyCategory('zAWSRegionPEM', 'AWS')
+setzPropertyCategory('zAWSRemodelEnabled', 'AWS')
 
 # Modules containing model classes. Used by zenchkschema to validate
 # bidirectional integrity of defined relationships.

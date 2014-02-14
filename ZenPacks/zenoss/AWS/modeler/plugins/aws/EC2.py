@@ -297,14 +297,14 @@ def path_to_pem(region_name, values):
 
 def format_time(time):
     '''
-    Return formated time string.
+    Return formatted time string.
     '''
     return time[:time.rfind('.')].replace('T', ' ')
 
 
 def format_size(size):
     '''
-    Return formated capacity value for volumes or snapshots.
+    Return formatted  capacity value for volumes and snapshots.
     The capacity for these components is between 1 GiB and 1 TiB.
     '''
     if size:
