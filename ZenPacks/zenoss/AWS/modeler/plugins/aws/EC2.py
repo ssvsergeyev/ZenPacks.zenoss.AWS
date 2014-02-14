@@ -34,6 +34,15 @@ import boto.sqs
 Models regions, instance types, zones, instances, volumes, VPCs and VPC
 subnets for an Amazon EC2 account.
 '''
+INSTANCE_FILTERS = {
+    'instance-state-name': [
+        'pending',
+        'running',
+        'shutting-down',
+        'stopping',
+        'stopped',
+    ],
+}
 
 
 class EC2(PythonPlugin):
@@ -41,7 +50,8 @@ class EC2(PythonPlugin):
         'ec2accesskey',
         'ec2secretkey',
         'zAWSDiscover',
-        'zAWSRegionPEM'
+        'zAWSRegionPEM',
+        # 'zRemodelEnabled',
     )
 
     def collect(self, device, log):
@@ -89,16 +99,6 @@ class EC2(PythonPlugin):
             ('reserved_instances', []),
         ])
 
-        instance_filters = {
-            'instance-state-name': [
-                'pending',
-                'running',
-                'shutting-down',
-                'stopping',
-                'stopped',
-            ],
-        }
-
         image_filters = []
 
         region_oms = []
@@ -132,29 +132,25 @@ class EC2(PythonPlugin):
             # VPNGateways
             maps['VPNGateways'].append(
                 vpn_gateways_rm(
-                    region_id, vpcregionconn.get_all_vpn_gateways())
-            )
-
-            maps['queues'].append(
-                vpn_queues_rm(
-                    region_id, sqsconnection.get_all_queues())
-            )
-
-            # VPC Subnets
-            maps['VPC subnets'].append(
-                vpc_subnets_rm(
-                    region_id, vpcregionconn.get_all_subnets())
-            )
-
-            # Instances
-            maps['instances'].append(
-                instances_rm(
-                    region_id,
-                    device,
-                    ec2regionconn.get_all_instances(filters=instance_filters),
-                    image_filters
+                    region_id, vpcregionconn.get_all_vpn_gateways()
                 )
             )
+
+            maps['queues'].append(vpn_queues_rm(
+                region_id, sqsconnection.get_all_queues()
+            ))
+
+            maps['VPC subnets'].append(vpc_subnets_rm(
+                region_id, vpcregionconn.get_all_subnets()
+            ))
+
+            # Instances
+            maps['instances'].append(instances_rm(
+                region_id,
+                device,
+                ec2regionconn.get_only_instances(filters=INSTANCE_FILTERS),
+                image_filters
+            ))
 
             # Images
             if image_filters:
@@ -164,19 +160,15 @@ class EC2(PythonPlugin):
                 )
                 image_filters = []
 
-            # Volumes
-            maps['volumes'].append(
-                volumes_rm(
-                    region_id, ec2regionconn.get_all_volumes())
-            )
+            maps['volumes'].append(volumes_rm(
+                region_id, ec2regionconn.get_all_volumes()
+            ))
 
-            # Volumes
-            maps['snapshots'].append(
-                snapshots_rm(
-                    region_id, ec2regionconn.get_all_snapshots(
-                        owner="self"
-                    ))
-            )
+            maps['snapshots'].append(snapshots_rm(
+                region_id, ec2regionconn.get_all_snapshots(
+                    owner="self"
+                )
+            ))
 
             # Elastic IPs
             maps['elastic_ips'].append(
@@ -234,30 +226,30 @@ def tags_string(tegs):
 def check_tag(values, tags):
     '''
     Return parsed zproperty.
+
+    @param values: zAWSDiscover values
+    @type values: str
+    @param tags: instance's tags
+    @type tags: dict
     '''
     if values.strip():
         try:
-            value = dict((k.strip(), v.strip()) for k, v in (x.split(':')
-                         for x in values.split(';') if x.strip()))
+            value = set((k.strip(), v.strip()) for k, v in (x.split(':')
+                        for x in values.split(';') if x.strip()))
         except:
-            # if not check_tag.logged:
-            #     log.info('zAWSDiscover is incorrect, it must be of type '
-            #              '"<tag>:<value>; <tag>:<value>;". '
-            #              'Guest device will not be created.')
-            #     check_tag.logged = True
             return False
     else:
+        # return True if zAWSDiscover is not set.
         return True
     check = False
     for key in tags:
         try:
-            if value[key.strip()] == tags[key].strip():
-                check += True
+            for k, v in value:
+                if k == key.strip() and v == tags[key].strip():
+                    check += True
         except:
             continue
     return True if check > 0 else False
-
-check_tag.logged = False
 
 
 def block_device(devices):
@@ -305,9 +297,19 @@ def path_to_pem(region_name, values):
 
 def format_time(time):
     '''
-    Return formated time string.
+    Return formatted time string.
     '''
     return time[:time.rfind('.')].replace('T', ' ')
+
+
+def format_size(size):
+    '''
+    Return formatted  capacity value for volumes and snapshots.
+    The capacity for these components is between 1 GiB and 1 TiB.
+    '''
+    if size:
+        return '{0} GiB'.format(size) if size < 1024 \
+            else '{0} TiB'.format(size/1024)
 
 
 def to_boolean(string):
@@ -430,43 +432,51 @@ def vpc_subnets_rm(region_id, subnets):
         objmaps=vpc_subnet_data)
 
 
-def instances_rm(region_id, device, reservations, image_filters):
+def get_instance_data(instance):
+    zone_id = prepId(instance.placement) if instance.placement else None
+    subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
+
+    return {
+        'id': prepId(instance.id),
+        'title': name_or(instance.tags, instance.id),
+        'instance_id': instance.id,
+        'tags': tags_string(instance.tags),
+        'public_dns_name': instance.public_dns_name,
+        'public_ip': instance.ip_address,
+        'private_ip_address': instance.private_ip_address,
+        'instance_type': instance.instance_type,
+        'launch_time': format_time(instance.launch_time),
+        'state': instance.state,
+        'platform': getattr(instance, 'platform', ''),
+        'detailed_monitoring': instance.monitored,
+        'setZoneId': zone_id,
+        'setImageId': instance.image_id,
+        'setVPCSubnetId': subnet_id,
+    }
+
+
+def instances_rm(region_id, device, instances, image_filters):
     '''
     Return instances RelationshipMap given region_id and an InstanceInfo
     ResultSet.
     '''
     instance_data = []
-    for instance in chain.from_iterable(r.instances for r in reservations):
-        zone_id = prepId(instance.placement) if instance.placement else None
-        subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
-
+    for instance in instances:
         image_filters.append(instance.image_id)
 
-        instance_data.append({
-            'id': prepId(instance.id),
-            'title': name_or(instance.tags, instance.id),
-            'instance_id': instance.id,
-            'tags': tags_string(instance.tags),
-            'public_dns_name': instance.public_dns_name,
-            'public_ip': instance.ip_address,
-            'private_ip_address': instance.private_ip_address,
-            'instance_type': instance.instance_type,
-            'launch_time': format_time(instance.launch_time),
-            'state': instance.state,
-            'platform': getattr(instance, 'platform', ''),
-            'detailed_monitoring': instance.monitored,
-            'setZoneId': zone_id,
-            'setImageId': instance.image_id,
-            'setVPCSubnetId': subnet_id,
+        data = get_instance_data(instance)
+        data.update({
             'guest': check_tag(device.zAWSDiscover, instance.tags),
             'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
         })
+        instance_data.append(data)
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
         relname='instances',
         modname=MODULE_NAME['EC2Instance'],
-        objmaps=instance_data)
+        objmaps=instance_data
+    )
 
 
 def images_rm(region_id, images):
@@ -520,7 +530,7 @@ def volumes_rm(region_id, volumes):
             'title': name_or(volume.tags, volume.id),
             'volume_type': volume.type,
             'create_time': format_time(volume.create_time),
-            'size': volume.size / (1024 ** 3),
+            'size': format_size(volume.size),  # Min:1GiB, Max:1TiB
             'iops': volume.iops,
             'status': volume.status,
             'attach_data_status': volume.attach_data.status,
@@ -552,7 +562,7 @@ def snapshots_rm(region_id, snapshots):
             'id': prepId(snapshot.id),
             'title': name_or(snapshot.tags, snapshot.id),
             'description': snapshot.description,
-            'size': snapshot.volume_size / (1024 ** 3),
+            'size': format_size(snapshot.volume_size),
             'status': snapshot.status,
             'progress': snapshot.progress,
             'start_time': format_time(snapshot.start_time),

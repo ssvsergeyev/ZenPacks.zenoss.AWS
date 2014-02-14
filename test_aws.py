@@ -64,9 +64,9 @@ for region in ec2conn.get_all_regions():
 
     region_scheme = {}
 
-    #ec2_r_conn = boto.ec2.connect_to_region(region.name, **credentials)
-    # region_scheme['instances'] = get_instances(ec2_r_conn)
-    region_scheme['queues'] = get_queues(region.name)
+    ec2_r_conn = boto.ec2.connect_to_region(region.name, **credentials)
+    region_scheme['instances'] = get_instances(ec2_r_conn)
+    # region_scheme['queues'] = get_queues(region.name)
     # region_scheme['balancers'] = get_balancers(region.name)
     # region_scheme['buckets'] = get_buckets(region.name)
 

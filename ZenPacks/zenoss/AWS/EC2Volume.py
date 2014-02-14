@@ -43,7 +43,7 @@ class EC2Volume(AWSComponent):
     _properties = AWSComponent._properties + (
         {'id': 'volume_type', 'type': 'string'},
         {'id': 'create_time', 'type': 'string'},
-        {'id': 'size', 'type': 'int'},
+        {'id': 'size', 'type': 'string'},
         {'id': 'iops', 'type': 'int'},
         {'id': 'status', 'type': 'string'},
         {'id': 'attach_data_status', 'type': 'string'},
@@ -124,7 +124,7 @@ class IEC2VolumeInfo(IComponentInfo):
     instance = schema.Entity(title=_t(u'Instance'))
     volume_type = schema.TextLine(title=_t(u'Type'))
     create_time = schema.TextLine(title=_t(u'Created Time'))
-    size = schema.Int(title=_t(u'Size in Bytes'))
+    size = schema.TextLine(title=_t(u'Capacity'))
     iops = schema.Int(title=_t(u'Provisioned IOPS'))
     status = schema.TextLine(title=_t(u'Status'))
     attach_data_status = schema.TextLine(title=_t(u'Attach Data Status'))

@@ -11,9 +11,14 @@ import os
 import json
 
 from Products.ZenModel.ZenPack import ZenPackBase, ZenPackDependentsException
+from Products.ZenRelations.zPropertyCategory import setzPropertyCategory
 
 from collections import defaultdict
 
+# Categorize zProperties.
+setzPropertyCategory('zAWSDiscover', 'AWS')
+setzPropertyCategory('zAWSRegionPEM', 'AWS')
+setzPropertyCategory('zAWSRemodelEnabled', 'AWS')
 
 # Modules containing model classes. Used by zenchkschema to validate
 # bidirectional integrity of defined relationships.
@@ -43,6 +48,17 @@ for product_name in productNames:
     MODULE_NAME[product_name] = '.'.join([ZP_NAME, product_name])
     CLASS_NAME[product_name] = '.'.join([ZP_NAME, product_name, product_name])
 
+FANCY_KEYS = {
+    'i/o': 'i/o',
+    'gpus': 'GPUs',
+    'storageGB': 'Storage (GB)',
+    'ramMB': 'RAM (MB)',
+    'cores': 'Cores',
+    'compute_units': 'Compute Units',
+    'arch': 'Architecture',
+    'ebs_optimized_iopsMbps': 'EBS optimized IOPS (Mbps)'
+}
+
 EC2INSTANCE_TYPES = defaultdict(lambda: '')
 try:
     json_data = open(os.path.join(os.path.dirname(__file__), 'aws.json'))
@@ -50,8 +66,20 @@ try:
     all_types = data['services']['Elastic Compute Cloud']['instance_types']
     EC2INSTANCE_TYPES = {}
     for i_type in all_types:
+        # Adjust storage details for readability
+        storage = all_types[i_type].get('storageGB')
+        all_types[i_type]['storageGB'] = 'EBS only' if not storage else ', '.join(
+            ['{0}GB'.format(x) for x in storage])
+        # Adjust arch details for readability
+        arch = all_types[i_type].get('arch')
+        if arch:
+            all_types[i_type]['arch'] = ', '.join(
+                ['{0}-bit'.format(x) for x in arch])
+
         EC2INSTANCE_TYPES[i_type] = '; '.join(
-            ['%s: %s' % (k, v) for (k, v) in all_types[i_type].items()]
+            ['%s: %s' % (
+                FANCY_KEYS.get(k, k), v
+            ) for (k, v) in all_types[i_type].items()]
         )
 except:
     pass
@@ -64,6 +92,7 @@ class ZenPack(ZenPackBase):
     packZProperties = [
         ('zAWSDiscover', '', 'awsdiscoverfield'),
         ('zAWSRegionPEM', '', 'multilinekeypath'),
+        ('zRemodelEnabled', 'false', 'bool'),
     ]
 
     def install(self, app):

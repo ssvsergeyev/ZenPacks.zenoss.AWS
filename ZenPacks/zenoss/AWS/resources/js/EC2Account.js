@@ -432,9 +432,9 @@ ZC.EC2VolumePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'size',
                 dataIndex: 'size',
-                header: _t('Size'),
-                renderer: Zenoss.render.bytesString,
-                width: 55
+                header: _t('Capacity'),
+                // renderer: Zenoss.render.bytesString,
+                width: 70
             },{
                 id: 'iops',
                 dataIndex: 'iops',
@@ -517,9 +517,9 @@ ZC.EC2SnapshotPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'size',
                 dataIndex: 'size',
-                header: _t('Volume size'),
-                renderer: Zenoss.render.bytesString,
-                width: 75
+                header: _t('Capacity'),
+                // renderer: Zenoss.render.bytesString,
+                width: 70
             },{
                 id: 'progress',
                 dataIndex: 'progress',
@@ -768,7 +768,7 @@ ZC.VPNGatewayPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'gateway_type',
                 dataIndex: 'gateway_type',
-                header: _t('Gateway type'),
+                header: _t('Gateway Type'),
                 //renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 95
             // },{
@@ -832,7 +832,7 @@ ZC.EC2ReservationPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'instance_type',
                 dataIndex: 'instance_type',
-                header: _t('Instance type'),
+                header: _t('Instance Type'),
                 width: 80
             },{
                 id: 'region',
@@ -899,7 +899,7 @@ ZC.S3BucketPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'creation_date',
                 dataIndex: 'creation_date',
-                header: _t('Creation date'),
+                header: _t('Creation Date'),
                 width: 100
             },{
                 id: 'monitored',
@@ -1031,12 +1031,12 @@ ZC.EC2ElasticIPPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'network_interface_id',
                 dataIndex: 'network_interface_id',
-                header: _t('Network interface ID'),
+                header: _t('Network Interface ID'),
                 width: 110
             },{
                 id: 'network_interface_owner_id',
                 dataIndex: 'network_interface_owner_id',
-                header: _t('Network interface owner ID'),
+                header: _t('Network Interface Owner ID'),
                 width: 150
             },{
                 id: 'monitored',
@@ -1133,7 +1133,7 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'image_type',
                 dataIndex: 'image_type',
-                header: _t('Image type'),
+                header: _t('Image Type'),
                 width: 90
             },{
                 id: 'kernel_id',
@@ -1143,7 +1143,7 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'ramdisk_id',
                 dataIndex: 'ramdisk_id',
-                header: _t('Ramdisk ID'),
+                header: _t('RAM Disk ID'),
                 width: 90
             },{
                 id: 'description',
@@ -1153,22 +1153,22 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
             },{
                 id: 'block_device_mapping',
                 dataIndex: 'block_device_mapping',
-                header: _t('Block device mapping'),
+                header: _t('Block Device Mapping'),
                 width: 90
             },{
                 id: 'root_device_type',
                 dataIndex: 'root_device_type',
-                header: _t('Root device type'),
+                header: _t('Root Device Type'),
                 width: 90
             },{
                 id: 'root_device_name',
                 dataIndex: 'root_device_name',
-                header: _t('Root device name'),
+                header: _t('Root Device Name'),
                 width: 90
             },{
                 id: 'virtualization_type',
                 dataIndex: 'virtualization_type',
-                header: _t('Virtualization type'),
+                header: _t('Virtualization Type'),
                 width: 90
             },{
                 id: 'hypervisor',

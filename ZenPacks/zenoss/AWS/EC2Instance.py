@@ -353,7 +353,7 @@ class IEC2InstanceInfo(IComponentInfo):
     instance_id = schema.TextLine(title=_t(u'Instance ID'))
     tags = schema.TextLine(title=_t(u'Tag'))
     instance_type = schema.TextLine(title=_t(u'Instance Type'))
-    instance_type_details = schema.TextLine(title=_t(u'Instance type details'))
+    instance_type_details = schema.TextLine(title=_t(u'Instance Type Details'))
     platform = schema.TextLine(title=_t(u'Platform'))
     public_dns_name = schema.TextLine(title=_t(u'Public DNS Name'))
     public_ip = schema.TextLine(title=_t(u'Public IP'))

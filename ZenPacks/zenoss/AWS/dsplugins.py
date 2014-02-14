@@ -29,6 +29,9 @@ from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
 from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
 from ZenPacks.zenoss.AWS.utils import unused_reserved_instances_count
 
+from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import instances_rm
+from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import INSTANCE_FILTERS
+
 
 class AWSBasePlugin(PythonDataSourcePlugin):
     """
@@ -61,6 +64,7 @@ class AWSBasePlugin(PythonDataSourcePlugin):
         return result
 
     def onError(self, result, config):
+        data = self.new_data()
         str_res = str(result)
         if "<Message>" in str_res:
             m = re.search('<Message>(.+?)</Message>', str_res)
@@ -68,40 +72,37 @@ class AWSBasePlugin(PythonDataSourcePlugin):
                 res = m.group(1)
                 log.info(res)
                 if self.component in str_res:
-                    return {
-                        'values': {},
-                        'events': [{
-                            'component': self.component,
-                            'summary': res,
-                            'eventClass': '/Status',
-                            'eventKey': 'aws_result',
-                            'severity': ZenEventClasses.Info,
-                        }],
-                        'maps': [],
-                    }
+                    data['events'].append({
+                        'component': self.component,
+                        'summary': res,
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Info,
+                    })
+                    return data
         else:
             if 'IndexError' in str(result.type):
                 summary = 'The component {0} does not exist.'.format(
                     self.component
                 )
                 severity = ZenEventClasses.Info
-            elif ('timed out' in str_res) or ("name resolution" in str_res) or ("service not known" in str_res):
+            elif ('timed out' in str_res) or ("name resolution" in str_res) or\
+                 ("service not known" in str_res):
                 summary = "Connection timed out or network problems."
                 severity = ZenEventClasses.Error
             else:
                 summary = str_res
                 severity = ZenEventClasses.Error
-            return {
-                'values': {},
-                'events': [{
-                    'component': self.component,
-                    'summary': summary,
-                    'eventClass': '/Status',
-                    'eventKey': 'aws_result',
-                    'severity': severity,
-                }],
-                'maps': [],
-            }
+
+            data['events'].append({
+                'component': self.component,
+                'summary': summary,
+                'eventClass': '/Status',
+                'eventKey': 'aws_result',
+                'severity': severity,
+
+            })
+            return data
 
 
 class S3BucketPlugin(AWSBasePlugin):
@@ -128,57 +129,58 @@ class S3BucketPlugin(AWSBasePlugin):
 
 
 class EC2RegionPlugin(AWSBasePlugin):
-    """
-    Subclass of AWSBasePlugin to monitor AWS EC2Region soft limits.
-    """
+    proxy_attributes = (
+        'ec2accesskey',
+        'ec2secretkey',
+        'zAWSDiscover',
+        'zAWSRegionPEM',
+        'zRemodelEnabled',
+    )
 
     @defer.inlineCallbacks
     def collect(self, config):
+        _ = yield
         data = self.new_data()
-        instance_filters = {
-            'instance-state-name': [
-                'pending',
-                'running',
-                'shutting-down',
-                'stopping',
-                'stopped',
-            ],
-        }
-
         for ds in config.datasources:
-            self.component = ds.component
+            region_id = self.component = ds.component
             ec2regionconn = boto.ec2.connect_to_region(
-                ds.component,
+                region_id,
                 aws_access_key_id=ds.ec2accesskey,
                 aws_secret_access_key=ds.ec2secretkey,
             )
             vpcregionconn = boto.vpc.connect_to_region(
-                ds.component,
+                region_id,
                 aws_access_key_id=ds.ec2accesskey,
                 aws_secret_access_key=ds.ec2secretkey,
             )
 
-            instances_count = len(ec2regionconn.get_all_instances(
-                filters=instance_filters
-            ))
+            instances = ec2regionconn.get_only_instances(
+                filters=INSTANCE_FILTERS
+            )
             elastic_ips_count = len(ec2regionconn.get_all_addresses())
             subnets_count = len(vpcregionconn.get_all_subnets())
             volumes_count = len(ec2regionconn.get_all_volumes())
-            sg = yield ec2regionconn.get_all_security_groups()
+            sg = ec2regionconn.get_all_security_groups()
             sg_count = len(sg)
             rules_count = 0
             for group in sg:
                 rules_count = max(len(group.rules), rules_count)
 
-            data['values'][ds.component] = dict(
-                instances_count=(instances_count, 'N'),
+            data['values'][region_id] = dict(
+                instances_count=(len(instances), 'N'),
                 elastic_ips_count=(elastic_ips_count, 'N'),
                 subnets_count=(subnets_count, 'N'),
                 volumes_count=(volumes_count, 'N'),
                 vpc_security_groups_count=(sg_count, 'N'),
                 vpc_security_rules_count=(rules_count, 'N')
             )
-
+            if ds.zRemodelEnabled.lower() == 'true':
+                data['maps'].append(instances_rm(
+                    region_id,
+                    ds,
+                    instances,
+                    []
+                ))
         defer.returnValue(data)
 
 
@@ -234,7 +236,7 @@ class SQSQueuePlugin(AWSBasePlugin):
                         })
                 else:
                     data['events'].append({
-                        'summary': 'Queue "%s" does not exists' % name,
+                        'summary': 'Queue "%s" does not exist' % name,
                         'device': config.id,
                         'component': self.component,
                         'severity': ZenEventClasses.Info,
@@ -340,11 +342,19 @@ class EC2BaseStatePlugin(AWSBasePlugin):
     """
     Subclass of AWSBasePlugin to monitor AWS components' states.
     """
+    proxy_attributes = AWSBasePlugin.proxy_attributes + ('state',)
+
     ec2regionconn = None
     vpcregionconn = None
 
     def results_to_maps(self, region, component):
         """Return Object map for the component status remodeling.
+        """
+        pass
+
+    def gen_events(self, ds, data):
+        """
+        Generates the event.
         """
         pass
 
@@ -368,6 +378,7 @@ class EC2BaseStatePlugin(AWSBasePlugin):
                     )
 
                 maps = self.results_to_maps(region, ds.component)
+                self.gen_events(ds, data)
 
                 if maps:
                     data['events'].append({
@@ -387,6 +398,20 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
     """
     Subclass of EC2BaseStatePlugin to monitor AWS Instance state.
     """
+    def gen_events(self, ds, data):
+        if ds.state:
+            severity = ZenEventClasses.Clear if\
+                ds.state.lower() != 'stopped' else ZenEventClasses.Critical
+            data['events'].append({
+                'component': ds.component,
+                'summary': "Instance {0} is {1}.".format(
+                    ds.component,
+                    ds.state
+                ),
+                'eventClass': '/Status',
+                'eventKey': '{0}_instance_warning'.format(ds.component),
+                'severity': severity,
+            })
 
     def results_to_maps(self, region, component):
         if not self.ec2regionconn:
@@ -494,7 +519,7 @@ class EC2UnreservedInstancesPlugin(AWSBasePlugin):
                 if c == 1:
                     event = 'This instance could be reserved'
                 elif c > 1:
-                    event = 'There is {0} instances of this type in this ' \
+                    event = 'There are {0} instances of this type in this ' \
                         'availability zone which could be reserved'.format(c)
 
                 if event:
@@ -535,8 +560,8 @@ class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
                 if c == 1:
                     event = 'This reserved instance is unused'
                 elif c > 1:
-                    event = 'There is {0} reserved instances of this type ' \
-                        'in this availability zone which are unused'.format(c)
+                    event = 'There are {0} unused reserved instances of ' \
+                        'this type in this availability zone'.format(c)
 
                 if event:
                     data['events'].append({
