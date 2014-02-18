@@ -51,7 +51,6 @@ class EC2(PythonPlugin):
         'ec2secretkey',
         'zAWSDiscover',
         'zAWSRegionPEM',
-        # 'zRemodelEnabled',
     )
 
     def collect(self, device, log):

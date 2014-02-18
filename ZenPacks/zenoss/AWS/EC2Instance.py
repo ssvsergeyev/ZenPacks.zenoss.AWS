@@ -336,6 +336,8 @@ class EC2Instance(AWSComponent):
                         self.titleOrId())
 
                     guest_device.setProdState(-1)
+            else:
+                self.create_guest()
 
 
 class IEC2InstanceInfo(IComponentInfo):
