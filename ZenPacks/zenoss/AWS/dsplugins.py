@@ -52,6 +52,13 @@ class AWSBasePlugin(PythonDataSourcePlugin):
             'region': region,
         }
 
+    def onResult(self, result, config):
+        result['maps'].append(ObjectMap({
+            "modname": "Clear events",
+            "setClearEvents": True,
+        }))
+        return result
+
     def onSuccess(self, result, config):
         for component in result["values"].keys():
             result['events'].insert(0, {

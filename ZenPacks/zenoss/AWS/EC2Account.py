@@ -14,6 +14,7 @@ from Products.ZenModel.Device import Device
 
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 
+from Products.Zuul import getFacade
 from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
@@ -82,6 +83,26 @@ class EC2Account(Device):
         '''
         for region in self.regions():
             region.discover_guests()
+
+    def getClearEvents(self):
+        return
+
+    def setClearEvents(self, value):
+        zep = getFacade('zep')
+        zep_filter = zep.createEventFilter(
+            element_identifier=(self.id),
+            event_class=('/Status'),
+            severity=(5),
+            status=(0, 1)
+        )
+        results = zep.getEventSummariesGenerator(filter=zep_filter)
+
+        component_list = [x.getObject().id for x in self.componentSearch()]
+        for res in results:
+            key = res['occurrence'][0]['actor'].get('element_sub_identifier')
+            if key and key not in component_list:
+                del_filter = zep.createEventFilter(uuid=res['uuid'])
+                zep.closeEventSummaries(eventFilter=del_filter)
 
 
 class IEC2AccountInfo(IDeviceInfo):
