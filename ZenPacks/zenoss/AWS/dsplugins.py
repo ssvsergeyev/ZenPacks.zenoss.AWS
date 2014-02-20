@@ -53,10 +53,13 @@ class AWSBasePlugin(PythonDataSourcePlugin):
         }
 
     def onResult(self, result, config):
-        result['maps'].append(ObjectMap({
-            "modname": "Clear events",
-            "setClearEvents": True,
-        }))
+        try:
+            result['maps'].append(ObjectMap({
+                "modname": "Clear events",
+                "setClearEvents": True,
+            }))
+        except:
+            pass
         return result
 
     def onSuccess(self, result, config):
