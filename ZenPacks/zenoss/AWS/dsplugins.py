@@ -188,6 +188,10 @@ class EC2RegionPlugin(AWSBasePlugin):
                     instances,
                     []
                 ))
+                data['maps'].append(ObjectMap({
+                    "modname": "Guest update",
+                    "setDiscoverGuests": True,
+                }))
         defer.returnValue(data)
 
 
