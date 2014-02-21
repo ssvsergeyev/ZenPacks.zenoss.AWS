@@ -85,9 +85,13 @@ class EC2Account(Device):
             region.discover_guests()
 
     def getClearEvents(self):
-        return
+        self.clear_events()
+        return True
 
     def setClearEvents(self, value):
+        self.clear_events()
+
+    def clear_events(self):
         zep = getFacade('zep')
         zep_filter = zep.createEventFilter(
             element_identifier=(self.id),
