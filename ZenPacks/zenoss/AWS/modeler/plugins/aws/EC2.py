@@ -307,8 +307,8 @@ def format_size(size):
     The capacity for these components is between 1 GiB and 1 TiB.
     '''
     if size:
-        return '{0} GiB'.format(size) if size < 1024 \
-            else '{0} TiB'.format(size/1024)
+        return '{0} GB'.format(size) if size < 1024 \
+            else '{0} TB'.format(size/1024)
 
 
 def to_boolean(string):
