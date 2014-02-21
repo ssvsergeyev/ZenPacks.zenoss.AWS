@@ -44,8 +44,8 @@ class TestAWSCollector(BaseTestCase):
         self.assertEquals(EC2.path_to_pem('test1', values), '')
 
     def test_format_size(self):
-        self.assertEquals(EC2.format_size(8), '8 GiB')
-        self.assertEquals(EC2.format_size(1024), '1 TiB')
+        self.assertEquals(EC2.format_size(8), '8 GB')
+        self.assertEquals(EC2.format_size(1024), '1 TB')
         self.assertEquals(EC2.format_size(None), None)
 
     def test_block_device(self):
