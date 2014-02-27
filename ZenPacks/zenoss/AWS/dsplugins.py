@@ -398,11 +398,10 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
             for ds in config.datasources:
                 self.component = ds.component
                 self.connect_to_region(ds)
-                instance = self.ec2regionconn.get_only_instances(component).pop()
-
+                instance = self.ec2regionconn.get_only_instances(ds.component).pop()
                 data['maps'].append(ObjectMap({
                     "compname": "regions/%s/instances/%s" % (
-                        region, component),
+                        ds.params['region'], ds.component),
                     "modname": "Instance state",
                     "state": instance.state
                 }))
@@ -412,14 +411,12 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
                         'component': ds.component,
                         'summary': "Instance {0} is {1}.".format(
                             ds.component,
-                            ds.state
+                            instance.state
                         ),
                         'eventClass': '/Status',
                         'eventKey': 'instance_info',
                         'severity': ZenEventClasses.Info,
                     })
-
-                self.gen_events(ds, data)
 
             return data
 
