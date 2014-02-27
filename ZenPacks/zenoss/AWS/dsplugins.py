@@ -52,16 +52,6 @@ class AWSBasePlugin(PythonDataSourcePlugin):
             'region': region,
         }
 
-    def onResult(self, result, config):
-        try:
-            result['maps'].append(ObjectMap({
-                "modname": "Clear events",
-                "setClearEvents": True,
-            }))
-        except:
-            pass
-        return result
-
     def onSuccess(self, result, config):
         for component in result["values"].keys():
             result['events'].insert(0, {
@@ -356,53 +346,43 @@ class EC2BaseStatePlugin(AWSBasePlugin):
     """
     Subclass of AWSBasePlugin to monitor AWS components' states.
     """
-    proxy_attributes = AWSBasePlugin.proxy_attributes + ('state',)
-
     ec2regionconn = None
     vpcregionconn = None
 
+    def connect_to_region(self, ds):
+        region = ds.params['region']
+        creds = dict(
+            aws_access_key_id=ds.ec2accesskey,
+            aws_secret_access_key=ds.ec2secretkey,
+        )
+        if CONNECTION_TYPE.get(ds.template) == 'ec2':
+            self.ec2regionconn = boto.ec2.connect_to_region(
+                region, **creds
+            )
+        else:
+            self.vpcregionconn = boto.vpc.connect_to_region(
+                region, **creds
+            )
+
     def results_to_maps(self, region, component):
-        """Return Object map for the component status remodeling.
-        """
-        pass
+        """Return Object map for the component status remodeling.  """
 
     def gen_events(self, ds, data):
-        """
-        Generates the event.
-        """
-        pass
+        """ Generate the events.  """
 
     def collect(self, config):
         def inner():
             data = self.new_data()
             for ds in config.datasources:
                 self.component = ds.component
-                region = ds.params['region']
-                if CONNECTION_TYPE.get(ds.template) == 'ec2':
-                    self.ec2regionconn = boto.ec2.connect_to_region(
-                        region,
-                        aws_access_key_id=ds.ec2accesskey,
-                        aws_secret_access_key=ds.ec2secretkey,
-                    )
-                else:
-                    self.vpcregionconn = boto.vpc.connect_to_region(
-                        region,
-                        aws_access_key_id=ds.ec2accesskey,
-                        aws_secret_access_key=ds.ec2secretkey,
-                    )
+                self.connect_to_region(ds)
 
-                maps = self.results_to_maps(region, ds.component)
+                maps = self.results_to_maps(ds.params['region'], ds.component)
+                if maps:
+                    data['maps'].append(maps)
+
                 self.gen_events(ds, data)
 
-                if maps:
-                    data['events'].append({
-                        'component': ds.component,
-                        'summary': "Monitoring ok",
-                        'eventClass': '/Status',
-                        'eventKey': 'aws_result',
-                        'severity': ZenEventClasses.Clear,
-                    })
-                    data['maps'].append(maps)
             return data
 
         return defer.maybeDeferred(inner)
@@ -412,31 +392,38 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
     """
     Subclass of EC2BaseStatePlugin to monitor AWS Instance state.
     """
-    def gen_events(self, ds, data):
-        if ds.state:
-            severity = ZenEventClasses.Clear if\
-                ds.state.lower() != 'stopped' else ZenEventClasses.Critical
-            data['events'].append({
-                'component': ds.component,
-                'summary': "Instance {0} is {1}.".format(
-                    ds.component,
-                    ds.state
-                ),
-                'eventClass': '/Status',
-                'eventKey': '{0}_instance_warning'.format(ds.component),
-                'severity': severity,
-            })
+    def collect(self, config):
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                self.component = ds.component
+                self.connect_to_region(ds)
+                instance = self.ec2regionconn.get_only_instances(component).pop()
 
-    def results_to_maps(self, region, component):
-        if not self.ec2regionconn:
-            return
-        instance = self.ec2regionconn.get_only_instances(component).pop()
-        return ObjectMap({
-            "compname": "regions/%s/instances/%s" % (
-                region, component),
-            "modname": "Instance state",
-            "state": instance.state
-        })
+                data['maps'].append(ObjectMap({
+                    "compname": "regions/%s/instances/%s" % (
+                        region, component),
+                    "modname": "Instance state",
+                    "state": instance.state
+                }))
+
+                if instance.state.lower() in ('running', 'stopped'):
+                    data['events'].append({
+                        'component': ds.component,
+                        'summary': "Instance {0} is {1}.".format(
+                            ds.component,
+                            ds.state
+                        ),
+                        'eventClass': '/Status',
+                        'eventKey': 'instance_info',
+                        'severity': ZenEventClasses.Info,
+                    })
+
+                self.gen_events(ds, data)
+
+            return data
+
+        return defer.maybeDeferred(inner)
 
 
 class EC2VPCStatePlugin(EC2BaseStatePlugin):
