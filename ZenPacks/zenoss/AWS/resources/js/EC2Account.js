@@ -1324,6 +1324,22 @@ Zenoss.nav.appendTo('Component', [{
 }]);
 
 Zenoss.nav.appendTo('Component', [{
+    id: 'component_sqsqueues',
+    text: _t('SQS Queues'),
+    xtype: 'SQSQueuePanel',
+    subComponentGridPanel: true,
+    filterNav: function(navpanel) {
+        switch (navpanel.refOwner.componentType) {
+            case 'EC2Region': return true;
+            default: return false;
+        }
+    },
+    setContext: function(uid) {
+        ZC.SQSQueuePanel.superclass.setContext.apply(this, [uid]);
+    }
+}]);
+
+Zenoss.nav.appendTo('Component', [{
     id: 'component_reservations',
     text: _t('Reserved Instances'),
     xtype: 'EC2ReservationPanel',
