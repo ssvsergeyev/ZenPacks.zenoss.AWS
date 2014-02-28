@@ -414,7 +414,7 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
                             instance.state
                         ),
                         'eventClass': '/Status',
-                        'eventKey': 'instance_info',
+                        'eventKey': 'instance_info_' + instance.state,
                         'severity': ZenEventClasses.Info,
                     })
 
