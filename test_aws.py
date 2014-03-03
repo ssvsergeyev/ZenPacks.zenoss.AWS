@@ -1,5 +1,6 @@
 from pprint import pprint
 import sys
+import imp
 
 import boto
 from boto.ec2.connection import EC2Connection
@@ -9,15 +10,9 @@ from boto.sqs.message import RawMessage
 import boto.s3
 
 print '-' * 100
-yuriy = dict(
-    aws_access_key_id='AKIAJZS27O6JHGMRC5RA',
-    aws_secret_access_key='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',
-)
-taras = dict(
-    aws_access_key_id='AKIAIFFAHXR3ZADGOOAA',
-    aws_secret_access_key='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',
-)
-credentials = taras
+
+creds = imp.load_source('creds', '/home/zenoss/boto_creds.py')
+credentials = creds.taras
 ec2conn = EC2Connection(**credentials)
 
 aws_scheme = {}
