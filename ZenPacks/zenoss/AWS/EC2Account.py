@@ -50,6 +50,15 @@ class EC2Account(Device):
             ToOne, MODULE_NAME['S3Bucket'], 'account')),
     )
 
+    def get_all_instances(self):
+        for region in self.regions():
+            for instance in region.instances():
+                yield instance
+
+    @property
+    def instances_states(self):
+        return dict((i.id, i.state) for i in self.get_all_instances())
+
     def getIconPath(self):
         ''' Return the path to an icon for this component.  '''
         return '/++resource++aws/img/%s.png' % self.meta_type

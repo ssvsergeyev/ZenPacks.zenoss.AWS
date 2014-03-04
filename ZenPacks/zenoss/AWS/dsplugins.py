@@ -9,6 +9,7 @@
 ######################################################################
 
 import re
+import pickle
 from logging import getLogger
 log = getLogger('zen.python')
 
@@ -28,6 +29,7 @@ from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
 
 from ZenPacks.zenoss.AWS.utils import unreserved_instance_count
 from ZenPacks.zenoss.AWS.utils import unused_reserved_instances_count
+from ZenPacks.zenoss.AWS.utils import here
 
 from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import instances_rm
 from ZenPacks.zenoss.AWS.modeler.plugins.aws.EC2 import INSTANCE_FILTERS
@@ -388,35 +390,52 @@ class EC2BaseStatePlugin(AWSBasePlugin):
         return defer.maybeDeferred(inner)
 
 
-class EC2InstanceStatePlugin(EC2BaseStatePlugin):
-    """
-    Subclass of EC2BaseStatePlugin to monitor AWS Instance state.
-    """
+class EC2AccountInstanceStatePlugin(EC2BaseStatePlugin):
+    proxy_attributes = EC2BaseStatePlugin.proxy_attributes + (
+        'instances_states',
+    )
     def collect(self, config):
         def inner():
             data = self.new_data()
+            def state_event(instance, state):
+                data['events'].append({
+                    'component': instance,
+                    'summary': "Instance {0} is {1}.".format(
+                        instance,
+                        status,
+                    ),
+                    'eventClass': '/Status',
+                    'eventKey': 'instance_info_' + state,
+                    'severity': ZenEventClasses.Info,
+                })
+            instances = {}
+            modeled_instances = {}
             for ds in config.datasources:
-                self.component = ds.component
+                modeled_instances = ds.instances_states
                 self.connect_to_region(ds)
-                instance = self.ec2regionconn.get_only_instances(ds.component).pop()
-                data['maps'].append(ObjectMap({
-                    "compname": "regions/%s/instances/%s" % (
-                        ds.params['region'], ds.component),
-                    "modname": "Instance state",
-                    "state": instance.state
-                }))
+                for instance in self.ec2regionconn.get_only_instances():
+                    if instance.state.lower() in ('running', 'stopped'):
+                        instances[instance.id] = instance.state.lower()
+                    else:
+                        instances[instance.id] = None
 
-                if instance.state.lower() in ('running', 'stopped'):
-                    data['events'].append({
-                        'component': ds.component,
-                        'summary': "Instance {0} is {1}.".format(
-                            ds.component,
-                            instance.state
-                        ),
-                        'eventClass': '/Status',
-                        'eventKey': 'instance_info_' + instance.state,
-                        'severity': ZenEventClasses.Info,
-                    })
+            for instance in instances:
+                if instance not in modeled_instances:
+                    state_event(instance, 'created')
+
+            for instance in modeled_instances:
+                if (
+                    instance in instances # not deleted
+                    and instances[instance] != modeled_instances[instance] # state changed
+                    and instances[instance] # and have interesting state
+                ):
+                    state_event(instance, instances[instance])
+                    data['maps'].append(ObjectMap({
+                        "compname": "regions/%s/instances/%s" % (
+                            ds.params['region'], instance),
+                        "modname": "Instance state",
+                        "state": instances[instance],
+                    }))
 
             return data
 
