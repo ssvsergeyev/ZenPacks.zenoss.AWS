@@ -339,7 +339,7 @@ CONNECTION_TYPE = {
     'EC2Image': 'ec2',
     'EC2Instance': 'ec2',
     'EC2Instance-Detailed': 'ec2',
-    # 'EC2Instance-Custom': 'ec2',
+    'EC2Account': 'ec2',
 }
 
 
@@ -351,8 +351,8 @@ class EC2BaseStatePlugin(AWSBasePlugin):
     ec2regionconn = None
     vpcregionconn = None
 
-    def connect_to_region(self, ds):
-        region = ds.params['region']
+    def connect_to_region(self, ds, region=None):
+        region = region or ds.params['region']
         creds = dict(
             aws_access_key_id=ds.ec2accesskey,
             aws_secret_access_key=ds.ec2secretkey,
@@ -390,38 +390,42 @@ class EC2BaseStatePlugin(AWSBasePlugin):
         return defer.maybeDeferred(inner)
 
 
+def state_event(data, instance, state):
+    data['events'].append({
+        'component': instance,
+        'summary': "Instance {0} is {1}.".format(
+            instance,
+            state,
+        ),
+        'eventClass': '/Status',
+        'eventKey': 'instance_info_' + state,
+        'severity': ZenEventClasses.Info,
+    })
+
 class EC2AccountInstanceStatePlugin(EC2BaseStatePlugin):
     proxy_attributes = EC2BaseStatePlugin.proxy_attributes + (
-        'instances_states',
+        'instances_states', 'all_regions'
     )
     def collect(self, config):
         def inner():
             data = self.new_data()
-            def state_event(instance, state):
-                data['events'].append({
-                    'component': instance,
-                    'summary': "Instance {0} is {1}.".format(
-                        instance,
-                        status,
-                    ),
-                    'eventClass': '/Status',
-                    'eventKey': 'instance_info_' + state,
-                    'severity': ZenEventClasses.Info,
-                })
             instances = {}
             modeled_instances = {}
+            instance_region = {}
             for ds in config.datasources:
                 modeled_instances = ds.instances_states
-                self.connect_to_region(ds)
-                for instance in self.ec2regionconn.get_only_instances():
-                    if instance.state.lower() in ('running', 'stopped'):
-                        instances[instance.id] = instance.state.lower()
-                    else:
-                        instances[instance.id] = None
+                for region in ds.all_regions:
+                    self.connect_to_region(ds, region)
+                    for instance in self.ec2regionconn.get_only_instances():
+                        instance_region[instance.id] = region
+                        if instance.state.lower() in ('running', 'stopped'):
+                            instances[instance.id] = instance.state.lower()
+                        else:
+                            instances[instance.id] = None
 
             for instance in instances:
                 if instance not in modeled_instances:
-                    state_event(instance, 'created')
+                    state_event(data, instance, 'created')
 
             for instance in modeled_instances:
                 if (
@@ -429,10 +433,10 @@ class EC2AccountInstanceStatePlugin(EC2BaseStatePlugin):
                     and instances[instance] != modeled_instances[instance] # state changed
                     and instances[instance] # and have interesting state
                 ):
-                    state_event(instance, instances[instance])
+                    state_event(data, instance, instances[instance])
                     data['maps'].append(ObjectMap({
                         "compname": "regions/%s/instances/%s" % (
-                            ds.params['region'], instance),
+                            instance_region[instance], instance),
                         "modname": "Instance state",
                         "state": instances[instance],
                     }))

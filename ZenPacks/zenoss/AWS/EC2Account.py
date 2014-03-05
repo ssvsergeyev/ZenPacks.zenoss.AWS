@@ -57,7 +57,12 @@ class EC2Account(Device):
 
     @property
     def instances_states(self):
-        return dict((i.id, i.state) for i in self.get_all_instances())
+        return dict((i.id, i.state)
+            for i in self.get_all_instances()
+        )
+    @property
+    def all_regions(self):
+        return [region.id for region in self.regions()]
 
     def getIconPath(self):
         ''' Return the path to an icon for this component.  '''
