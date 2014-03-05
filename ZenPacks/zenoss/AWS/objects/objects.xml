@@ -15,7 +15,34 @@ ZenPacks.zenoss.AWS.EC2Account
 <property visible="True" type="lines" id="zCollectorPlugins" >
 ['aws.EC2']
 </property>
+<property visible="True" type="lines" id="zDeviceTemplates" >
+['EC2Account']
+</property>
 <tomanycont id='rrdTemplates'>
+<object id='EC2Account' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='InstancesState' module='ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource' class='PythonDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Python
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="plugin_classname" mode="w" >
+ZenPacks.zenoss.AWS.dsplugins.EC2AccountInstanceStatePlugin
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='EC2Image' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
 Products.ZenModel.Device
@@ -328,29 +355,6 @@ True
 </property>
 </object>
 </tomanycont>
-</object>
-<object id='InstanceState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-AWSDataSource
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="component" mode="w" >
-${here/id}
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="string" id="cycletime" mode="w" >
-300
-</property>
-<property type="string" id="plugin_classname" mode="w" >
-ZenPacks.zenoss.AWS.dsplugins.EC2InstanceStatePlugin
-</property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 </object>
 <object id='NetworkIn' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
