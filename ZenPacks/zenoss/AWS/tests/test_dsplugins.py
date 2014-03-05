@@ -156,6 +156,16 @@ class TestEC2BaseStatePlugin(BaseTestCase):
         self.assertEquals(len(data['maps']), 1)
         self.assertEquals(data['maps'][0], sentinel.map)
 
+class TestStateEvent(BaseTestCase):
+    def test_event_is_added(self):
+        data = {'events': []}
+        from ZenPacks.zenoss.AWS.dsplugins import state_event
+
+        state_event(data, sentinel.instance, str(sentinel.state))
+
+        self.assertEquals(len(data['events']), 1)
+        self.assertEquals(data['events'][0]['component'], sentinel.instance)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
@@ -164,4 +174,5 @@ def test_suite():
     suite.addTest(makeSuite(TestS3BucketPlugin))
     suite.addTest(makeSuite(TestReservedInstancesPlugins))
     suite.addTest(makeSuite(TestEC2BaseStatePlugin))
+    suite.addTest(makeSuite(TestStateEvent))
     return suite
