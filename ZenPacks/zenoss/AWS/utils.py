@@ -25,17 +25,15 @@ from Products.ZenUtils.Utils import prepId
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.interfaces import ICatalogTool
 
-def here(relative_path):
-    import os
-    return os.path.join(os.path.dirname(__file__), relative_path)
 
 def addLocalLibPath():
     """
     Helper to add the ZenPack's lib directory to PYTHONPATH.
     """
+    import os
     import site
 
-    site.addsitedir(here('lib'))
+    site.addsitedir(os.path.join(os.path.dirname(__file__), 'lib'))
 
 
 def iso8601(seconds_ago=0):
