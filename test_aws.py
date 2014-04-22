@@ -1,8 +1,6 @@
 from pprint import pprint
 import sys
-
-from butils.config_parser import config_to_dict
-credentials = config_to_dict('/home/zenoss/.boto')['credentials']
+import imp
 
 import boto
 from boto.ec2.connection import EC2Connection
@@ -13,6 +11,8 @@ import boto.s3
 
 print '-' * 100
 
+creds = imp.load_source('creds', '/home/zenoss/boto_creds.py')
+credentials = creds.taras
 ec2conn = EC2Connection(**credentials)
 
 aws_scheme = {}
@@ -20,15 +20,20 @@ aws_scheme = {}
 def get_instances(ec2):
     return map(vars, ec2.get_only_instances())
 
-def del_all_instances():
+def clear_paid_services():
     for region in ec2conn.get_all_regions():
         ec2_r_conn = boto.ec2.connect_to_region(region.name, **credentials)
         instance_ids = [i.id for i in ec2_r_conn.get_only_instances()]
         if instance_ids:
             print 'Terminating', ', '.join(instance_ids)
             ec2_r_conn.terminate_instances(instance_ids=instance_ids)
-
-from time import sleep
+        for address in ec2_r_conn.get_all_addresses():
+            print address.public_ip,
+            if not address.association_id:
+                print 'not associated, releasing'
+                address.release()
+            else:
+                print 'is associated with', address.association_id
 
 def get_messages(queue):
     messages = {}
@@ -88,7 +93,7 @@ def show_scheme():
     pprint(aws_scheme)
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == 'del_instances':
-        del_all_instances()
+    if len(sys.argv) > 1 and sys.argv[1] == 'clear_paid':
+        clear_paid_services()
     else:
         show_scheme()

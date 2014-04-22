@@ -405,19 +405,6 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
                     "modname": "Instance state",
                     "state": instance.state
                 }))
-
-                if instance.state.lower() in ('running', 'stopped'):
-                    data['events'].append({
-                        'component': ds.component,
-                        'summary': "Instance {0} is {1}.".format(
-                            ds.component,
-                            instance.state
-                        ),
-                        'eventClass': '/Status',
-                        'eventKey': 'instance_info_' + instance.state,
-                        'severity': ZenEventClasses.Info,
-                    })
-
             return data
 
         return defer.maybeDeferred(inner)

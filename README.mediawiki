@@ -1,20 +1,51 @@
+{{ZenPack
+|Summary=The Amazon Web Services™ ZenPack allows you to monitor Amazon Elastic Compute Cloud™ (Amazon EC2™) server instances.
+|Organization=Zenoss, Inc.
+|ZenPack name=ZenPacks.zenoss.AWS
+|Documentation URL=https://github.com/zenoss/ZenPacks.zenoss.AWS
+|Source URI=git://github.com/zenoss/ZenPacks.zenoss.AWS.git
+|Releases={{Release
+|Version=2.1.0
+|Tag=2.1.0
+|Release date=2013/11/19
+|Compatible with=Zenoss Core 4.2.x, Zenoss Resource Manager 4.2.x
+|Requires=PythonCollector, 
+}}{{Release
+|Version=2.0.0
+|Tag=2.0.0
+|Release date=2013/03/25
+|Compatible with=Zenoss Core 4.2.x, Zenoss Resource Manager 4.2.x
+|Requires=PythonCollector
+}}
+|Devices=
+|Applications={{Application
+|Product Name=Amazon Web Services
+}}
+|Integrations=
+|DataAudits=
+|Binaries=
+}}
 This ZenPack provides support for monitoring Amazon Web Services (AWS).
-Monitoring for the following EC2 entities is provided through a combination of
+Monitoring for the following EC2, VPC and S3 entities is provided through a combination of
 the AWS EC2 and CloudWatch APIs.
 
 {{note}} This ZenPack supersedes the older ZenAWS (ZenPacks.zenoss.ZenAWS) ZenPack that was installed by default on versions of Zenoss prior to 4.2.4. Please remove ZenAWS before installing this ZenPack. This will remove the /EC2 device class and the EC2Manager device within. After installing this ZenPack, you will be able to add a new EC2 Account with much greater functionality.
+
+__TOC__
 
 == Gallery ==
 <gallery widths=250px heights=127px>
 AWS Add EC2 Account Menu Item.png
 AWS Add EC2 Account Dialog.png
 AWS Account Overview.png
+ZAWSRegionPEM_Property.png
 AWS Region Instances.png
+AWS Zone Volumes.png
+AWS VPC Subnets.png
+AWS Subnet Graphs.png
 AWS Region Graphs.png
 AWS Instance Graphs.png
 AWS Volume Graphs.png
-AWS Zone Volumes.png
-AWS VPC Subnets.png
 AWS Impact.png
 </gallery>
 
@@ -23,8 +54,10 @@ AWS Impact.png
 The features added by this ZenPack can be summarized as follows. They are each
 detailed further below.
 
-* Discovery of EC2 entities.
+* Discovery of EC2, VPC and S3 entities.
 * Monitoring of CloudWatch metrics.
+* Monitoring of Region, S3Bucket and Subnet components.
+* Event management and monitoring.
 * Optional auto-discovery and monitoring of instance guest operating systems.
 * Optional service impact with addition of Zenoss Service Dynamics product.
 
@@ -35,16 +68,21 @@ name, access key and secret key you provide. The attributes, tags and
 collections will be updated on Zenoss' normal remodeling interval which
 defaults to every 12 hours.
 
+[[File:AWS Region Instances.png|thumb|320px|AWS Region Instances]]
+[[File:AWS Zone Volumes.png|thumb|320px|AWS Zone Volumes]]
+[[File:AWS VPC Subnets.png|thumb|320px|AWS VPC]]
+[[File:AWS Subnet Graphs.png|thumb|320px|AWS Subnets]]
+
 ;Regions
 : Attributes: ID
-: Collections: VPCs, Subnets, Zones, Instances, Volumes
+: Collections: VPCs, Subnets, Zones, Instances, Volumes, Images, Snapshots, Gateways, Reservations, Elastic IPs
 
 ;Zones
 : Attributes: ID, Region, State
 : Collections: Instances, Volumes, Subnets
 
 ;VPCs
-: Attributes: ID, Region, CIDR Block
+: Attributes: ID, Region, CIDR Block, State
 : Tags: Name, Collector
 : Collections: Subnets, Instances
 
@@ -54,13 +92,37 @@ defaults to every 12 hours.
 : Collections: Instances
 
 ;Instances
-: Attributes: ID, Region, VPC, Zone, Subnet, State, Instance Type, Image ID, Platform, Public DNS Name, Private IP Address, Launch Time, Guest Device
+: Attributes: ID, Region, VPC, Zone, Image, Subnet, State, Instance ID, Tag, Instance Type, Instance Type Details, Platform, Public DNS Name, Private IP Address, Public IP, Launch Time, Guest Device
 : Tags: Name
 : Collections: Volumes
 : Other: Guest Device (if monitored by Zenoss)
 
 ;Volumes
-: Attributes: ID, Region, Zone, Instance, Type Created Time, Size, IOPS, Status, Attach Data Status, Attach Data Device
+: Attributes: ID, Region, Zone, Instance, Type, Created Time, Size, IOPS, Status, Attach Data Status, Attach Data Device
+: Tags: Name
+
+;Elastic IPs
+: Attributes: ID, Region, Public IP, Private IP, Instance ID, Domain, Network interface ID, Network interface owner ID
+: Tags: Name
+
+;SQS Queues
+: Attributes: ID, Region
+: Tags: Name
+
+;S3 Buckets
+: Attributes: ID, Creation date
+: Tags: Name
+
+;Snapshots
+: Attributes: ID, Region, Volume, Volume size in Bytes, Progress, Started, Description
+: Tags: Name
+
+;VPN Gateways
+: Attributes: ID, Region, Gateway type, State
+: Tags: Name
+
+;Images
+: Attributes: ID, Region, Status, Location, Owner ID, Architecture, Image type, Kernel ID, Ramdisk ID, Description, Block device mapping, Root device type, Root device name, Virtualization type, Hypervisor
 : Tags: Name
 
 === Monitoring ===
@@ -80,16 +142,36 @@ value is per second for anything that resembles a rate.
 : Metrics: VolumeReadBytes, VolumeWriteBytes, VolumeReadOps, VolumeWriteOps, VolumeTotalReadTime, VolumeTotalWriteTime, VolumeIdleTime, VolumeQueueLength
 : Provisioned IOPS Metrics: VolumeThroughputPercentage, VolumeReadWriteOps
 
-The ''Amazon CloudWatch'' datasource type also allows for the collection of any
-other CloudWatch metric.
+The ''Amazon CloudWatch'' datasource type also allows for the collection of any other CloudWatch metric.
+
+Besides CloudWatch metrics, the following metrics will also be collected every 5 minutes by default.
+
+;Subnets
+: Metrics: Available IP Adresses count
+
+;S3 Buckets
+: Metrics: Keys count, Total Size
+
+=== Soft Limits Monitoring ===
+The following resource counts subject to the soft-limits will be collected every 5 minutes and when any of these metrics approaches a soft limit threshold, a Zenoss event will be triggered.
+
+;Regions
+: Soft Limit Metrics: Elastic IPs count, Instances count, Subnets count, VPC Security Groups count, VPC Security Groups Rules max, Volumes count
+
+The thresholds are set to the default limit values. If you changed this limit for your account, you should manually change the Max threshold value using the following steps:
+
+# Navigate to ''Monitoring Templates'' (''Advanced'' panel).
+# Click ''EC2Region'' and find ''RegionsSoftLimits'' among Data Sources.
+# On the ''Thresholds'' panel choose the resources count to be changed.
+# Double click on the resources count and change the value in the ''Maximum Value'' field.
 
 === Guest Device Discovery ===
 
 You can optionally configure each monitored AWS account to attempt to discover
 and monitor the guest Linux or Windows operating systems running within each
-EC2 instance. This requires that your Zenoss system has the network and server
-access it needs to monitor the guest operating system. VPC and non-VPC modes
-are supported.
+EC2 instance, when specific Tags are present. This requires that your Zenoss system 
+has the network and server access it needs to monitor the guest operating system. 
+VPC and non-VPC modes are supported.
 
 The guest operating system devices' life-cycle are managed along with the
 instance. For example, the guest operating system device is set to a
@@ -111,6 +193,8 @@ in any services that contain one or more of the explicitly mentioned entities.
 * Subnet failure affects all instances on affected subnet.
 * Volume failure affects any attached instance.
 * Instance failure affects the guest operating system device.
+* SQSQueue, VPNGateway, or EC2ElasticIP failure affects any related region.
+* S3Bucket failure affects related account.
 
 == Usage ==
 
@@ -148,6 +232,7 @@ device discovery must be configured individually for each EC2 account.
 # Navigate to one of the EC2 accounts.
 # Click the edit link beside ''Device Class for Discovered Linux Instances''
 # Choose the device class for Linux and/or Windows instances.
+# Navigate to the ''Configuration Properties'' panel and in the ''zAWSDiscover'' property specify the instances' tags and values (e.g. ''tag:value;'').
 # Verify that appropriate SSH, SNMP or Windows credentials are configured for the chosen device class(es).
 # Remodel the EC2 account by choosing ''Model Device'' from its menu.
 
@@ -155,6 +240,22 @@ If your instances are VPC instances, and are in a different VPC than the
 Zenoss server that's monitoring the EC2 account, you must add a ''Collector''
 tag to containing VPC with the value set to the name of the Zenoss collector
 to which discovered guest devices should be assigned.
+
+=== Configuring Instances Remodeling ===
+
+You can optionally configure your monitored AWS account, so that the newly 
+added or recently dropped instances are automatically reflected on Zenoss UI 
+during monitoring:
+
+# Navigate to the ''Configuration Properties'' panel.
+# Enable the ''zAWSRemodelEnabled'' property (set it to ''true'').
+
+=== PEM file ===
+
+Use the following steps to specify the PEM file to region for use in auto-discovering instance guest operating systems:
+
+# Navigate to the ''Configuration Properties'' panel.
+# Set region name and path to PEM file in the appropriate fields of ''zAWSRegionPEM'' property (see [http://wiki.zenoss.org/File:ZAWSRegionPEM_Property.png zAWSRegionPEM Propery]).
 
 == Installed Items ==
 
@@ -169,6 +270,7 @@ Installing this ZenPack will add the following items to your Zenoss system.
 
 ;Datasource Types
 * Amazon CloudWatch
+* AWSDataSource
 
 ;Monitoring Templates
 * EC2Region (in /AWS/EC2)
@@ -176,6 +278,16 @@ Installing this ZenPack will add the following items to your Zenoss system.
 * EC2Instance-Detailed (in /AWS/EC2)
 * EC2Volume (in /AWS/EC2)
 * EC2Volume-IOPS (in /AWS/EC2)
+* EC2Image (in /AWS/EC2)
+* EC2VPC (in /AWS/EC2)
+* EC2VPCSubnet (in /AWS/EC2)
+* EC2Snapshot (in /AWS/EC2)
+* EC2Zone (in /AWS/EC2)
+* S3Bucket (in /AWS/EC2)
+* SQSQueue (in /AWS/EC2)
+* EC2ReservedInstance (in /AWS/EC2)
+
+* VPNGateway (in /AWS/EC2)
 
 ;Device Types
 * EC2Account (in /AWS/EC2)
@@ -187,8 +299,43 @@ Installing this ZenPack will add the following items to your Zenoss system.
 * EC2Zone (on EC2Region)
 * EC2Instance (on EC2Region)
 * EC2Volume (on EC2Region)
+* EC2Image (on EC2Region)
+* EC2Snapshot (on EC2Region)
+* SQSQueue (on EC2Region)
+* VPNGateway (on EC2Region)
+* EC2ReservedInstance (on EC2Region)
+* S3Bucket (on EC2Account)
+* Elastic IP (on EC2Region)
+
+== Required Daemons ==
+
+{| class="wikitable"
+!width="50%"|Type
+!width="50%"|Name
+|-
+|Modeler
+|zenmodeler
+|-
+|Performance Collector
+|zenpython
+|}
+
+== Upgrade ==
+
+The AWS Zenpack of versions 2.0.0 / 2.1.0 can be upgraded. To upgrade the ZenPack, install the 
+latest version over the existing one. There is no action for the user to migrate the data. 
+The performance data and events of old ZenPack are retained as per the retain policy settings.
 
 == Changes ==
+
+;2.2.0
+* Add support for SQS Messages, S3 Buckets, Reserved Instances, Elastic IPs, Images, VPN Gateways, Snapshots.
+* Discover instances via Layer 3 when specific Tags are present on the instance.
+* Add ability for user to upload PEM file to region for use in auto-discovering instance guest operating systems.
+* Add ability for user to enable reflecting new instances on Zenoss UI during monitoring.
+* Support multiple IP addresses per instance and add instance type details.
+* Monitor AWS Soft Limits and VPC Subnet available IP address count.
+* Update component statuses during monitoring.
 
 ;2.1.0
 * Support CloudWatch metrics with multiple indexes.
@@ -198,3 +345,5 @@ Installing this ZenPack will add the following items to your Zenoss system.
 * Add support for regions, zones, VPCs, subnets and volumes.
 * Add support for custom CloudWatch metrics.
 * Complete rewrite.
+
+{{ZenPackFooter}}
