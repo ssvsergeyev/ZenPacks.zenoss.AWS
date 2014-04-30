@@ -22,7 +22,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME
 from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
-from ZenPacks.zenoss.AWS.utils import updateToOne
+from ZenPacks.zenoss.AWS.utils import updateToOne, updateToMany
 
 
 class EC2Volume(AWSComponent):
@@ -43,7 +43,7 @@ class EC2Volume(AWSComponent):
     _properties = AWSComponent._properties + (
         {'id': 'volume_type', 'type': 'string'},
         {'id': 'create_time', 'type': 'string'},
-        {'id': 'size', 'type': 'int'},
+        {'id': 'size', 'type': 'string'},
         {'id': 'iops', 'type': 'int'},
         {'id': 'status', 'type': 'string'},
         {'id': 'attach_data_status', 'type': 'string'},
@@ -55,6 +55,7 @@ class EC2Volume(AWSComponent):
         ('region', ToOne(ToManyCont, MODULE_NAME['EC2Region'], 'volumes')),
         ('zone', ToOne(ToMany, MODULE_NAME['EC2Zone'], 'volumes')),
         ('instance', ToOne(ToMany, MODULE_NAME['EC2Instance'], 'volumes')),
+        ('snapshots', ToMany(ToOne, MODULE_NAME['EC2Snapshot'], 'volume')),
         )
 
     def getRRDTemplates(self):
@@ -101,6 +102,16 @@ class EC2Volume(AWSComponent):
             CLASS_NAME['EC2Instance'],
             id_)
 
+    def getSnapshotIds(self):
+        return sorted(self.snapshots.objectIds())
+
+    def setSnapshotIds(self, ids):
+        updateToMany(
+            relationship=self.snapshots,
+            root=self.region().snapshots,
+            type_=CLASS_NAME['EC2Snapshot'],
+            ids=ids)
+
 
 class IEC2VolumeInfo(IComponentInfo):
     '''
@@ -113,7 +124,7 @@ class IEC2VolumeInfo(IComponentInfo):
     instance = schema.Entity(title=_t(u'Instance'))
     volume_type = schema.TextLine(title=_t(u'Type'))
     create_time = schema.TextLine(title=_t(u'Created Time'))
-    size = schema.Int(title=_t(u'Size in Bytes'))
+    size = schema.TextLine(title=_t(u'Capacity'))
     iops = schema.Int(title=_t(u'Provisioned IOPS'))
     status = schema.TextLine(title=_t(u'Status'))
     attach_data_status = schema.TextLine(title=_t(u'Attach Data Status'))

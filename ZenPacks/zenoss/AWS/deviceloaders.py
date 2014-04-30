@@ -22,10 +22,12 @@ class EC2AccountLoader(object):
     EC2 account loader.
 
     Used by including lines such as the following in a zenbatchload
-    input file::
+    input file:
 
-        /Devices/AWS/EC2 loader='ec2account', loader_arg_keys=['accountname', 'accesskey', 'secretkey', 'collector']
-        my-aws-account accountname='my-aws-account', accesskey='<accesskey>', secretkey='<secretkey>', collector='localhost'
+        /Devices/AWS/EC2 loader='ec2account', \
+        loader_arg_keys=['accountname', 'accesskey', 'secretkey', 'collector']
+        my-aws-account accountname='my-aws-account', accesskey='<accesskey>',\
+        secretkey='<secretkey>', collector='localhost'
     '''
 
     implements(IDeviceLoader)

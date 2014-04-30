@@ -218,3 +218,50 @@ def updateToOne(relationship, root, type_, id_):
         new_obj.index_object()
 
         return
+
+
+def unreserved_instance_count(ec2_conn, instance):
+    if instance.state != 'running':
+        return 0  # stoppend instances not need discount
+    if instance.spot_instance_request_id:
+        return 0  # spot instances cannot use discount
+
+    # getting running instances of the same type
+    # in the same availability zone
+    instances = ec2_conn.get_only_instances(filters={
+        'instance-state-name': 'running',
+        'instance-type': instance.instance_type,
+        'availability-zone': instance.placement,
+    })
+    # and not spot instances
+    instances = filter(lambda i: not i.spot_instance_request_id, instances)
+
+    # getting active reserved instances of the same type
+    # in the same availability zone
+    reserved = ec2_conn.get_all_reserved_instances(filters={
+        'state': 'active',
+        'instance-type': instance.instance_type,
+        'availability-zone': instance.placement,
+    })
+    return len(instances) - len(reserved)
+
+
+def unused_reserved_instances_count(ec2_conn, reserved_instance):
+    # getting running instances of the same type
+    # in the same availability zone
+    instances = ec2_conn.get_only_instances(filters={
+        'instance-state-name': 'running',
+        'instance-type': reserved_instance.instance_type,
+        'availability-zone': reserved_instance.availability_zone,
+    })
+    # and not spot instances
+    instances = filter(lambda i: not i.spot_instance_request_id, instances)
+
+    # getting active reserved instances of the same type
+    # in the same availability zone
+    reserved = ec2_conn.get_all_reserved_instances(filters={
+        'state': 'active',
+        'instance-type': reserved_instance.instance_type,
+        'availability-zone': reserved_instance.availability_zone,
+    })
+    return len(reserved) - len(instances)

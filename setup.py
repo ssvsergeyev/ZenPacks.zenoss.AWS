@@ -3,7 +3,7 @@
 # or saved.  Do not modify them directly here.
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.zenoss.AWS"
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 AUTHOR = "Zenoss"
 LICENSE = "GPLv2"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.zenoss']
@@ -27,6 +27,19 @@ if os.path.isfile('GNUmakefile'):
     print p.communicate()[0]
     if p.returncode != 0:
         raise Exception('"make build" exited with an error: %s' % p.returncode)
+
+try:
+    import ZenPacks.zenoss.ZenAWS
+    available = True
+except ImportError:
+    available = False
+
+if available:
+    raise Exception("This ZenPack supersedes the older ZenAWS (ZenPacks.zenoss.ZenAWS) "
+                    "ZenPack that was installed by default on versions of Zenoss prior to 4.2.4. "
+                    "Please remove ZenAWS before installing this ZenPack. This will remove the /EC2 "
+                    "device class and the EC2Manager device within. After installing this ZenPack, "
+                    "you will be able to add a new EC2 Account with much greater functionality.")
 
 setup(
     # This ZenPack metadata should usually be edited with the Zenoss

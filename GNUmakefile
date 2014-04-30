@@ -13,7 +13,7 @@
 
 PYTHON=$(shell which python)
 HERE=$(PWD)
-BOTO_DIR=$(HERE)/src/boto-2-8-0-31-JAN-13
+BOTO_DIR=$(HERE)/src/boto
 ZP_DIR=$(HERE)/ZenPacks/zenoss/AWS
 LIB_DIR=$(ZP_DIR)/lib
 BIN_DIR=$(ZP_DIR)/bin
@@ -35,3 +35,14 @@ build:
 clean:
 	rm -rf lib build dist *.egg-info $(BIN_DIR) $(LIB_DIR)
 	cd $(BOTO_DIR) ; rm -rf build dist *.egg-info
+
+json:
+	cd ZenPacks/zenoss/AWS; \
+	wget --quiet https://raw.github.com/garnaat/missingcloud/master/aws.json; \
+	if [ -f aws.json.1 ]; then rm aws.json; mv aws.json.1 aws.json; fi
+
+test:
+	runtests ZenPacks.zenoss.AWS
+
+pep8:
+	./check_pep8.sh

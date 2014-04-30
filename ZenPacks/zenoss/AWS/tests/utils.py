@@ -58,6 +58,11 @@ def test_account(dmd, factor=1):
     from ZenPacks.zenoss.AWS.EC2VPCSubnet import EC2VPCSubnet
     from ZenPacks.zenoss.AWS.EC2Instance import EC2Instance
     from ZenPacks.zenoss.AWS.EC2Volume import EC2Volume
+    from ZenPacks.zenoss.AWS.S3Bucket import S3Bucket
+    from ZenPacks.zenoss.AWS.EC2ElasticIP import EC2ElasticIP
+    from ZenPacks.zenoss.AWS.EC2Image import EC2Image
+    from ZenPacks.zenoss.AWS.VPNGateway import VPNGateway
+    from ZenPacks.zenoss.AWS.SQSQueue import SQSQueue
 
     dc = dmd.Devices.createOrganizer('/AWS/EC2')
     dc.setZenProperty('zPythonClass', 'ZenPacks.zenoss.AWS.EC2Account')
@@ -81,6 +86,13 @@ def test_account(dmd, factor=1):
                 region.zones,
                 EC2Zone('zone%s-%s' % (
                     region_id, zone_id)))
+
+        # Images
+        for image_id in range(factor):
+            image = add_obj(
+                region.images,
+                EC2Image('image%s-%s' % (
+                    region_id, image_id)))
 
             # VPCs
             for vpc_id in range(factor):
@@ -108,8 +120,10 @@ def test_account(dmd, factor=1):
                                 instance_id)))
 
                         instance.setZoneId(zone.id)
+                        instance.setImageId(image.id)
                         instance.setVPCSubnetId(subnet.id)
                         instance.private_ip_address = '10.77.77.77'
+                        instance.guest = True
                         instance.create_guest()
 
                         # Volumes
@@ -122,5 +136,33 @@ def test_account(dmd, factor=1):
 
                             volume.setZoneId(zone.id)
                             volume.setInstanceId(instance.id)
+
+        # Elastic IPs
+        for elastic_ip_id in range(factor):
+            elastic_ip = add_obj(
+                region.elastic_ips,
+                EC2ElasticIP('elastic_ip%s-%s' % (
+                    region_id, elastic_ip_id)))
+
+        # SQS Queue
+        for queue_id in range(factor):
+            queue = add_obj(
+                region.queues,
+                SQSQueue('queue%s-%s' % (
+                    region_id, queue_id)))
+
+        # VPNGateways
+        for vpn_gateway_id in range(factor):
+            vpn_gateway = add_obj(
+                region.vpn_gateways,
+                VPNGateway('vpn_gateway%s-%s' % (
+                    region_id, vpn_gateway_id)))
+
+    # S3Buckets
+    for bucket_id in range(factor):
+        bucket = add_obj(
+            account.s3buckets,
+            S3Bucket('s3bucket%s' % (
+                bucket_id)))
 
     return account

@@ -14,6 +14,7 @@ from Products.ZenModel.Device import Device
 
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 
+from Products.Zuul import getFacade
 from Products.Zuul.decorators import info
 from Products.Zuul.form import schema
 from Products.Zuul.infos import ProxyProperty
@@ -40,12 +41,18 @@ class EC2Account(Device):
         {'id': 'ec2secretkey', 'type': 'string'},
         {'id': 'linuxDeviceClass', 'type': 'string'},
         {'id': 'windowsDeviceClass', 'type': 'string'},
-        )
+    )
 
     _relations = Device._relations + (
         ('regions', ToManyCont(
             ToOne, MODULE_NAME['EC2Region'], 'account')),
-        )
+        ('s3buckets', ToManyCont(
+            ToOne, MODULE_NAME['S3Bucket'], 'account')),
+    )
+
+    def getIconPath(self):
+        ''' Return the path to an icon for this component.  '''
+        return '/++resource++aws/img/%s.png' % self.meta_type
 
     def getDiscoverGuests(self):
         '''
@@ -76,6 +83,30 @@ class EC2Account(Device):
         '''
         for region in self.regions():
             region.discover_guests()
+
+    def getClearEvents(self):
+        self.clear_events()
+        return True
+
+    def setClearEvents(self, value):
+        self.clear_events()
+
+    def clear_events(self):
+        zep = getFacade('zep')
+        zep_filter = zep.createEventFilter(
+            element_identifier=(self.id),
+            event_class=('/Status'),
+            severity=(5),
+            status=(0, 1)
+        )
+        results = zep.getEventSummariesGenerator(filter=zep_filter)
+
+        component_list = [x.getObject().id for x in self.componentSearch()]
+        for res in results:
+            key = res['occurrence'][0]['actor'].get('element_sub_identifier')
+            if key and key not in component_list:
+                del_filter = zep.createEventFilter(uuid=res['uuid'])
+                zep.closeEventSummaries(eventFilter=del_filter)
 
 
 class IEC2AccountInfo(IDeviceInfo):
