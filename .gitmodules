@@ -1,3 +1,0 @@
-[submodule "src/boto"]
-	path = src/boto
-	url = git@github.com:boto/boto.git
