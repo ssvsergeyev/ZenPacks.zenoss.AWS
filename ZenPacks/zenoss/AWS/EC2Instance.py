@@ -249,11 +249,21 @@ class EC2Instance(AWSComponent):
         '''
         Return the best collector for this instance's guest device.
         '''
+        # Search Order
+        # vpc collector tag
+        # aws device zproperty zAWSGuestCollector
+        # default
         vpc = self.vpc()
         if vpc and vpc.collector:
             collector = self.getDmdRoot('Monitors').Performance._getOb(
                 vpc.collector, None)
 
+            if collector:
+                return collector
+ 
+        if self.zAWSGuestCollector:
+            collector = self.getDmdRoot('Monitors').Performance._getOb(
+                self.zAWSGuestCollector, None)
             if collector:
                 return collector
 
@@ -311,7 +321,8 @@ class EC2Instance(AWSComponent):
             return
 
         guest_device = self.guest_device()
-        if guest_device:
+        'Allow the guest_device the choice if it wants to auto update the collector'
+        if guest_device and guest_device.zAWSResetGuestCollector:
             guest_device.setPerformanceMonitor(
                 guest_device.getPerformanceServerName(),
                 self.guest_collector().getOrganizerName()
