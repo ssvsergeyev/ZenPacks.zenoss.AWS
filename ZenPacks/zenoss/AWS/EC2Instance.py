@@ -30,7 +30,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME, EC2INSTANCE_TYPES
 from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
-from ZenPacks.zenoss.AWS.utils import updateToOne, updateToMany
+from ZenPacks.zenoss.AWS.utils import updateToOne, updateToMany, prodState
 
 
 class EC2Instance(AWSComponent):
@@ -259,13 +259,14 @@ class EC2Instance(AWSComponent):
 
         return self.getPerformanceServer()
 
-    def create_guest(self):
+    def create_guest(self, state='running'):
         '''
         Create guest device for this instance if it doesn't already
         exist.
         '''
         if not self.guest:
             return
+
         deviceclass = self.guest_deviceclass()
         if not deviceclass:
             return
@@ -289,8 +290,7 @@ class EC2Instance(AWSComponent):
         device.title = self.title
         device.setManageIp(manage_ip)
         device.setPerformanceMonitor(collector.id)
-        device.setProdState(self._running_prodstate)
-        device.index_object()
+        device.setProdState(prodState(self.state.lower()))
         device.setZenProperty('zKeyPath', self.pem_path)
         device.index_object()
         notify(IndexingEvent(device))
@@ -302,6 +302,7 @@ class EC2Instance(AWSComponent):
         '''
         Attempt to discover and link guest device.
         '''
+
         if not self.state:
             return
 
@@ -337,7 +338,7 @@ class EC2Instance(AWSComponent):
 
                     guest_device.setProdState(-1)
             else:
-                self.create_guest()
+                self.create_guest(self.state)
 
 
 class IEC2InstanceInfo(IComponentInfo):

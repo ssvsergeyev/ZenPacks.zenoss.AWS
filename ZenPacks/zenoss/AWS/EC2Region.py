@@ -73,7 +73,6 @@ class EC2Region(AWSComponent):
     def getRegionId(self):
         return self.id
 
-    @transact
     def discover_guests(self):
         '''
         Attempt to discover and link instance guest devices.

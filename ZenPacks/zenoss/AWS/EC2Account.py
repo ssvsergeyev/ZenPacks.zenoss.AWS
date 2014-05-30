@@ -35,6 +35,7 @@ class EC2Account(Device):
     ec2secretkey = None
     linuxDeviceClass = None
     windowsDeviceClass = None
+    _setDiscoverGuests = None
 
     _properties = Device._properties + (
         {'id': 'ec2accesskey', 'type': 'string'},
@@ -60,21 +61,17 @@ class EC2Account(Device):
 
         The modeler plugin calls setDiscoverGuests which will cause
         ApplyDataMap to call this getter method first to validate that
-        the setter even needs to be run. For this reason, this method
-        must actually perform the discovery logic.
+        the setter even needs to be run.
+        This method will return what was set from a previous run.
         '''
-        self.discover_guests()
 
-        return True
+        return self._setDiscoverGuests
 
     def setDiscoverGuests(self, value):
         '''
         Attempt to discover and link instance guest devices.
-
-        This method should typically never be called because the
-        getDiscoverGuests method will always return the same value that
-        the modeler plugin sets.
         '''
+        self._setDiscoverGuests = value
         self.discover_guests()
 
     def discover_guests(self):

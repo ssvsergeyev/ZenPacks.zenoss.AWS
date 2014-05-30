@@ -265,3 +265,11 @@ def unused_reserved_instances_count(ec2_conn, reserved_instance):
         'availability-zone': reserved_instance.availability_zone,
     })
     return len(reserved) - len(instances)
+
+def prodState(state):
+    # if the state is stopped return decommissioned, otherwise production.
+    if state == 'stopped':
+        return -1
+    else:
+        return 1000
+
