@@ -62,7 +62,7 @@ class EC2Account(Device):
         The modeler plugin calls setDiscoverGuests which will cause
         ApplyDataMap to call this getter method first to validate that
         the setter even needs to be run.
-        This methos will return what was set from a previous run.
+        This method will return what was set from a previous run.
         '''
 
         return self._setDiscoverGuests
