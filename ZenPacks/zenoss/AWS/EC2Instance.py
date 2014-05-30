@@ -286,7 +286,6 @@ class EC2Instance(AWSComponent):
             'instance %s running. Discovering guest device',
             self.titleOrId())
 
-
         if self.state.lower() == 'stopped':
             productionState = -1
         else:
@@ -322,7 +321,7 @@ class EC2Instance(AWSComponent):
                 guest_device.getPerformanceServerName(),
                 self.guest_collector().getOrganizerName()
             )
-        
+ 
         if self.state.lower() == 'running':
             if guest_device:
                 if guest_device.productionState != self._running_prodstate:
@@ -336,7 +335,6 @@ class EC2Instance(AWSComponent):
                 self.create_guest()
 
         elif self.state.lower() == 'stopped':
-            
             if guest_device:
                 if guest_device.productionState != -1:
                     LOG.info(

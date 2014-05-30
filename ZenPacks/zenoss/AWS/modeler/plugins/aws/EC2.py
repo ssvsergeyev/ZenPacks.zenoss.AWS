@@ -471,11 +471,7 @@ def instances_rm(region_id, device, instances, image_filters, instance_states):
             'guest': check_tag(device.zAWSDiscover, instance.tags),
             'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
         })
-        if data['state'] == 'stopped':
-            prodState = -1
-        else:
-            prodState = 1000
-        instance_states[data['id']] = prodState
+        instance_states[data['id']] = prodState(data['state'])
         instance_data.append(data)
 
     return RelationshipMap(
@@ -485,7 +481,12 @@ def instances_rm(region_id, device, instances, image_filters, instance_states):
         objmaps=instance_data
     )
 
-
+def prodState(state):
+    if state == 'stopped':
+        return -1
+    else:
+        return 1000
+   
 def images_rm(region_id, images):
     '''
     Return images RelationshipMap given region_id and an ImageInfo
@@ -639,11 +640,8 @@ def reserved_instances_rm(region_id, reserved_instances, instance_states):
             'availability_zone': ri.availability_zone,
             'state': ri.state,
         })
-        if ri.state == 'stopped':
-            prodState = -1
-        else:
-            prodState = 1000
-        instance_states[prepId(ri.id)] = prodState
+
+        instance_states[prepId(ri.id)] = prodState(ri.state)
 
     return RelationshipMap(
         compname='regions/%s' % region_id,
