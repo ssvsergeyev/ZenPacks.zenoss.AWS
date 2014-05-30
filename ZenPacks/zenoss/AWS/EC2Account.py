@@ -24,7 +24,6 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from ZenPacks.zenoss.AWS import MODULE_NAME
 
-
 class EC2Account(Device):
     '''
     Model class for EC2Account.
@@ -35,6 +34,12 @@ class EC2Account(Device):
     ec2secretkey = None
     linuxDeviceClass = None
     windowsDeviceClass = None
+    _setDiscoverGuests = None
+
+    # Used to restore user-defined production state when a stopped
+    # instance is resumed.
+    _running_prodstate = 1000
+    _decommissioned_prodstate = -1
 
     _properties = Device._properties + (
         {'id': 'ec2accesskey', 'type': 'string'},
@@ -55,26 +60,15 @@ class EC2Account(Device):
         return '/++resource++aws/img/%s.png' % self.meta_type
 
     def getDiscoverGuests(self):
-        '''
-        Attempt to discover and link instance guest devices.
-
-        The modeler plugin calls setDiscoverGuests which will cause
-        ApplyDataMap to call this getter method first to validate that
-        the setter even needs to be run. For this reason, this method
-        must actually perform the discovery logic.
-        '''
-        self.discover_guests()
-
-        return True
+        # return what was set from a previous run
+        if self._setDiscoverGuests:
+            return self._setDiscoverGuests
 
     def setDiscoverGuests(self, value):
         '''
         Attempt to discover and link instance guest devices.
-
-        This method should typically never be called because the
-        getDiscoverGuests method will always return the same value that
-        the modeler plugin sets.
         '''
+        self._setDiscoverGuests = value
         self.discover_guests()
 
     def discover_guests(self):

@@ -101,6 +101,7 @@ class EC2(PythonPlugin):
         image_filters = []
 
         region_oms = []
+        instance_states = {}
         for region in ec2_regions:
             region_id = prepId(region.name)
 
@@ -148,7 +149,8 @@ class EC2(PythonPlugin):
                 region_id,
                 device,
                 ec2regionconn.get_only_instances(filters=INSTANCE_FILTERS),
-                image_filters
+                image_filters,
+                instance_states
             ))
 
             # Images
@@ -179,6 +181,7 @@ class EC2(PythonPlugin):
                 reserved_instances_rm(
                     region_id,
                     ec2regionconn.get_all_reserved_instances(),
+                    instance_states
                 )
             )
 
@@ -195,7 +198,7 @@ class EC2(PythonPlugin):
 
         # Trigger discovery of instance guest devices.
         maps['account'].append(ObjectMap(data={
-            'setDiscoverGuests': True,
+            'setDiscoverGuests': sorted(instance_states.items())
         }))
 
         return list(chain.from_iterable(maps.itervalues()))
@@ -454,7 +457,7 @@ def get_instance_data(instance):
     }
 
 
-def instances_rm(region_id, device, instances, image_filters):
+def instances_rm(region_id, device, instances, image_filters, instance_states):
     '''
     Return instances RelationshipMap given region_id and an InstanceInfo
     ResultSet.
@@ -468,6 +471,11 @@ def instances_rm(region_id, device, instances, image_filters):
             'guest': check_tag(device.zAWSDiscover, instance.tags),
             'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
         })
+        if data['state'] == 'stopped':
+            prodState = -1
+        else:
+            prodState = 1000
+        instance_states[data['id']] = prodState
         instance_data.append(data)
 
     return RelationshipMap(
@@ -621,7 +629,7 @@ def s3buckets_rm(buckets):
     )
 
 
-def reserved_instances_rm(region_id, reserved_instances):
+def reserved_instances_rm(region_id, reserved_instances, instance_states):
     obj_map = []
     for ri in reserved_instances:
         obj_map.append({
@@ -631,6 +639,12 @@ def reserved_instances_rm(region_id, reserved_instances):
             'availability_zone': ri.availability_zone,
             'state': ri.state,
         })
+        if ri.state == 'stopped':
+            prodState = -1
+        else:
+            prodState = 1000
+        instance_states[prepId(ri.id)] = prodState
+
     return RelationshipMap(
         compname='regions/%s' % region_id,
         relname='reserved_instances',

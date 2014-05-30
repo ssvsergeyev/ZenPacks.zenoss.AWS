@@ -259,13 +259,14 @@ class EC2Instance(AWSComponent):
 
         return self.getPerformanceServer()
 
-    def create_guest(self):
+    def create_guest(self, state='running'):
         '''
         Create guest device for this instance if it doesn't already
         exist.
         '''
         if not self.guest:
             return
+
         deviceclass = self.guest_deviceclass()
         if not deviceclass:
             return
@@ -285,12 +286,17 @@ class EC2Instance(AWSComponent):
             'instance %s running. Discovering guest device',
             self.titleOrId())
 
+
+        if self.state.lower() == 'stopped':
+            productionState = -1
+        else:
+            productionState = self._running_prodstate
+
         device = deviceclass.createInstance(self.id)
         device.title = self.title
         device.setManageIp(manage_ip)
         device.setPerformanceMonitor(collector.id)
-        device.setProdState(self._running_prodstate)
-        device.index_object()
+        device.setProdState(productionState)
         device.setZenProperty('zKeyPath', self.pem_path)
         device.index_object()
         notify(IndexingEvent(device))
@@ -302,6 +308,7 @@ class EC2Instance(AWSComponent):
         '''
         Attempt to discover and link guest device.
         '''
+
         if not self.state:
             return
 
@@ -315,7 +322,7 @@ class EC2Instance(AWSComponent):
                 guest_device.getPerformanceServerName(),
                 self.guest_collector().getOrganizerName()
             )
-
+        
         if self.state.lower() == 'running':
             if guest_device:
                 if guest_device.productionState != self._running_prodstate:
@@ -329,6 +336,7 @@ class EC2Instance(AWSComponent):
                 self.create_guest()
 
         elif self.state.lower() == 'stopped':
+            
             if guest_device:
                 if guest_device.productionState != -1:
                     LOG.info(
@@ -337,7 +345,7 @@ class EC2Instance(AWSComponent):
 
                     guest_device.setProdState(-1)
             else:
-                self.create_guest()
+                self.create_guest(self.state)
 
 
 class IEC2InstanceInfo(IComponentInfo):
