@@ -21,7 +21,7 @@ from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
 from Products.ZenUtils.Utils import prepId
 
 from ZenPacks.zenoss.AWS import MODULE_NAME
-from ZenPacks.zenoss.AWS.utils import addLocalLibPath
+from ZenPacks.zenoss.AWS.utils import addLocalLibPath, prodState
 
 addLocalLibPath()
 
@@ -481,12 +481,6 @@ def instances_rm(region_id, device, instances, image_filters, instance_states):
         objmaps=instance_data
     )
 
-def prodState(state):
-    if state == 'stopped':
-        return -1
-    else:
-        return 1000
-   
 def images_rm(region_id, images):
     '''
     Return images RelationshipMap given region_id and an ImageInfo

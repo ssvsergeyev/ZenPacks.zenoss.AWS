@@ -30,7 +30,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 
 from ZenPacks.zenoss.AWS import CLASS_NAME, MODULE_NAME, EC2INSTANCE_TYPES
 from ZenPacks.zenoss.AWS.AWSComponent import AWSComponent
-from ZenPacks.zenoss.AWS.utils import updateToOne, updateToMany
+from ZenPacks.zenoss.AWS.utils import updateToOne, updateToMany, prodState
 
 
 class EC2Instance(AWSComponent):
@@ -286,16 +286,11 @@ class EC2Instance(AWSComponent):
             'instance %s running. Discovering guest device',
             self.titleOrId())
 
-        if self.state.lower() == 'stopped':
-            productionState = -1
-        else:
-            productionState = self._running_prodstate
-
         device = deviceclass.createInstance(self.id)
         device.title = self.title
         device.setManageIp(manage_ip)
         device.setPerformanceMonitor(collector.id)
-        device.setProdState(productionState)
+        device.setProdState(prodState(self.state.lower()))
         device.setZenProperty('zKeyPath', self.pem_path)
         device.index_object()
         notify(IndexingEvent(device))
