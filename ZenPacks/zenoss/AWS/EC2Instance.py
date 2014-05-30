@@ -321,7 +321,7 @@ class EC2Instance(AWSComponent):
                 guest_device.getPerformanceServerName(),
                 self.guest_collector().getOrganizerName()
             )
- 
+
         if self.state.lower() == 'running':
             if guest_device:
                 if guest_device.productionState != self._running_prodstate:
