@@ -19,6 +19,8 @@ from collections import defaultdict
 setzPropertyCategory('zAWSDiscover', 'AWS')
 setzPropertyCategory('zAWSRegionPEM', 'AWS')
 setzPropertyCategory('zAWSRemodelEnabled', 'AWS')
+setzPropertyCategory('zAWSGuestCollector', 'AWS')
+setzPropertyCategory('zAWSResetGuestCollector', 'AWS')
 
 # Modules containing model classes. Used by zenchkschema to validate
 # bidirectional integrity of defined relationships.
@@ -93,6 +95,8 @@ class ZenPack(ZenPackBase):
         ('zAWSDiscover', '', 'awsdiscoverfield'),
         ('zAWSRegionPEM', '', 'multilinekeypath'),
         ('zAWSRemodelEnabled', 'false', 'bool'),
+        ('zAWSGuestCollector', '', 'string'),
+        ('zAWSResetGuestCollector', 'true', 'bool'),
     ]
 
     def install(self, app):
