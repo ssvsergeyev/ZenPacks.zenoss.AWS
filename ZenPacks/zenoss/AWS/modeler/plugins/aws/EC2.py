@@ -145,7 +145,7 @@ class EC2(PythonPlugin):
             ))
 
             region_images = ec2regionconn.get_all_images(image_ids=image_filters)
-            region_image_ids = [x.id for x in region_images]
+            region_image_ids = {x.id:1 for x in region_images}
 
             # Instances
             maps['instances'].append(instances_rm(
@@ -165,6 +165,7 @@ class EC2(PythonPlugin):
                 image_filters = []
 
             region_volumes = ec2regionconn.get_all_volumes()
+            region_volume_ids = {x.id:1 for x in region_volumes}
 
             maps['volumes'].append(volumes_rm(
                 region_id, region_volumes
@@ -173,7 +174,7 @@ class EC2(PythonPlugin):
             maps['snapshots'].append(snapshots_rm(
                 region_id, ec2regionconn.get_all_snapshots(
                     owner="self"
-                ), region_volumes
+                ), region_volume_ids
             ))
 
             # Elastic IPs
@@ -442,8 +443,8 @@ def vpc_subnets_rm(region_id, subnets):
 def get_instance_data(instance, region_image_ids):
     zone_id = prepId(instance.placement) if instance.placement else None
     subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
-    if instance.image_id in region_image_ids:
-        instance_image_id = instance.image_id
+    if instance.image_id:
+        instance_image_id = region_image_ids.get(instance.image_id,None)
     else:
         instance_image_id = None
 
@@ -557,19 +558,17 @@ def volumes_rm(region_id, volumes):
         objmaps=volume_data)
 
 
-def snapshots_rm(region_id, snapshots, region_volumes):
+def snapshots_rm(region_id, snapshots, region_volume_ids):
     '''
     Return snapshots RelationshipMap given region_id and a Snapshot
     ResultSet.
     '''
     snapshot_data = []
-    region_volume_ids = [x.id for x in region_volumes]
     for snapshot in snapshots:
         if snapshot.volume_id:
-            if snapshot.volume_id in region_volume_ids:
-                volume_id = prepId(snapshot.volume_id)
-            else:
-                volume_id = None
+            volume_id = region_volume_ids.get(snapshot.volume_id, None)
+            if volume_id:
+                volume_id = prepId(volume_id)
         else:
             volume_id = None
 
