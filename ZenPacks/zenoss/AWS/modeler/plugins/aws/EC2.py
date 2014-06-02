@@ -144,31 +144,37 @@ class EC2(PythonPlugin):
                 region_id, vpcregionconn.get_all_subnets()
             ))
 
+            region_images = ec2regionconn.get_all_images(image_ids=image_filters)
+            region_image_ids = {x.id:1 for x in region_images}
+
             # Instances
             maps['instances'].append(instances_rm(
                 region_id,
                 device,
                 ec2regionconn.get_only_instances(filters=INSTANCE_FILTERS),
                 image_filters,
-                instance_states
+                instance_states,
+                region_image_ids
             ))
 
             # Images
             if image_filters:
                 maps['images'].append(
-                    images_rm(region_id, ec2regionconn.get_all_images(
-                        image_ids=image_filters))
-                )
+                    images_rm(region_id, region_images
+                ))
                 image_filters = []
 
+            region_volumes = ec2regionconn.get_all_volumes()
+            region_volume_ids = {x.id:1 for x in region_volumes}
+
             maps['volumes'].append(volumes_rm(
-                region_id, ec2regionconn.get_all_volumes()
+                region_id, region_volumes
             ))
 
             maps['snapshots'].append(snapshots_rm(
                 region_id, ec2regionconn.get_all_snapshots(
                     owner="self"
-                )
+                ), region_volume_ids
             ))
 
             # Elastic IPs
@@ -181,7 +187,7 @@ class EC2(PythonPlugin):
                 reserved_instances_rm(
                     region_id,
                     ec2regionconn.get_all_reserved_instances(),
-                    instance_states
+                    instance_states,
                 )
             )
 
@@ -434,9 +440,13 @@ def vpc_subnets_rm(region_id, subnets):
         objmaps=vpc_subnet_data)
 
 
-def get_instance_data(instance):
+def get_instance_data(instance, region_image_ids):
     zone_id = prepId(instance.placement) if instance.placement else None
     subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
+    if instance.image_id:
+        instance_image_id = region_image_ids.get(instance.image_id,None)
+    else:
+        instance_image_id = None
 
     return {
         'id': prepId(instance.id),
@@ -452,12 +462,12 @@ def get_instance_data(instance):
         'platform': getattr(instance, 'platform', ''),
         'detailed_monitoring': instance.monitored,
         'setZoneId': zone_id,
-        'setImageId': instance.image_id,
+        'setImageId': instance_image_id,
         'setVPCSubnetId': subnet_id,
     }
 
 
-def instances_rm(region_id, device, instances, image_filters, instance_states):
+def instances_rm(region_id, device, instances, image_filters, instance_states, region_image_ids):
     '''
     Return instances RelationshipMap given region_id and an InstanceInfo
     ResultSet.
@@ -466,7 +476,7 @@ def instances_rm(region_id, device, instances, image_filters, instance_states):
     for instance in instances:
         image_filters.append(instance.image_id)
 
-        data = get_instance_data(instance)
+        data = get_instance_data(instance, region_image_ids)
         data.update({
             'guest': check_tag(device.zAWSDiscover, instance.tags),
             'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
@@ -548,7 +558,7 @@ def volumes_rm(region_id, volumes):
         objmaps=volume_data)
 
 
-def snapshots_rm(region_id, snapshots):
+def snapshots_rm(region_id, snapshots, region_volume_ids):
     '''
     Return snapshots RelationshipMap given region_id and a Snapshot
     ResultSet.
@@ -556,7 +566,9 @@ def snapshots_rm(region_id, snapshots):
     snapshot_data = []
     for snapshot in snapshots:
         if snapshot.volume_id:
-            volume_id = prepId(snapshot.volume_id)
+            volume_id = region_volume_ids.get(snapshot.volume_id, None)
+            if volume_id:
+                volume_id = prepId(volume_id)
         else:
             volume_id = None
 
