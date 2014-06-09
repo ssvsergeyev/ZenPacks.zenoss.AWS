@@ -15,7 +15,6 @@ import time
 import calendar
 import random
 import os
-import pdb
 
 from cStringIO import StringIO
 from lxml import etree
@@ -45,23 +44,8 @@ from ZenPacks.zenoss.AWS.utils \
 
 MAX_RETRIES = 3
 
-class ProxyClientFactory(txwebclient.HTTPClientFactory):
-    """Factory that supports proxy."""
-
-    def __init__(self, url, proxy_url, proxy_port, headers=None):
-        self.proxy_url = proxy_url
-        self.proxy_port = proxy_port
-        txwebclient.HTTPClientFactory.__init__(self, url, headers=headers)
-
-    def setURL(self, url):
-        self.host = self.proxy_url
-        self.port = self.proxy_port
-        self.url = url
-        self.path = url
-
-
 class ProxyWebClient(object):
-    """Provide useful web methods with proxy."""
+    """web methods with proxy."""
 
     def __init__(self, url, username=None, password=None):
         # get scheme used by url
@@ -90,7 +74,7 @@ class ProxyWebClient(object):
 
     def get_page(self, contextFactory=None, *args, **kwargs):
         scheme, _, _, _ = txwebclient._parse(self.url)
-        factory = ProxyClientFactory(self.url, self.proxy_host, self.proxy_port)
+        factory = txwebclient.HTTPClientFactory(self.url)
         if scheme == 'https':
             from twisted.internet import ssl
             if contextFactory is None:
