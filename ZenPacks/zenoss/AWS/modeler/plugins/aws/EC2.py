@@ -98,7 +98,7 @@ class EC2(PythonPlugin):
             ('reserved_instances', []),
         ])
 
-        image_filters = []
+        images = []
 
         region_oms = []
         instance_states = {}
@@ -117,6 +117,7 @@ class EC2(PythonPlugin):
                 aws_access_key_id=accesskey,
                 aws_secret_access_key=secretkey
             )
+
             # Zones
             maps['zones'].append(
                 zones_rm(
@@ -144,25 +145,22 @@ class EC2(PythonPlugin):
                 region_id, vpcregionconn.get_all_subnets()
             ))
 
-            region_images = ec2regionconn.get_all_images(image_ids=image_filters)
-            region_image_ids = {x.id:1 for x in region_images}
-
             # Instances
             maps['instances'].append(instances_rm(
                 region_id,
                 device,
                 ec2regionconn.get_only_instances(filters=INSTANCE_FILTERS),
-                image_filters,
+                images,
                 instance_states,
-                region_image_ids
+                ec2regionconn
             ))
 
             # Images
-            if image_filters:
+            if images:
                 maps['images'].append(
-                    images_rm(region_id, region_images
+                    images_rm(region_id, images
                 ))
-                image_filters = []
+                images = []
 
             region_volumes = ec2regionconn.get_all_volumes()
             region_volume_ids = {x.id:1 for x in region_volumes}
@@ -187,7 +185,7 @@ class EC2(PythonPlugin):
                 reserved_instances_rm(
                     region_id,
                     ec2regionconn.get_all_reserved_instances(),
-                    instance_states,
+                    instance_states
                 )
             )
 
@@ -440,11 +438,12 @@ def vpc_subnets_rm(region_id, subnets):
         objmaps=vpc_subnet_data)
 
 
-def get_instance_data(instance, region_image_ids):
+def get_instance_data(instance, image_ids):
     zone_id = prepId(instance.placement) if instance.placement else None
     subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
-    if instance.image_id:
-        instance_image_id = region_image_ids.get(instance.image_id,None)
+    
+    if instance.image_id in image_ids:
+        instance_imaged_id = instance.image_id
     else:
         instance_image_id = None
 
@@ -462,21 +461,27 @@ def get_instance_data(instance, region_image_ids):
         'platform': getattr(instance, 'platform', ''),
         'detailed_monitoring': instance.monitored,
         'setZoneId': zone_id,
-        'setImageId': instance_image_id,
+        'setImageId': instance.image_id,
         'setVPCSubnetId': subnet_id,
     }
 
 
-def instances_rm(region_id, device, instances, image_filters, instance_states, region_image_ids):
+def instances_rm(region_id, device, instances, images, instance_states, region_conn):
     '''
     Return instances RelationshipMap given region_id and an InstanceInfo
     ResultSet.
     '''
     instance_data = []
+    image_filters = []
     for instance in instances:
         image_filters.append(instance.image_id)
+                
+    data = region_conn.get_all_images(image_ids=image_filters)
+    images.extend(data)
 
-        data = get_instance_data(instance, region_image_ids)
+    image_ids = [x.id for x in images]
+    for instance in instances:
+        data = get_instance_data(instance, image_ids)
         data.update({
             'guest': check_tag(device.zAWSDiscover, instance.tags),
             'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
@@ -566,12 +571,12 @@ def snapshots_rm(region_id, snapshots, region_volume_ids):
     snapshot_data = []
     for snapshot in snapshots:
         if snapshot.volume_id:
-            volume_id = region_volume_ids.get(snapshot.volume_id, None)
-            if volume_id:
-                volume_id = prepId(volume_id)
+            if snapshot.volume_id in region_volume_ids:
+                volume_id = prepId(snapshot.volume_id)
+            else:
+                volume_id = None
         else:
             volume_id = None
-
         snapshot_data.append({
             'id': prepId(snapshot.id),
             'title': name_or(snapshot.tags, snapshot.id),
