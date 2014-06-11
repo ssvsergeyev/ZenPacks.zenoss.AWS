@@ -161,7 +161,6 @@ class EC2(PythonPlugin):
                     images_rm(region_id, images
                 ))
                 images = []
-
             region_volumes = ec2regionconn.get_all_volumes()
             region_volume_ids = {x.id:1 for x in region_volumes}
 
@@ -441,9 +440,9 @@ def vpc_subnets_rm(region_id, subnets):
 def get_instance_data(instance, image_ids):
     zone_id = prepId(instance.placement) if instance.placement else None
     subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
-    
+
     if instance.image_id in image_ids:
-        instance_imaged_id = instance.image_id
+        instance_image_id = instance.image_id
     else:
         instance_image_id = None
 
@@ -461,7 +460,7 @@ def get_instance_data(instance, image_ids):
         'platform': getattr(instance, 'platform', ''),
         'detailed_monitoring': instance.monitored,
         'setZoneId': zone_id,
-        'setImageId': instance.image_id,
+        'setImageId': instance_image_id,
         'setVPCSubnetId': subnet_id,
     }
 
@@ -475,9 +474,10 @@ def instances_rm(region_id, device, instances, images, instance_states, region_c
     image_filters = []
     for instance in instances:
         image_filters.append(instance.image_id)
-                
-    data = region_conn.get_all_images(image_ids=image_filters)
-    images.extend(data)
+           
+    if image_filters:
+        data = region_conn.get_all_images(image_ids=image_filters)
+        images.extend(data)
 
     image_ids = [x.id for x in images]
     for instance in instances:
