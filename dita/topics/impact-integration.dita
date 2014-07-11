@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="referenceid">
+  <title>Integration with <ph conkeyref="names/impact"/></title>
+  <refbody>
+    <section>
+      <p>This ZenPack includes custom state providers for services running on AWS. Custom state
+        providers enable specialized options for defining state triggers in <ph
+          conkeyref="names/impact-long"/> (<ph conkeyref="names/impact"/>).</p>
+      
+      <p>The following relationships are automatically included in any 
+        <ph conkeyref="names/impact"/> services that contain one or more of the
+        explicitly mentioned components.</p>
+      <ul>
+        <li>Account access failure impacts all regions</li>
+        <li>Region failure affects all VPCs and zones in affected region</li>
+        <li>VPC failure affects all related subnets</li>
+        <li>Zone failure affects all related subnets, instances and volumes</li>
+        <li>Subnet failure affects all instances on affected subnet</li>
+        <li>Volume failure affects any attached instance</li>
+        <li>Instance failure affects the guest operating system device</li>
+        <li>SQSQueue, VPNGateway, or EC2ElasticIP failure affects any related region</li>
+        <li>S3Bucket failure affects related account</li> 
+      </ul>
+      <p>The preceding relationships follow the default <ph conkeyref="names/impact"/> policy,
+        in which a node inherits the worst state of the ancestor
+        nodes to which it is related. </p>
+    </section>
+  </refbody>
+</reference>

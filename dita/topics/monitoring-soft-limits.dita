@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="referenceid">
+  <title>Soft limits monitoring</title>
+  <refbody>
+    <section>
+      <p>This ZenPack monitors the following item counts defined in your AWS account for Regions.</p>
+      <sl>
+        <sli>Elastic IPs, Instances, Subnets, VPC Security Groups, VPC Security Groups Rules (max), Volumes</sli>
+      </sl>
+      
+        <p>By default, these soft-limit metrics are collected every 5 minutes, 
+          and a <ph conkeyref="names/platform"/> event is triggered when a metric
+          approaches its threshold value.</p>
+      
+      <p>The threshold for each count is set to its default limit value. 
+        If you change a count's limit in your AWS account, 
+        change the maximum value of its threshold
+        in <ph conkeyref="names/platform"/>.</p>
+    </section>
+  </refbody>
+</reference>

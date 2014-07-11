@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task
+  PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:task" "task.dtd">
+<task id="d16e113"><title>Adding a Cisco UCS Device</title><taskbody><context>
+  <p>Follow these steps to begin monitoring a Cisco UCS device through
+    <ph conkeyref="names/platform"/>:</p></context><steps-informal><ol>
+      <li>
+        <p>In the <ph conkeyref="names/platform"/> interface, navigate to the
+        <codeph outputclass="code">/CiscoUCS</codeph> device class.</p>
+      </li>
+
+      <li>
+        <p>From <!-- inlinemediaobject: images/screens/Add_Device_Button.png--> Add Devices, select Add Cisco UCS.</p>
+        <fig>
+          <title>Add Cisco UCS dialog</title>
+            <image href="../images/UCS_Add_Cisco_Unit.png" width="2.5in"/>
+        </fig>
+      </li>
+
+      <li>
+        <p>Enter information in the dialog:</p>
+
+        <ul>
+          <li>
+            <p><b>Hostname or IP Address</b> - Enter the host name or IP address of the UCS Manager.
+              Use the floating IP address of the UCS Manager, not the physical IP address of either fabric interconnect.</p>
+          </li>
+
+          <li>
+            <p><b>Username</b> - Enter the username of a user with at least read-only permission to
+                UCS Manager.</p>
+          </li>
+
+          <li>
+            <p><b>Password</b> - Enter the
+            password of the user account.</p>
+          </li>
+
+          <li>
+            <p><b>Port #</b> - By default,
+            <ph conkeyref="names/platform"/> assumes a standard HTTP port of 80.
+            Change this value as needed.</p>
+          </li>
+          <li>For secure communications between the <ph conkeyref="names/platform"/> collector and
+            the UCS Manager, click the SSL checkbox.</li>
+        </ul>
+      </li>
+
+      <li>
+        <p>Click <b>ADD</b> to begin discovery.</p>
+      </li>
+    </ol></steps-informal></taskbody></task>

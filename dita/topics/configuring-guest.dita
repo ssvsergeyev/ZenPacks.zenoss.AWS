@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:task" "task.dtd">
+<task id="taskid">
+  <title>Task title</title>
+  <taskbody>
+    <prereq></prereq>
+    <context></context>
+    <steps>
+      <step>
+        <cmd></cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:map" "map.dtd">
+<map>
+   <title>AWS</title>
+   <topicref href="topics/AWS.dita">
+      <topicref href="topics/prerequisites.dita"/>
+      <topicref href="topics/discovery.dita">
+        <topicref href="topics/discovery-guest.dita"/>
+      </topicref>
+      <topicref href="topics/monitoring.dita">
+        <topicref href="topics/monitoring-soft-limits.dita"/>
+      </topicref>
+     <topicref href="topics/impact-integration.dita"/>
+     <topicref href="topics/configuring.dita">
+       <topicref href="topics/configuring-guest.dita"/>
+       <topicref href="topics/configuring-soft-limits.dita"/>
+     </topicref>
+     <topicref href="topics/installed.dita"/>
+   </topicref>
+</map>

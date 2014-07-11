@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:task" "task.dtd">
+<task id="taskid">
+  <title>Modifying a soft-limit threshold</title>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Log in to the <ph conkeyref="names/platform"/> browser 
+          interface <ph conkeyref="login-as/zm-or-m"/>.</cmd>
+      </step>
+      <step>
+        <cmd>On the <uicontrol>ADVANCED</uicontrol> page, click 
+          <uicontrol>Monitoring Templates</uicontrol>.</cmd>
+      </step>
+      <step>
+        <cmd>From the list of monitoring template in the left pane,
+          select <uicontrol>EC2Region</uicontrol>.</cmd>
+      </step>
+      <step>
+        <cmd>In the Data Sources area, click <uicontrol>RegionsSoftLimits</uicontrol>.</cmd>
+      </step>
+      <step>
+        <cmd>In the <uicontrol>Thresholds</uicontrol> area,
+          double-click the item to change.</cmd>
+      </step>
+      <step>
+        <cmd>In the <uicontrol>Edit Threshold</uicontrol> dialog,
+          enter a new value in the <uicontrol>Maximum Value</uicontrol> field.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="d12e247">
+  <title>Guest device discovery</title>
+  <refbody>
+    <section>
+      <p>You may configure each monitored AWS account to attempt to 
+        discover and monitor the guest Linux or Windows operating systems running
+        within each EC2 instance, when specific Tags are present. This requires 
+        that your <ph conkeyref="names/platform"/> system has the network and server access it needs to 
+        monitor the guest operating system. VPC and non-VPC modes are supported.</p>
+        
+        <p>The life cycles of guest operating system devices are managed along with 
+          the instance. For example,</p>
+          <ul>
+            <li>when the EC2 instance is stopped, guest operating system 
+              devices are set to a decommissioned production state</li>
+            <li>when the EC2 instance is destroyed, guest operating 
+              system devices are deleted</li>
+          </ul>
+    </section>
+  </refbody>
+</reference>
