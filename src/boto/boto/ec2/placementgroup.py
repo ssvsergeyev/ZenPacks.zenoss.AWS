@@ -24,10 +24,11 @@ Represents an EC2 Placement Group
 from boto.ec2.ec2object import EC2Object
 from boto.exception import BotoClientError
 
+
 class PlacementGroup(EC2Object):
 
     def __init__(self, connection=None, name=None, strategy=None, state=None):
-        EC2Object.__init__(self, connection)
+        super(PlacementGroup, self).__init__(connection)
         self.name = name
         self.strategy = strategy
         self.state = state
@@ -50,5 +51,3 @@ class PlacementGroup(EC2Object):
             self.name,
             dry_run=dry_run
         )
-
-
