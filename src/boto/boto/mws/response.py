@@ -1,24 +1,23 @@
-# Copyright (c) 2012 Andy Davidoff http://www.disruptek.com/
+# Copyright (c) 2012-2014 Andy Davidoff http://www.disruptek.com/
 #
-# Permission is hereby granted, free of charge, to any person obtaining a
-# copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish, dis-
-# tribute, sublicense, and/or sell copies of the Software, and to permit
-# persons to whom the Software is furnished to do so, subject to the fol-
-# lowing conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, dis- tribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the fol- lowing conditions:
 #
-# The above copyright notice and this permission notice shall be included
-# in all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABIL-
-# ITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
-# SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-# IN THE SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABIL- ITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from decimal import Decimal
+from boto.compat import filter, map
 
 
 class ComplexType(dict):
@@ -62,10 +61,10 @@ class DeclarativeType(object):
         setattr(self._parent, self._name, self._clone)
 
     def start(self, *args, **kw):
-        raise NotImplemented
+        raise NotImplementedError
 
     def end(self, *args, **kw):
-        raise NotImplemented
+        raise NotImplementedError
 
     def teardown(self, *args, **kw):
         setattr(self._parent, self._name, self._value)
@@ -82,7 +81,7 @@ class Element(DeclarativeType):
 
 class SimpleList(DeclarativeType):
     def __init__(self, *args, **kw):
-        DeclarativeType.__init__(self, *args, **kw)
+        super(SimpleList, self).__init__(*args, **kw)
         self._value = []
 
     def start(self, *args, **kw):
@@ -108,16 +107,16 @@ class MemberList(Element):
         assert 'member' not in kw, message
         if _member is None:
             if _hint is None:
-                Element.__init__(self, *args, member=ElementList(**kw))
+                super(MemberList, self).__init__(*args, member=ElementList(**kw))
             else:
-                Element.__init__(self, _hint=_hint)
+                super(MemberList, self).__init__(_hint=_hint)
         else:
             if _hint is None:
                 if issubclass(_member, DeclarativeType):
                     member = _member(**kw)
                 else:
                     member = ElementList(_member, **kw)
-                Element.__init__(self, *args, member=member)
+                super(MemberList, self).__init__(*args, member=member)
             else:
                 message = 'Nonsensical {0} hint {1!r}'.format(self.__class__.__name__,
                                                               _hint)
@@ -130,17 +129,43 @@ class MemberList(Element):
             if isinstance(self._value.member, DeclarativeType):
                 self._value.member = []
             self._value = self._value.member
-        Element.teardown(self, *args, **kw)
+        super(MemberList, self).teardown(*args, **kw)
 
 
-def ResponseFactory(action, force=None):
-    result = force or globals().get(action + 'Result', ResponseElement)
+class ResponseFactory(object):
+    def __init__(self, scopes=None):
+        self.scopes = [] if scopes is None else scopes
 
-    class MWSResponse(Response):
-        _name = action + 'Response'
+    def element_factory(self, name, parent):
+        class DynamicElement(parent):
+            _name = name
+        setattr(DynamicElement, '__name__', str(name))
+        return DynamicElement
 
-    setattr(MWSResponse, action + 'Result', Element(result))
-    return MWSResponse
+    def search_scopes(self, key):
+        for scope in self.scopes:
+            if hasattr(scope, key):
+                return getattr(scope, key)
+            if hasattr(scope, '__getitem__'):
+                if key in scope:
+                    return scope[key]
+
+    def find_element(self, action, suffix, parent):
+        element = self.search_scopes(action + suffix)
+        if element is not None:
+            return element
+        if action.endswith('ByNextToken'):
+            element = self.search_scopes(action[:-len('ByNextToken')] + suffix)
+            if element is not None:
+                return self.element_factory(action + suffix, element)
+        return self.element_factory(action + suffix, parent)
+
+    def __call__(self, action, connection=None):
+        response = self.find_element(action, 'Response', Response)
+        if not hasattr(response, action + 'Result'):
+            result = self.find_element(action, 'Result', ResponseElement)
+            setattr(response, action + 'Result', Element(result))
+        return response(connection=connection)
 
 
 def strip_namespace(func):
@@ -191,8 +216,6 @@ class ResponseElement(dict):
         name = self.__class__.__name__
         if name.startswith('JIT_'):
             name = '^{0}^'.format(self._name or '')
-        elif name == 'MWSResponse':
-            name = '^{0}^'.format(self._name or name)
         return '{0}{1!r}({2})'.format(
             name, self.copy(), ', '.join(map(render, attrs)))
 
@@ -231,7 +254,7 @@ class Response(ResponseElement):
         if name == self._name:
             self.update(attrs)
         else:
-            return ResponseElement.startElement(self, name, attrs, connection)
+            return super(Response, self).startElement(name, attrs, connection)
 
     @property
     def _result(self):
@@ -247,7 +270,7 @@ class ResponseResultList(Response):
 
     def __init__(self, *args, **kw):
         setattr(self, self._action + 'Result', ElementList(self._ResultClass))
-        Response.__init__(self, *args, **kw)
+        super(ResponseResultList, self).__init__(*args, **kw)
 
 
 class FeedSubmissionInfo(ResponseElement):
@@ -260,10 +283,6 @@ class SubmitFeedResult(ResponseElement):
 
 class GetFeedSubmissionListResult(ResponseElement):
     FeedSubmissionInfo = ElementList(FeedSubmissionInfo)
-
-
-class GetFeedSubmissionListByNextTokenResult(GetFeedSubmissionListResult):
-    pass
 
 
 class GetFeedSubmissionCountResult(ResponseElement):
@@ -290,10 +309,6 @@ class GetReportRequestListResult(RequestReportResult):
     ReportRequestInfo = ElementList()
 
 
-class GetReportRequestListByNextTokenResult(GetReportRequestListResult):
-    pass
-
-
 class CancelReportRequestsResult(RequestReportResult):
     pass
 
@@ -302,19 +317,11 @@ class GetReportListResult(ResponseElement):
     ReportInfo = ElementList()
 
 
-class GetReportListByNextTokenResult(GetReportListResult):
-    pass
-
-
 class ManageReportScheduleResult(ResponseElement):
     ReportSchedule = Element()
 
 
 class GetReportScheduleListResult(ManageReportScheduleResult):
-    pass
-
-
-class GetReportScheduleListByNextTokenResult(GetReportScheduleListResult):
     pass
 
 
@@ -331,16 +338,8 @@ class ListInboundShipmentsResult(ResponseElement):
     ShipmentData = MemberList(ShipFromAddress=Element())
 
 
-class ListInboundShipmentsByNextTokenResult(ListInboundShipmentsResult):
-    pass
-
-
 class ListInboundShipmentItemsResult(ResponseElement):
     ItemData = MemberList()
-
-
-class ListInboundShipmentItemsByNextTokenResult(ListInboundShipmentItemsResult):
-    pass
 
 
 class ListInventorySupplyResult(ResponseElement):
@@ -351,10 +350,6 @@ class ListInventorySupplyResult(ResponseElement):
             LatestAvailableToPick=Element(),
         )
     )
-
-
-class ListInventorySupplyByNextTokenResult(ListInventorySupplyResult):
-    pass
 
 
 class ComplexAmount(ResponseElement):
@@ -374,13 +369,13 @@ class ComplexAmount(ResponseElement):
         if name not in ('CurrencyCode', self._amount):
             message = 'Unrecognized tag {0} in ComplexAmount'.format(name)
             raise AssertionError(message)
-        return ResponseElement.startElement(self, name, attrs, connection)
+        return super(ComplexAmount, self).startElement(name, attrs, connection)
 
     @strip_namespace
     def endElement(self, name, value, connection):
         if name == self._amount:
             value = Decimal(value)
-        ResponseElement.endElement(self, name, value, connection)
+        super(ComplexAmount, self).endElement(name, value, connection)
 
 
 class ComplexMoney(ComplexAmount):
@@ -402,13 +397,13 @@ class ComplexWeight(ResponseElement):
         if name not in ('Unit', 'Value'):
             message = 'Unrecognized tag {0} in ComplexWeight'.format(name)
             raise AssertionError(message)
-        return ResponseElement.startElement(self, name, attrs, connection)
+        return super(ComplexWeight, self).startElement(name, attrs, connection)
 
     @strip_namespace
     def endElement(self, name, value, connection):
         if name == 'Value':
             value = Decimal(value)
-        ResponseElement.endElement(self, name, value, connection)
+        super(ComplexWeight, self).endElement(name, value, connection)
 
 
 class Dimension(ComplexType):
@@ -472,10 +467,6 @@ class ListAllFulfillmentOrdersResult(ResponseElement):
     FulfillmentOrders = MemberList(FulfillmentOrder)
 
 
-class ListAllFulfillmentOrdersByNextTokenResult(ListAllFulfillmentOrdersResult):
-    pass
-
-
 class GetPackageTrackingDetailsResult(ResponseElement):
     ShipToAddress = Element()
     TrackingEvents = MemberList(EventAddress=Element())
@@ -501,7 +492,7 @@ class ItemAttributes(AttributeSet):
                  'MediaType', 'OperatingSystem', 'Platform')
         for name in names:
             setattr(self, name, SimpleList())
-        AttributeSet.__init__(self, *args, **kw)
+        super(ItemAttributes, self).__init__(*args, **kw)
 
 
 class VariationRelationship(ResponseElement):
@@ -541,6 +532,11 @@ class LowestOfferListing(ResponseElement):
     Price = Element(Price)
 
 
+class Offer(ResponseElement):
+    BuyingPrice = Element(Price)
+    RegularPrice = Element(ComplexMoney)
+
+
 class Product(ResponseElement):
     _namespace = 'ns2'
     Identifiers = Element(MarketplaceASIN=Element(),
@@ -557,6 +553,9 @@ class Product(ResponseElement):
     )
     LowestOfferListings = Element(
         LowestOfferListing=ElementList(LowestOfferListing),
+    )
+    Offers = Element(
+        Offer=ElementList(Offer),
     )
 
 
@@ -601,15 +600,23 @@ class GetLowestOfferListingsForASINResponse(ProductsBulkOperationResponse):
     pass
 
 
+class GetMyPriceForSKUResponse(ProductsBulkOperationResponse):
+    pass
+
+
+class GetMyPriceForASINResponse(ProductsBulkOperationResponse):
+    pass
+
+
 class ProductCategory(ResponseElement):
 
     def __init__(self, *args, **kw):
         setattr(self, 'Parent', Element(ProductCategory))
-        ResponseElement.__init__(self, *args, **kw)
+        super(ProductCategory, self).__init__(*args, **kw)
 
 
 class GetProductCategoriesResult(ResponseElement):
-    Self = Element(ProductCategory)
+    Self = ElementList(ProductCategory)
 
 
 class GetProductCategoriesForSKUResult(GetProductCategoriesResult):
@@ -634,10 +641,6 @@ class Order(ResponseElement):
 
 class ListOrdersResult(ResponseElement):
     Orders = Element(Order=ElementList(Order))
-
-
-class ListOrdersByNextTokenResult(ListOrdersResult):
-    pass
 
 
 class GetOrderResult(ListOrdersResult):
@@ -667,5 +670,118 @@ class ListMarketplaceParticipationsResult(ResponseElement):
     ListMarketplaces = Element(Marketplace=ElementList())
 
 
-class ListMarketplaceParticipationsByNextTokenResult(ListMarketplaceParticipationsResult):
+class ListRecommendationsResult(ResponseElement):
+    ListingQualityRecommendations = MemberList(ItemIdentifier=Element())
+
+
+class Customer(ResponseElement):
+    PrimaryContactInfo = Element()
+    ShippingAddressList = Element(ShippingAddress=ElementList())
+    AssociatedMarketplaces = Element(MarketplaceDomain=ElementList())
+
+
+class ListCustomersResult(ResponseElement):
+    CustomerList = Element(Customer=ElementList(Customer))
+
+
+class GetCustomersForCustomerIdResult(ListCustomersResult):
+    pass
+
+
+class CartItem(ResponseElement):
+    CurrentPrice = Element(ComplexMoney)
+    SalePrice = Element(ComplexMoney)
+
+
+class Cart(ResponseElement):
+    ActiveCartItemList = Element(CartItem=ElementList(CartItem))
+    SavedCartItemList = Element(CartItem=ElementList(CartItem))
+
+
+class ListCartsResult(ResponseElement):
+    CartList = Element(Cart=ElementList(Cart))
+
+
+class GetCartsResult(ListCartsResult):
+    pass
+
+
+class Destination(ResponseElement):
+    AttributeList = MemberList()
+
+
+class ListRegisteredDestinationsResult(ResponseElement):
+    DestinationList = MemberList(Destination)
+
+
+class Subscription(ResponseElement):
+    Destination = Element(Destination)
+
+
+class GetSubscriptionResult(ResponseElement):
+    Subscription = Element(Subscription)
+
+
+class ListSubscriptionsResult(ResponseElement):
+    SubscriptionList = MemberList(Subscription)
+
+
+class OrderReferenceDetails(ResponseElement):
+    Buyer = Element()
+    OrderTotal = Element(ComplexMoney)
+    Destination = Element(PhysicalDestination=Element())
+    SellerOrderAttributes = Element()
+    OrderReferenceStatus = Element()
+    Constraints = ElementList()
+
+
+class SetOrderReferenceDetailsResult(ResponseElement):
+    OrderReferenceDetails = Element(OrderReferenceDetails)
+
+
+class GetOrderReferenceDetailsResult(SetOrderReferenceDetailsResult):
+    pass
+
+
+class AuthorizationDetails(ResponseElement):
+    AuthorizationAmount = Element(ComplexMoney)
+    CapturedAmount = Element(ComplexMoney)
+    AuthorizationFee = Element(ComplexMoney)
+    AuthorizationStatus = Element()
+
+
+class AuthorizeResult(ResponseElement):
+    AuthorizationDetails = Element(AuthorizationDetails)
+
+
+class GetAuthorizationDetailsResult(AuthorizeResult):
+    pass
+
+
+class CaptureDetails(ResponseElement):
+    CaptureAmount = Element(ComplexMoney)
+    RefundedAmount = Element(ComplexMoney)
+    CaptureFee = Element(ComplexMoney)
+    CaptureStatus = Element()
+
+
+class CaptureResult(ResponseElement):
+    CaptureDetails = Element(CaptureDetails)
+
+
+class GetCaptureDetailsResult(CaptureResult):
+    pass
+
+
+class RefundDetails(ResponseElement):
+    RefundAmount = Element(ComplexMoney)
+    FeeRefunded = Element(ComplexMoney)
+    RefundStatus = Element()
+
+
+class RefundResult(ResponseElement):
+    RefundDetails = Element(RefundDetails)
+
+
+class GetRefundDetails(RefundResult):
     pass

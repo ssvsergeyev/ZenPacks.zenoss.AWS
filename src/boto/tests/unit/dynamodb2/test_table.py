@@ -1,18 +1,20 @@
-import mock
-import unittest
+from tests.compat import mock, unittest
 from boto.dynamodb2 import exceptions
 from boto.dynamodb2.fields import (HashKey, RangeKey,
-                                   AllIndex, KeysOnlyIndex, IncludeIndex)
+                                   AllIndex, KeysOnlyIndex, IncludeIndex,
+                                   GlobalAllIndex, GlobalKeysOnlyIndex,
+                                   GlobalIncludeIndex)
 from boto.dynamodb2.items import Item
 from boto.dynamodb2.layer1 import DynamoDBConnection
 from boto.dynamodb2.results import ResultSet, BatchGetResultSet
 from boto.dynamodb2.table import Table
-from boto.dynamodb2.types import (STRING, NUMBER,
+from boto.dynamodb2.types import (STRING, NUMBER, BINARY,
                                   FILTER_OPERATORS, QUERY_OPERATORS)
+from boto.exception import JSONResponseError
+from boto.compat import six, long_type
 
 
 FakeDynamoDBConnection = mock.create_autospec(DynamoDBConnection)
-
 
 
 class SchemaFieldsTestCase(unittest.TestCase):
@@ -169,8 +171,175 @@ class IndexFieldTestCase(unittest.TestCase):
             }
         })
 
+    def test_global_all_index(self):
+        all_index = GlobalAllIndex('AllKeys', parts=[
+            HashKey('username'),
+            RangeKey('date_joined')
+        ],
+        throughput={
+            'read': 6,
+            'write': 2,
+        })
+        self.assertEqual(all_index.name, 'AllKeys')
+        self.assertEqual([part.attr_type for part in all_index.parts], [
+            'HASH',
+            'RANGE'
+        ])
+        self.assertEqual(all_index.projection_type, 'ALL')
+
+        self.assertEqual(all_index.definition(), [
+            {'AttributeName': 'username', 'AttributeType': 'S'},
+            {'AttributeName': 'date_joined', 'AttributeType': 'S'}
+        ])
+        self.assertEqual(all_index.schema(), {
+            'IndexName': 'AllKeys',
+            'KeySchema': [
+                {
+                    'AttributeName': 'username',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'date_joined',
+                    'KeyType': 'RANGE'
+                }
+            ],
+            'Projection': {
+                'ProjectionType': 'ALL'
+            },
+            'ProvisionedThroughput': {
+                'ReadCapacityUnits': 6,
+                'WriteCapacityUnits': 2
+            }
+        })
+
+    def test_global_keys_only_index(self):
+        keys_only = GlobalKeysOnlyIndex('KeysOnly', parts=[
+            HashKey('username'),
+            RangeKey('date_joined')
+        ],
+        throughput={
+            'read': 3,
+            'write': 4,
+        })
+        self.assertEqual(keys_only.name, 'KeysOnly')
+        self.assertEqual([part.attr_type for part in keys_only.parts], [
+            'HASH',
+            'RANGE'
+        ])
+        self.assertEqual(keys_only.projection_type, 'KEYS_ONLY')
+
+        self.assertEqual(keys_only.definition(), [
+            {'AttributeName': 'username', 'AttributeType': 'S'},
+            {'AttributeName': 'date_joined', 'AttributeType': 'S'}
+        ])
+        self.assertEqual(keys_only.schema(), {
+            'IndexName': 'KeysOnly',
+            'KeySchema': [
+                {
+                    'AttributeName': 'username',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'date_joined',
+                    'KeyType': 'RANGE'
+                }
+            ],
+            'Projection': {
+                'ProjectionType': 'KEYS_ONLY'
+            },
+            'ProvisionedThroughput': {
+                'ReadCapacityUnits': 3,
+                'WriteCapacityUnits': 4
+            }
+        })
+
+    def test_global_include_index(self):
+        # Lean on the default throughput
+        include_index = GlobalIncludeIndex('IncludeKeys', parts=[
+            HashKey('username'),
+            RangeKey('date_joined')
+        ], includes=[
+            'gender',
+            'friend_count'
+        ])
+        self.assertEqual(include_index.name, 'IncludeKeys')
+        self.assertEqual([part.attr_type for part in include_index.parts], [
+            'HASH',
+            'RANGE'
+        ])
+        self.assertEqual(include_index.projection_type, 'INCLUDE')
+
+        self.assertEqual(include_index.definition(), [
+            {'AttributeName': 'username', 'AttributeType': 'S'},
+            {'AttributeName': 'date_joined', 'AttributeType': 'S'}
+        ])
+        self.assertEqual(include_index.schema(), {
+            'IndexName': 'IncludeKeys',
+            'KeySchema': [
+                {
+                    'AttributeName': 'username',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'date_joined',
+                    'KeyType': 'RANGE'
+                }
+            ],
+            'Projection': {
+                'ProjectionType': 'INCLUDE',
+                'NonKeyAttributes': [
+                    'gender',
+                    'friend_count',
+                ]
+            },
+            'ProvisionedThroughput': {
+                'ReadCapacityUnits': 5,
+                'WriteCapacityUnits': 5
+            }
+        })
+
+    def test_global_include_index_throughput(self):
+        include_index = GlobalIncludeIndex('IncludeKeys', parts=[
+            HashKey('username'),
+            RangeKey('date_joined')
+        ], includes=[
+            'gender',
+            'friend_count'
+        ], throughput={
+            'read': 10,
+            'write': 8
+        })
+
+        self.assertEqual(include_index.schema(), {
+            'IndexName': 'IncludeKeys',
+            'KeySchema': [
+                {
+                    'AttributeName': 'username',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'date_joined',
+                    'KeyType': 'RANGE'
+                }
+            ],
+            'Projection': {
+                'ProjectionType': 'INCLUDE',
+                'NonKeyAttributes': [
+                    'gender',
+                    'friend_count',
+                ]
+            },
+            'ProvisionedThroughput': {
+                'ReadCapacityUnits': 10,
+                'WriteCapacityUnits': 8
+            }
+        })
+
 
 class ItemTestCase(unittest.TestCase):
+    if six.PY2:
+        assertCountEqual = unittest.TestCase.assertItemsEqual
+
     def setUp(self):
         super(ItemTestCase, self).setUp()
         self.table = Table('whatever', connection=FakeDynamoDBConnection())
@@ -202,31 +371,25 @@ class ItemTestCase(unittest.TestCase):
     # ordering everywhere & no erroneous failures.
 
     def test_keys(self):
-        self.assertEqual(sorted(self.johndoe.keys()), [
+        self.assertCountEqual(self.johndoe.keys(), [
             'date_joined',
             'first_name',
             'username',
         ])
 
     def test_values(self):
-        self.assertEqual(sorted(self.johndoe.values()), [
-            12345,
-            'John',
-            'johndoe',
-        ])
+        self.assertCountEqual(self.johndoe.values(),
+                              [12345, 'John', 'johndoe'])
 
     def test_contains(self):
-        self.assertTrue('username' in self.johndoe)
-        self.assertTrue('first_name' in self.johndoe)
-        self.assertTrue('date_joined' in self.johndoe)
-        self.assertFalse('whatever' in self.johndoe)
+        self.assertIn('username', self.johndoe)
+        self.assertIn('first_name', self.johndoe)
+        self.assertIn('date_joined', self.johndoe)
+        self.assertNotIn('whatever', self.johndoe)
 
     def test_iter(self):
-        self.assertEqual(list(self.johndoe), [
-            'johndoe',
-            'John',
-            12345,
-        ])
+        self.assertCountEqual(self.johndoe,
+                              ['johndoe', 'John', 12345])
 
     def test_get(self):
         self.assertEqual(self.johndoe.get('username'), 'johndoe')
@@ -239,11 +402,13 @@ class ItemTestCase(unittest.TestCase):
         self.assertEqual(self.johndoe.get('last_name', True), True)
 
     def test_items(self):
-        self.assertEqual(sorted(self.johndoe.items()), [
-            ('date_joined', 12345),
-            ('first_name', 'John'),
-            ('username', 'johndoe'),
-        ])
+        self.assertCountEqual(
+            self.johndoe.items(),
+            [
+                ('date_joined', 12345),
+                ('first_name', 'John'),
+                ('username', 'johndoe'),
+            ])
 
     def test_attribute_access(self):
         self.assertEqual(self.johndoe['username'], 'johndoe')
@@ -432,12 +597,12 @@ class ItemTestCase(unittest.TestCase):
         })
 
         self.johndoe['friends'] = set(['jane', 'alice'])
-        self.assertEqual(self.johndoe.prepare_full(), {
-            'username': {'S': 'johndoe'},
-            'first_name': {'S': 'John'},
-            'date_joined': {'N': '12345'},
-            'friends': {'SS': ['jane', 'alice']},
-        })
+        data = self.johndoe.prepare_full()
+        self.assertEqual(data['username'], {'S': 'johndoe'})
+        self.assertEqual(data['first_name'], {'S': 'John'})
+        self.assertEqual(data['date_joined'], {'N': '12345'})
+        self.assertCountEqual(data['friends']['SS'],
+                              ['jane', 'alice'])
 
     def test_prepare_full_empty_set(self):
         self.johndoe['friends'] = set()
@@ -476,7 +641,7 @@ class ItemTestCase(unittest.TestCase):
             'date_joined'
         ]))
 
-    def test_prepare_partial(self):
+    def test_prepare_partial_empty_set(self):
         self.johndoe.mark_clean()
         # Change some data.
         self.johndoe['first_name'] = 'Johann'
@@ -691,10 +856,32 @@ class ResultSetTestCase(unittest.TestCase):
     def setUp(self):
         super(ResultSetTestCase, self).setUp()
         self.results = ResultSet()
-        self.results.to_call(fake_results, 'john', greeting='Hello', limit=20)
+        self.result_function = mock.MagicMock(side_effect=fake_results)
+        self.results.to_call(self.result_function, 'john', greeting='Hello', limit=20)
 
     def test_first_key(self):
         self.assertEqual(self.results.first_key, 'exclusive_start_key')
+
+    def test_max_page_size_fetch_more(self):
+        self.results = ResultSet(max_page_size=10)
+        self.results.to_call(self.result_function, 'john', greeting='Hello')
+        self.results.fetch_more()
+        self.result_function.assert_called_with('john', greeting='Hello', limit=10)
+        self.result_function.reset_mock()
+
+    def test_max_page_size_and_smaller_limit_fetch_more(self):
+        self.results = ResultSet(max_page_size=10)
+        self.results.to_call(self.result_function, 'john', greeting='Hello', limit=5)
+        self.results.fetch_more()
+        self.result_function.assert_called_with('john', greeting='Hello', limit=5)
+        self.result_function.reset_mock()
+
+    def test_max_page_size_and_bigger_limit_fetch_more(self):
+        self.results = ResultSet(max_page_size=10)
+        self.results.to_call(self.result_function, 'john', greeting='Hello', limit=15)
+        self.results.fetch_more()
+        self.result_function.assert_called_with('john', greeting='Hello', limit=10)
+        self.result_function.reset_mock()
 
     def test_fetch_more(self):
         # First "page".
@@ -707,6 +894,9 @@ class ResultSetTestCase(unittest.TestCase):
             'Hello john #4',
         ])
 
+        self.result_function.assert_called_with('john', greeting='Hello', limit=20)
+        self.result_function.reset_mock()
+
         # Fake in a last key.
         self.results._last_key_seen = 4
         # Second "page".
@@ -718,6 +908,9 @@ class ResultSetTestCase(unittest.TestCase):
             'Hello john #8',
             'Hello john #9',
         ])
+
+        self.result_function.assert_called_with('john', greeting='Hello', limit=20, exclusive_start_key=4)
+        self.result_function.reset_mock()
 
         # Fake in a last key.
         self.results._last_key_seen = 9
@@ -740,55 +933,55 @@ class ResultSetTestCase(unittest.TestCase):
 
     def test_iteration(self):
         # First page.
-        self.assertEqual(self.results.next(), 'Hello john #0')
-        self.assertEqual(self.results.next(), 'Hello john #1')
-        self.assertEqual(self.results.next(), 'Hello john #2')
-        self.assertEqual(self.results.next(), 'Hello john #3')
-        self.assertEqual(self.results.next(), 'Hello john #4')
-        self.assertEqual(self.results.call_kwargs['limit'], 15)
+        self.assertEqual(next(self.results), 'Hello john #0')
+        self.assertEqual(next(self.results), 'Hello john #1')
+        self.assertEqual(next(self.results), 'Hello john #2')
+        self.assertEqual(next(self.results), 'Hello john #3')
+        self.assertEqual(next(self.results), 'Hello john #4')
+        self.assertEqual(self.results._limit, 15)
         # Second page.
-        self.assertEqual(self.results.next(), 'Hello john #5')
-        self.assertEqual(self.results.next(), 'Hello john #6')
-        self.assertEqual(self.results.next(), 'Hello john #7')
-        self.assertEqual(self.results.next(), 'Hello john #8')
-        self.assertEqual(self.results.next(), 'Hello john #9')
-        self.assertEqual(self.results.call_kwargs['limit'], 10)
+        self.assertEqual(next(self.results), 'Hello john #5')
+        self.assertEqual(next(self.results), 'Hello john #6')
+        self.assertEqual(next(self.results), 'Hello john #7')
+        self.assertEqual(next(self.results), 'Hello john #8')
+        self.assertEqual(next(self.results), 'Hello john #9')
+        self.assertEqual(self.results._limit, 10)
         # Third page.
-        self.assertEqual(self.results.next(), 'Hello john #10')
-        self.assertEqual(self.results.next(), 'Hello john #11')
-        self.assertEqual(self.results.next(), 'Hello john #12')
+        self.assertEqual(next(self.results), 'Hello john #10')
+        self.assertEqual(next(self.results), 'Hello john #11')
+        self.assertEqual(next(self.results), 'Hello john #12')
         self.assertRaises(StopIteration, self.results.next)
-        self.assertEqual(self.results.call_kwargs['limit'], 7)
+        self.assertEqual(self.results._limit, 7)
 
     def test_limit_smaller_than_first_page(self):
         results = ResultSet()
         results.to_call(fake_results, 'john', greeting='Hello', limit=2)
-        self.assertEqual(results.next(), 'Hello john #0')
-        self.assertEqual(results.next(), 'Hello john #1')
+        self.assertEqual(next(results), 'Hello john #0')
+        self.assertEqual(next(results), 'Hello john #1')
         self.assertRaises(StopIteration, results.next)
 
     def test_limit_equals_page(self):
         results = ResultSet()
         results.to_call(fake_results, 'john', greeting='Hello', limit=5)
         # First page
-        self.assertEqual(results.next(), 'Hello john #0')
-        self.assertEqual(results.next(), 'Hello john #1')
-        self.assertEqual(results.next(), 'Hello john #2')
-        self.assertEqual(results.next(), 'Hello john #3')
-        self.assertEqual(results.next(), 'Hello john #4')
+        self.assertEqual(next(results), 'Hello john #0')
+        self.assertEqual(next(results), 'Hello john #1')
+        self.assertEqual(next(results), 'Hello john #2')
+        self.assertEqual(next(results), 'Hello john #3')
+        self.assertEqual(next(results), 'Hello john #4')
         self.assertRaises(StopIteration, results.next)
 
     def test_limit_greater_than_page(self):
         results = ResultSet()
         results.to_call(fake_results, 'john', greeting='Hello', limit=6)
         # First page
-        self.assertEqual(results.next(), 'Hello john #0')
-        self.assertEqual(results.next(), 'Hello john #1')
-        self.assertEqual(results.next(), 'Hello john #2')
-        self.assertEqual(results.next(), 'Hello john #3')
-        self.assertEqual(results.next(), 'Hello john #4')
+        self.assertEqual(next(results), 'Hello john #0')
+        self.assertEqual(next(results), 'Hello john #1')
+        self.assertEqual(next(results), 'Hello john #2')
+        self.assertEqual(next(results), 'Hello john #3')
+        self.assertEqual(next(results), 'Hello john #4')
         # Second page
-        self.assertEqual(results.next(), 'Hello john #5')
+        self.assertEqual(next(results), 'Hello john #5')
         self.assertRaises(StopIteration, results.next)
 
     def test_iteration_noresults(self):
@@ -844,15 +1037,15 @@ class ResultSetTestCase(unittest.TestCase):
         results = ResultSet()
         results.to_call(sporadic(), limit=20)
         # First page
-        self.assertEqual(results.next(), 'Result #0')
-        self.assertEqual(results.next(), 'Result #1')
-        self.assertEqual(results.next(), 'Result #2')
-        self.assertEqual(results.next(), 'Result #3')
+        self.assertEqual(next(results), 'Result #0')
+        self.assertEqual(next(results), 'Result #1')
+        self.assertEqual(next(results), 'Result #2')
+        self.assertEqual(next(results), 'Result #3')
         # Second page (misses!)
         # Moves on to the third page
-        self.assertEqual(results.next(), 'Result #4')
-        self.assertEqual(results.next(), 'Result #5')
-        self.assertEqual(results.next(), 'Result #6')
+        self.assertEqual(next(results), 'Result #4')
+        self.assertEqual(next(results), 'Result #5')
+        self.assertEqual(next(results), 'Result #6')
         self.assertRaises(StopIteration, results.next)
 
     def test_list(self):
@@ -933,10 +1126,10 @@ class BatchGetResultSetTestCase(unittest.TestCase):
 
     def test_iteration(self):
         # First page.
-        self.assertEqual(self.results.next(), 'hello alice')
-        self.assertEqual(self.results.next(), 'hello bob')
-        self.assertEqual(self.results.next(), 'hello jane')
-        self.assertEqual(self.results.next(), 'hello johndoe')
+        self.assertEqual(next(self.results), 'hello alice')
+        self.assertEqual(next(self.results), 'hello bob')
+        self.assertEqual(next(self.results), 'hello jane')
+        self.assertEqual(next(self.results), 'hello johndoe')
         self.assertRaises(StopIteration, self.results.next)
 
 
@@ -960,7 +1153,17 @@ class TableTestCase(unittest.TestCase):
                 "KeyType": "RANGE"
             }
         ]
-        schema_1 = self.users._introspect_schema(raw_schema_1)
+        raw_attributes_1 = [
+            {
+                'AttributeName': 'username',
+                'AttributeType': 'S'
+            },
+            {
+                'AttributeName': 'date_joined',
+                'AttributeType': 'S'
+            },
+        ]
+        schema_1 = self.users._introspect_schema(raw_schema_1, raw_attributes_1)
         self.assertEqual(len(schema_1), 2)
         self.assertTrue(isinstance(schema_1[0], HashKey))
         self.assertEqual(schema_1[0].name, 'username')
@@ -973,11 +1176,48 @@ class TableTestCase(unittest.TestCase):
                 "KeyType": "BTREE"
             },
         ]
+        raw_attributes_2 = [
+            {
+                'AttributeName': 'username',
+                'AttributeType': 'S'
+            },
+        ]
         self.assertRaises(
             exceptions.UnknownSchemaFieldError,
             self.users._introspect_schema,
-            raw_schema_2
+            raw_schema_2,
+            raw_attributes_2
         )
+
+        # Test a complex schema & ensure the types come back correctly.
+        raw_schema_3 = [
+            {
+                "AttributeName": "user_id",
+                "KeyType": "HASH"
+            },
+            {
+                "AttributeName": "junk",
+                "KeyType": "RANGE"
+            }
+        ]
+        raw_attributes_3 = [
+            {
+                'AttributeName': 'user_id',
+                'AttributeType': 'N'
+            },
+            {
+                'AttributeName': 'junk',
+                'AttributeType': 'B'
+            },
+        ]
+        schema_3 = self.users._introspect_schema(raw_schema_3, raw_attributes_3)
+        self.assertEqual(len(schema_3), 2)
+        self.assertTrue(isinstance(schema_3[0], HashKey))
+        self.assertEqual(schema_3[0].name, 'user_id')
+        self.assertEqual(schema_3[0].data_type, NUMBER)
+        self.assertTrue(isinstance(schema_3[1], RangeKey))
+        self.assertEqual(schema_3[1].name, 'junk')
+        self.assertEqual(schema_3[1].data_type, BINARY)
 
     def test__introspect_indexes(self):
         raw_indexes_1 = [
@@ -1132,6 +1372,13 @@ class TableTestCase(unittest.TestCase):
                 KeysOnlyIndex('FriendCountIndex', parts=[
                     RangeKey('friend_count')
                 ]),
+            ], global_indexes=[
+                GlobalKeysOnlyIndex('FullFriendCountIndex', parts=[
+                    RangeKey('friend_count')
+                ], throughput={
+                    'read': 10,
+                    'write': 8,
+                }),
             ], connection=conn)
             self.assertTrue(retval)
 
@@ -1165,6 +1412,24 @@ class TableTestCase(unittest.TestCase):
             'WriteCapacityUnits': 10,
             'ReadCapacityUnits': 20
         },
+        global_secondary_indexes=[
+            {
+                'KeySchema': [
+                    {
+                        'KeyType': 'RANGE',
+                        'AttributeName': 'friend_count'
+                    }
+                ],
+                'IndexName': 'FullFriendCountIndex',
+                'Projection': {
+                    'ProjectionType': 'KEYS_ONLY'
+                },
+                'ProvisionedThroughput': {
+                    'WriteCapacityUnits': 8,
+                    'ReadCapacityUnits': 10
+                }
+            }
+        ],
         local_secondary_indexes=[
             {
                 'KeySchema': [
@@ -1252,10 +1517,68 @@ class TableTestCase(unittest.TestCase):
             self.assertEqual(self.users.throughput['read'], 7)
             self.assertEqual(self.users.throughput['write'], 2)
 
-        mock_update.assert_called_once_with('users', {
-            'WriteCapacityUnits': 2,
-            'ReadCapacityUnits': 7
-        })
+        mock_update.assert_called_once_with(
+            'users',
+            global_secondary_index_updates=None,
+            provisioned_throughput={
+                'WriteCapacityUnits': 2,
+                'ReadCapacityUnits': 7
+            }
+        )
+
+        with mock.patch.object(
+                self.users.connection,
+                'update_table',
+                return_value={}) as mock_update:
+            self.assertEqual(self.users.throughput['read'], 7)
+            self.assertEqual(self.users.throughput['write'], 2)
+            self.users.update(throughput={
+                'read': 9,
+                'write': 5,
+            },
+            global_indexes={
+                'WhateverIndex': {
+                    'read': 6,
+                    'write': 1
+                },
+                'AnotherIndex': {
+                    'read': 1,
+                    'write': 2
+                }
+            })
+            self.assertEqual(self.users.throughput['read'], 9)
+            self.assertEqual(self.users.throughput['write'], 5)
+
+        args, kwargs = mock_update.call_args
+        self.assertEqual(args, ('users',))
+        self.assertEqual(kwargs['provisioned_throughput'], {
+            'WriteCapacityUnits': 5,
+            'ReadCapacityUnits': 9,
+            })
+        update = kwargs['global_secondary_index_updates'][:]
+        update.sort(key=lambda x: x['Update']['IndexName'])
+        self.assertDictEqual(
+            update[0],
+            {
+                'Update': {
+                    'IndexName': 'AnotherIndex',
+                    'ProvisionedThroughput': {
+                        'WriteCapacityUnits': 2,
+                        'ReadCapacityUnits': 1
+                    }
+                }
+            })
+        self.assertDictEqual(
+            update[1],
+            {
+                'Update': {
+                    'IndexName': 'WhateverIndex',
+                    'ProvisionedThroughput': {
+                        'WriteCapacityUnits': 1,
+                        'ReadCapacityUnits': 6
+                    }
+                }
+            })
 
     def test_delete(self):
         with mock.patch.object(
@@ -1288,7 +1611,46 @@ class TableTestCase(unittest.TestCase):
 
         mock_get_item.assert_called_once_with('users', {
             'username': {'S': 'johndoe'}
-        }, consistent_read=False)
+        }, consistent_read=False, attributes_to_get=None)
+
+        with mock.patch.object(
+                self.users.connection,
+                'get_item',
+                return_value=expected) as mock_get_item:
+            item = self.users.get_item(username='johndoe', attributes=[
+                'username',
+                'first_name',
+            ])
+
+        mock_get_item.assert_called_once_with('users', {
+            'username': {'S': 'johndoe'}
+        }, consistent_read=False, attributes_to_get=['username', 'first_name'])
+
+    def test_has_item(self):
+        expected = {
+            'Item': {
+                'username': {'S': 'johndoe'},
+                'first_name': {'S': 'John'},
+                'last_name': {'S': 'Doe'},
+                'date_joined': {'N': '1366056668'},
+                'friend_count': {'N': '3'},
+                'friends': {'SS': ['alice', 'bob', 'jane']},
+            }
+        }
+
+        with mock.patch.object(
+                self.users.connection,
+                'get_item',
+                return_value=expected) as mock_get_item:
+            found = self.users.has_item(username='johndoe')
+            self.assertTrue(found)
+
+        with mock.patch.object(
+                self.users.connection,
+                'get_item') as mock_get_item:
+            mock_get_item.side_effect = JSONResponseError("Nope.", None, None)
+            found = self.users.has_item(username='mrsmith')
+            self.assertFalse(found)
 
     def test_lookup_hash(self):
         """Tests the "lookup" function with just a hash key"""
@@ -1346,7 +1708,6 @@ class TableTestCase(unittest.TestCase):
         mock_get_item.assert_called_once_with(
             username= 'johndoe',
             date_joined= 1366056668)
-
 
     def test_put_item(self):
         with mock.patch.object(
@@ -1415,7 +1776,40 @@ class TableTestCase(unittest.TestCase):
             'date_joined': {
                 'N': '23456'
             }
-        })
+        }, expected=None, conditional_operator=None)
+
+    def test_delete_item_conditionally(self):
+        with mock.patch.object(
+                self.users.connection,
+                'delete_item',
+                return_value={}) as mock_delete_item:
+            self.assertTrue(self.users.delete_item(expected={'balance__eq': 0},
+                                                   username='johndoe', date_joined=23456))
+
+        mock_delete_item.assert_called_once_with('users', {
+            'username': {
+                'S': 'johndoe'
+            },
+            'date_joined': {
+                'N': '23456'
+            }
+        },
+        expected={
+            'balance': {
+                'ComparisonOperator': 'EQ', 'AttributeValueList': [{'N': '0'}]
+                },
+            },
+        conditional_operator=None)
+
+        def side_effect(*args, **kwargs):
+            raise exceptions.ConditionalCheckFailedException(400, '', {})
+
+        with mock.patch.object(
+                self.users.connection,
+                'delete_item',
+                side_effect=side_effect) as mock_delete_item:
+            self.assertFalse(self.users.delete_item(expected={'balance__eq': 0},
+                                                    username='johndoe', date_joined=23456))
 
     def test_get_key_fields_no_schema_populated(self):
         expected = {
@@ -1539,7 +1933,7 @@ class TableTestCase(unittest.TestCase):
             try:
                 with self.users.batch_write() as batch:
                     raise Exception('OH NOES')
-            except Exception, e:
+            except Exception as e:
                 self.assertEqual(str(e), 'OH NOES')
 
         self.assertFalse(mock_batch.called)
@@ -1837,7 +2231,7 @@ class TableTestCase(unittest.TestCase):
 
         mock_query.assert_called_once_with('users',
             consistent_read=False,
-            scan_index_forward=True,
+            scan_index_forward=False,
             index_name=None,
             attributes_to_get=None,
             limit=4,
@@ -1847,7 +2241,9 @@ class TableTestCase(unittest.TestCase):
                     'ComparisonOperator': 'BETWEEN',
                 }
             },
-            select=None
+            select=None,
+            query_filter=None,
+            conditional_operator=None
         )
 
         # Now alter the expected.
@@ -1868,7 +2264,9 @@ class TableTestCase(unittest.TestCase):
                 exclusive_start_key={
                     'username': 'adam',
                 },
-                consistent=True
+                consistent=True,
+                query_filter=None,
+                conditional_operator='AND'
             )
             usernames = [res['username'] for res in results['results']]
             self.assertEqual(usernames, ['johndoe', 'jane', 'alice', 'bob'])
@@ -1884,7 +2282,7 @@ class TableTestCase(unittest.TestCase):
             },
             index_name=None,
             attributes_to_get=None,
-            scan_index_forward=True,
+            scan_index_forward=False,
             limit=4,
             exclusive_start_key={
                 'username': {
@@ -1892,7 +2290,9 @@ class TableTestCase(unittest.TestCase):
                 },
             },
             consistent_read=True,
-            select=None
+            select=None,
+            query_filter=None,
+            conditional_operator='AND'
         )
 
     def test_private_scan(self):
@@ -1953,7 +2353,9 @@ class TableTestCase(unittest.TestCase):
             },
             limit=2,
             segment=None,
-            total_segments=None
+            attributes_to_get=None,
+            total_segments=None,
+            conditional_operator=None
         )
 
         # Now alter the expected.
@@ -1995,7 +2397,9 @@ class TableTestCase(unittest.TestCase):
                 },
             },
             segment=None,
-            total_segments=None
+            attributes_to_get=None,
+            total_segments=None,
+            conditional_operator=None
         )
 
     def test_query(self):
@@ -2015,7 +2419,7 @@ class TableTestCase(unittest.TestCase):
             'last_key': 'jane',
         }
 
-        results = self.users.query(last_name__eq='Doe')
+        results = self.users.query_2(last_name__eq='Doe')
         self.assertTrue(isinstance(results, ResultSet))
         self.assertEqual(len(results._results), 0)
         self.assertEqual(results.the_callable, self.users._query)
@@ -2024,11 +2428,11 @@ class TableTestCase(unittest.TestCase):
                 results,
                 'the_callable',
                 return_value=items_1) as mock_query:
-            res_1 = results.next()
+            res_1 = next(results)
             # Now it should be populated.
             self.assertEqual(len(results._results), 2)
             self.assertEqual(res_1['username'], 'johndoe')
-            res_2 = results.next()
+            res_2 = next(results)
             self.assertEqual(res_2['username'], 'jane')
 
         self.assertEqual(mock_query.call_count, 1)
@@ -2047,7 +2451,7 @@ class TableTestCase(unittest.TestCase):
                 results,
                 'the_callable',
                 return_value=items_2) as mock_query_2:
-            res_3 = results.next()
+            res_3 = next(results)
             # New results should have been found.
             self.assertEqual(len(results._results), 1)
             self.assertEqual(res_3['username'], 'foodoe')
@@ -2069,7 +2473,7 @@ class TableTestCase(unittest.TestCase):
             'last_key': 'jane',
         }
 
-        results = self.users.query(last_name__eq='Doe',
+        results = self.users.query_2(last_name__eq='Doe',
                                    attributes=['username'])
         self.assertTrue(isinstance(results, ResultSet))
         self.assertEqual(len(results._results), 0)
@@ -2079,12 +2483,12 @@ class TableTestCase(unittest.TestCase):
                 results,
                 'the_callable',
                 return_value=items_1) as mock_query:
-            res_1 = results.next()
+            res_1 = next(results)
             # Now it should be populated.
             self.assertEqual(len(results._results), 2)
             self.assertEqual(res_1['username'], 'johndoe')
-            self.assertEqual(res_1.keys(), ['username'])
-            res_2 = results.next()
+            self.assertEqual(list(res_1.keys()), ['username'])
+            res_2 = next(results)
             self.assertEqual(res_2['username'], 'jane')
 
         self.assertEqual(mock_query.call_count, 1)
@@ -2115,11 +2519,11 @@ class TableTestCase(unittest.TestCase):
                 results,
                 'the_callable',
                 return_value=items_1) as mock_scan:
-            res_1 = results.next()
+            res_1 = next(results)
             # Now it should be populated.
             self.assertEqual(len(results._results), 2)
             self.assertEqual(res_1['username'], 'johndoe')
-            res_2 = results.next()
+            res_2 = next(results)
             self.assertEqual(res_2['username'], 'jane')
 
         self.assertEqual(mock_scan.call_count, 1)
@@ -2138,7 +2542,7 @@ class TableTestCase(unittest.TestCase):
                 results,
                 'the_callable',
                 return_value=items_2) as mock_scan_2:
-            res_3 = results.next()
+            res_3 = next(results)
             # New results should have been found.
             self.assertEqual(len(results._results), 1)
             self.assertEqual(res_3['username'], 'zoeydoe')
@@ -2146,6 +2550,38 @@ class TableTestCase(unittest.TestCase):
             self.assertRaises(StopIteration, results.next)
 
         self.assertEqual(mock_scan_2.call_count, 1)
+
+    def test_scan_with_specific_attributes(self):
+        items_1 = {
+            'results': [
+                Item(self.users, data={
+                    'username': 'johndoe',
+                }),
+                Item(self.users, data={
+                    'username': 'jane',
+                }),
+            ],
+            'last_key': 'jane',
+        }
+
+        results = self.users.scan(attributes=['username'])
+        self.assertTrue(isinstance(results, ResultSet))
+        self.assertEqual(len(results._results), 0)
+        self.assertEqual(results.the_callable, self.users._scan)
+
+        with mock.patch.object(
+                results,
+                'the_callable',
+                return_value=items_1) as mock_query:
+            res_1 = next(results)
+            # Now it should be populated.
+            self.assertEqual(len(results._results), 2)
+            self.assertEqual(res_1['username'], 'johndoe')
+            self.assertEqual(list(res_1.keys()), ['username'])
+            res_2 = next(results)
+            self.assertEqual(res_2['username'], 'jane')
+
+        self.assertEqual(mock_query.call_count, 1)
 
     def test_count(self):
         expected = {
@@ -2191,6 +2627,41 @@ class TableTestCase(unittest.TestCase):
                 'describe',
                 return_value=expected) as mock_count:
             self.assertEqual(self.users.count(), 5)
+
+    def test_query_count_simple(self):
+        expected_0 = {
+            'Count': 0.0,
+        }
+
+        expected_1 = {
+            'Count': 10.0,
+        }
+
+        with mock.patch.object(
+                self.users.connection,
+                'query',
+                return_value=expected_0) as mock_query:
+            results = self.users.query_count(username__eq='notmyname')
+            self.assertTrue(isinstance(results, int))
+            self.assertEqual(results, 0)
+        self.assertEqual(mock_query.call_count, 1)
+        self.assertIn('scan_index_forward', mock_query.call_args[1])
+        self.assertEqual(True, mock_query.call_args[1]['scan_index_forward'])
+        self.assertIn('limit', mock_query.call_args[1])
+        self.assertEqual(None, mock_query.call_args[1]['limit'])
+
+        with mock.patch.object(
+                self.users.connection,
+                'query',
+                return_value=expected_1) as mock_query:
+            results = self.users.query_count(username__gt='somename', consistent=True, scan_index_forward=False, limit=10)
+            self.assertTrue(isinstance(results, int))
+            self.assertEqual(results, 10)
+        self.assertEqual(mock_query.call_count, 1)
+        self.assertIn('scan_index_forward', mock_query.call_args[1])
+        self.assertEqual(False, mock_query.call_args[1]['scan_index_forward'])
+        self.assertIn('limit', mock_query.call_args[1])
+        self.assertEqual(10, mock_query.call_args[1]['limit'])
 
     def test_private_batch_get(self):
         expected = {
@@ -2304,6 +2775,52 @@ class TableTestCase(unittest.TestCase):
             }
         })
 
+    def test_private_batch_get_attributes(self):
+        # test if AttributesToGet parameter is passed to DynamoDB API
+        expected = {
+            "ConsumedCapacity": {
+                "CapacityUnits": 0.5,
+                "TableName": "users"
+            },
+            'Responses': {
+                'users': [
+                    {
+                        'username': {'S': 'alice'},
+                        'first_name': {'S': 'Alice'},
+                    },
+                    {
+                        'username': {'S': 'bob'},
+                        'first_name': {'S': 'Bob'},
+                    },
+                ],
+            },
+            "UnprocessedKeys": {},
+        }
+
+        with mock.patch.object(
+                self.users.connection,
+                'batch_get_item',
+                return_value=expected) as mock_batch_get_attr:
+            results = self.users._batch_get(keys=[
+                    {'username': 'alice'},
+                    {'username': 'bob'},
+                ], attributes=['username', 'first_name'])
+            usernames = [res['username'] for res in results['results']]
+            first_names = [res['first_name'] for res in results['results']]
+            self.assertEqual(usernames, ['alice', 'bob'])
+            self.assertEqual(first_names, ['Alice', 'Bob'])
+            self.assertEqual(len(results['results']), 2)
+            self.assertEqual(results['last_key'], None)
+            self.assertEqual(results['unprocessed_keys'], [])
+
+        mock_batch_get_attr.assert_called_once_with(request_items={
+            'users': {
+                'Keys': [ { 'username': {'S': 'alice'} },
+                          { 'username': {'S': 'bob'} }, ],
+                'AttributesToGet': ['username', 'first_name'],
+            },
+        })
+
     def test_batch_get(self):
         items_1 = {
             'results': [
@@ -2337,11 +2854,11 @@ class TableTestCase(unittest.TestCase):
                 results,
                 'the_callable',
                 return_value=items_1) as mock_batch_get:
-            res_1 = results.next()
+            res_1 = next(results)
             # Now it should be populated.
             self.assertEqual(len(results._results), 2)
             self.assertEqual(res_1['username'], 'johndoe')
-            res_2 = results.next()
+            res_2 = next(results)
             self.assertEqual(res_2['username'], 'jane')
 
         self.assertEqual(mock_batch_get.call_count, 1)
@@ -2361,7 +2878,7 @@ class TableTestCase(unittest.TestCase):
                 results,
                 'the_callable',
                 return_value=items_2) as mock_batch_get_2:
-            res_3 = results.next()
+            res_3 = next(results)
             # New results should have been found.
             self.assertEqual(len(results._results), 1)
             self.assertEqual(res_3['username'], 'zoeydoe')

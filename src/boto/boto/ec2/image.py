@@ -23,8 +23,8 @@
 from boto.ec2.ec2object import EC2Object, TaggedEC2Object
 from boto.ec2.blockdevicemapping import BlockDeviceMapping
 
-class ProductCodes(list):
 
+class ProductCodes(list):
     def startElement(self, name, attrs, connection):
         pass
 
@@ -32,8 +32,8 @@ class ProductCodes(list):
         if name == 'productCode':
             self.append(value)
 
-class BillingProducts(list):
 
+class BillingProducts(list):
     def startElement(self, name, attrs, connection):
         pass
 
@@ -41,13 +41,14 @@ class BillingProducts(list):
         if name == 'billingProduct':
             self.append(value)
 
+
 class Image(TaggedEC2Object):
     """
     Represents an EC2 Image
     """
 
     def __init__(self, connection=None):
-        TaggedEC2Object.__init__(self, connection)
+        super(Image, self).__init__(connection)
         self.id = None
         self.location = None
         self.state = None
@@ -70,12 +71,13 @@ class Image(TaggedEC2Object):
         self.virtualization_type = None
         self.hypervisor = None
         self.instance_lifecycle = None
+        self.sriov_net_support = None
 
     def __repr__(self):
         return 'Image:%s' % self.id
 
     def startElement(self, name, attrs, connection):
-        retval = TaggedEC2Object.startElement(self, name, attrs, connection)
+        retval = super(Image, self).startElement(name, attrs, connection)
         if retval is not None:
             return retval
         if name == 'blockDeviceMapping':
@@ -105,7 +107,7 @@ class Image(TaggedEC2Object):
                 self.is_public = True
             else:
                 raise Exception(
-                    'Unexpected value of isPublic %s for image %s'%(
+                    'Unexpected value of isPublic %s for image %s' % (
                         value,
                         self.id
                     )
@@ -136,6 +138,8 @@ class Image(TaggedEC2Object):
             self.hypervisor = value
         elif name == 'instanceLifecycle':
             self.instance_lifecycle = value
+        elif name == 'sriovNetSupport':
+            self.sriov_net_support = value
         else:
             setattr(self, name, value)
 
@@ -205,6 +209,8 @@ class Image(TaggedEC2Object):
             * m1.medium
             * m1.large
             * m1.xlarge
+            * m3.medium
+            * m3.large
             * m3.xlarge
             * m3.2xlarge
             * c1.medium
@@ -219,10 +225,18 @@ class Image(TaggedEC2Object):
             * cg1.4xlarge
             * cc2.8xlarge
             * g2.2xlarge
+            * c3.large
+            * c3.xlarge
+            * c3.2xlarge
+            * c3.4xlarge
+            * c3.8xlarge
             * i2.xlarge
             * i2.2xlarge
             * i2.4xlarge
             * i2.8xlarge
+            * t2.micro
+            * t2.small
+            * t2.medium
 
         :type placement: string
         :param placement: The Availability Zone to launch the instance into.
@@ -355,7 +369,7 @@ class Image(TaggedEC2Object):
         )
 
     def get_kernel(self, dry_run=False):
-        img_attrs =self.connection.get_image_attribute(
+        img_attrs = self.connection.get_image_attribute(
             self.id,
             'kernel',
             dry_run=dry_run
@@ -370,8 +384,8 @@ class Image(TaggedEC2Object):
         )
         return img_attrs.ramdisk
 
-class ImageAttribute:
 
+class ImageAttribute(object):
     def __init__(self, parent=None):
         self.name = None
         self.kernel = None
