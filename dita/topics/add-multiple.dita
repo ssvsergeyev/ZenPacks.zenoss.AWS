@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:task" "task.dtd">
+<task id="taskid">
+  <title>Adding multiple devices</title>
+  <taskbody>
+    <context>Follow these steps to add multiple devices with the <cmdname>zenbatchload</cmdname>
+      command.</context>
+    <steps>
+      <step>
+        <cmd>Log in to the <ph conkeyref="names/platform"/> master host <ph conkeyref="login-as/zenoss"/>.</cmd>
+      </step>
+      <step>
+        <cmd>Create a text file with content similar to the following example.</cmd>
+        <stepxmp>
+          <codeblock>/Devices/AWS/EC2 loader='ec2account', loader_arg_keys=['accountname', 'accesskey', 'secretkey', 'collector']
+<varname>accountname</varname> accountname='<varname>accountname</varname>', accesskey='<varname>accesskey</varname>', secretkey='<varname>secretkey</varname>', collector='<varname>collector</varname>'
+            
+            /Devices/CiscoUCS loader='ciscoucs', loader_arg_keys=['host', 'username', 'password', 'port', 'useSsl', 'collector']
+ucsm1 host='<varname>FQDN-or-IP-address</varname>', username='<varname>Username</varname>', password='<varname>Password</varname>'</codeblock>
+          <p>Replace <varname>FQDN-or-IP-address</varname> with the fully-qualified domain name or
+            IP address of the Cisco UCS device to add, and replace <varname>Username</varname> and
+              <varname>Password</varname> with valid user account information for the device. You
+            may add multiple endpoints under the same /Devices/CiscoUCS section.</p>
+        </stepxmp>
+      </step>
+      <step>
+        <cmd>Load the devices into <ph conkeyref="names/platform"/>. Replace <varname>Filename</varname> 
+          with the name of the file created in the preceding step.</cmd>
+        <stepxmp><userinput>zenbatchload <varname>Filename</varname></userinput></stepxmp>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="d12e26">
+  <title>Prerequisites</title>
+  <refbody>
+    <section>
+      <p>You must have a valid Amazon Web Services account with the Elastic
+    Compute Cloud service enabled.</p>
+      <p>Modeling and performance requests to Amazon are sent via XML over
+    HTTP or HTTPS. You must open port 80, port 443, or both on the
+    <ph conkeyref="names/platform"/> collector host so that requests 
+        can be sent to Amazon's infrastructure through the Internet.</p>
+      <p>The <ph conkeyref="names/platform"/> server time must be correct; otherwise, no
+    performance data will be returned.</p>
+      <table>
+      <tgroup cols="2">
+        <colspec colname="c1" colwidth="1*"/>
+        <colspec colname="c2" colwidth="3*"/>
+        <thead>
+          <row>
+            <entry>Prerequisite</entry>
+            <entry>Restriction</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>Product</entry>
+            <entry><ph conkeyref="names/platform"/> 4.2.x, <ph conkeyref="names/core"/> 4.2.x</entry>
+          </row>
+          <row>
+            <entry morerows="1">Required ZenPacks</entry>
+            <entry><zenpack>ZenPacks.zenoss.AWS</zenpack></entry>
+          </row>
+          <row>
+            <entry><zenpack>ZenPacks.zenoss.PythonCollector</zenpack></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    </section>
+  </refbody>
+</reference>

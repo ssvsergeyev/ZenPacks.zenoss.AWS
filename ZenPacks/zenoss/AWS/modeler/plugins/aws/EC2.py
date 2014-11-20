@@ -21,7 +21,7 @@ from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
 from Products.ZenUtils.Utils import prepId
 
 from ZenPacks.zenoss.AWS import MODULE_NAME
-from ZenPacks.zenoss.AWS.utils import addLocalLibPath
+from ZenPacks.zenoss.AWS.utils import addLocalLibPath, prodState
 
 addLocalLibPath()
 
@@ -98,9 +98,10 @@ class EC2(PythonPlugin):
             ('reserved_instances', []),
         ])
 
-        image_filters = []
+        images = []
 
         region_oms = []
+        instance_states = {}
         for region in ec2_regions:
             region_id = prepId(region.name)
 
@@ -116,6 +117,7 @@ class EC2(PythonPlugin):
                 aws_access_key_id=accesskey,
                 aws_secret_access_key=secretkey
             )
+
             # Zones
             maps['zones'].append(
                 zones_rm(
@@ -148,25 +150,28 @@ class EC2(PythonPlugin):
                 region_id,
                 device,
                 ec2regionconn.get_only_instances(filters=INSTANCE_FILTERS),
-                image_filters
+                images,
+                instance_states,
+                ec2regionconn
             ))
 
             # Images
-            if image_filters:
+            if images:
                 maps['images'].append(
-                    images_rm(region_id, ec2regionconn.get_all_images(
-                        image_ids=image_filters))
-                )
-                image_filters = []
+                    images_rm(region_id, images
+                ))
+                images = []
+            region_volumes = ec2regionconn.get_all_volumes()
+            region_volume_ids = {x.id:1 for x in region_volumes}
 
             maps['volumes'].append(volumes_rm(
-                region_id, ec2regionconn.get_all_volumes()
+                region_id, region_volumes
             ))
 
             maps['snapshots'].append(snapshots_rm(
                 region_id, ec2regionconn.get_all_snapshots(
                     owner="self"
-                )
+                ), region_volume_ids
             ))
 
             # Elastic IPs
@@ -179,6 +184,7 @@ class EC2(PythonPlugin):
                 reserved_instances_rm(
                     region_id,
                     ec2regionconn.get_all_reserved_instances(),
+                    instance_states
                 )
             )
 
@@ -195,7 +201,7 @@ class EC2(PythonPlugin):
 
         # Trigger discovery of instance guest devices.
         maps['account'].append(ObjectMap(data={
-            'setDiscoverGuests': True,
+            'setDiscoverGuests': sorted(instance_states.items())
         }))
 
         return list(chain.from_iterable(maps.itervalues()))
@@ -431,9 +437,14 @@ def vpc_subnets_rm(region_id, subnets):
         objmaps=vpc_subnet_data)
 
 
-def get_instance_data(instance):
+def get_instance_data(instance, image_ids):
     zone_id = prepId(instance.placement) if instance.placement else None
     subnet_id = prepId(instance.subnet_id) if instance.subnet_id else None
+
+    if instance.image_id in image_ids:
+        instance_image_id = instance.image_id
+    else:
+        instance_image_id = None
 
     return {
         'id': prepId(instance.id),
@@ -449,25 +460,33 @@ def get_instance_data(instance):
         'platform': getattr(instance, 'platform', ''),
         'detailed_monitoring': instance.monitored,
         'setZoneId': zone_id,
-        'setImageId': instance.image_id,
+        'setImageId': instance_image_id,
         'setVPCSubnetId': subnet_id,
     }
 
 
-def instances_rm(region_id, device, instances, image_filters):
+def instances_rm(region_id, device, instances, images, instance_states, region_conn):
     '''
     Return instances RelationshipMap given region_id and an InstanceInfo
     ResultSet.
     '''
     instance_data = []
+    image_filters = []
     for instance in instances:
         image_filters.append(instance.image_id)
+           
+    if image_filters:
+        data = region_conn.get_all_images(image_ids=image_filters)
+        images.extend(data)
 
-        data = get_instance_data(instance)
+    image_ids = [x.id for x in images]
+    for instance in instances:
+        data = get_instance_data(instance, image_ids)
         data.update({
             'guest': check_tag(device.zAWSDiscover, instance.tags),
             'pem_path': path_to_pem(region_id, device.zAWSRegionPEM),
         })
+        instance_states[data['id']] = prodState(data['state'])
         instance_data.append(data)
 
     return RelationshipMap(
@@ -476,7 +495,6 @@ def instances_rm(region_id, device, instances, image_filters):
         modname=MODULE_NAME['EC2Instance'],
         objmaps=instance_data
     )
-
 
 def images_rm(region_id, images):
     '''
@@ -545,7 +563,7 @@ def volumes_rm(region_id, volumes):
         objmaps=volume_data)
 
 
-def snapshots_rm(region_id, snapshots):
+def snapshots_rm(region_id, snapshots, region_volume_ids):
     '''
     Return snapshots RelationshipMap given region_id and a Snapshot
     ResultSet.
@@ -553,10 +571,12 @@ def snapshots_rm(region_id, snapshots):
     snapshot_data = []
     for snapshot in snapshots:
         if snapshot.volume_id:
-            volume_id = prepId(snapshot.volume_id)
+            if snapshot.volume_id in region_volume_ids:
+                volume_id = prepId(snapshot.volume_id)
+            else:
+                volume_id = None
         else:
             volume_id = None
-
         snapshot_data.append({
             'id': prepId(snapshot.id),
             'title': name_or(snapshot.tags, snapshot.id),
@@ -621,7 +641,7 @@ def s3buckets_rm(buckets):
     )
 
 
-def reserved_instances_rm(region_id, reserved_instances):
+def reserved_instances_rm(region_id, reserved_instances, instance_states):
     obj_map = []
     for ri in reserved_instances:
         obj_map.append({
@@ -631,6 +651,9 @@ def reserved_instances_rm(region_id, reserved_instances):
             'availability_zone': ri.availability_zone,
             'state': ri.state,
         })
+
+        instance_states[prepId(ri.id)] = prodState(ri.state)
+
     return RelationshipMap(
         compname='regions/%s' % region_id,
         relname='reserved_instances',

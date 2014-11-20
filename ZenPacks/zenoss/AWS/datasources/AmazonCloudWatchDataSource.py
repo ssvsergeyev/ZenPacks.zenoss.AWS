@@ -14,10 +14,12 @@ import datetime
 import time
 import calendar
 import random
+import os
 
 from cStringIO import StringIO
 from lxml import etree
 
+from twisted.web import client as txwebclient
 from twisted.web.client import getPage
 
 from twisted.internet import reactor, defer
@@ -42,6 +44,60 @@ from ZenPacks.zenoss.AWS.utils \
 
 MAX_RETRIES = 3
 
+class ProxyWebClient(object):
+    """web methods with proxy."""
+
+    def __init__(self, url, username=None, password=None):
+        # get scheme used by url
+        scheme, host, port, path = txwebclient._parse(url)
+        envname = '%s_proxy' % scheme
+        self.use_proxy = False
+        self.proxy_host = None
+        self.proxy_port = None
+        if envname in os.environ.keys():
+            proxy = os.environ.get('%s_proxy' % scheme)
+            if proxy:
+                # using proxy server
+                # host:port identifies a proxy server
+                # url is the actual target
+                self.use_proxy = True
+                scheme, host, port, path = txwebclient._parse(proxy)
+                self.proxy_host = host
+                self.proxy_port = port
+                self.username = username
+                self.password = password
+        else:
+            self.host = host
+            self.port = port
+        self.path = url
+        self.url = url
+
+    def get_page(self, contextFactory=None, *args, **kwargs):
+        scheme, _, _, _ = txwebclient._parse(self.url)
+        factory = txwebclient.HTTPClientFactory(self.url)
+        if scheme == 'https':
+            from twisted.internet import ssl
+            if contextFactory is None:
+                contextFactory = ssl.ClientContextFactory()
+            if self.use_proxy:
+                reactor.connectSSL(self.proxy_host, self.proxy_port,
+                               factory, contextFactory)
+            else:
+                reactor.connectSSL(self.host, self.port,
+                               factory, contextFactory)
+        else:
+            if self.use_proxy:
+                reactor.connectTCP(self.proxy_host, self.proxy_port, factory)
+            else:
+                reactor.connectTCP(self.host, self.port, factory)
+        return factory.deferred.addCallbacks(self.getdata, self.errdata)
+
+    def getdata(self, data):
+        return data
+
+    def errdata(self, failure):
+        log.error('%s: %s', 'AWSCloudWatchError', failure.getErrorMessage())
+        return failure.getErrorMessage()
 
 class AmazonCloudWatchDataSource(PythonDataSource):
     '''
@@ -216,6 +272,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                 (accesskey, secretkey))
 
             getURL = 'http://%s' % getURL
+            factory = ProxyWebClient(getURL)
 
             # Incremental backoff as outlined by AWS.
             # http://aws.amazon.com/articles/1394
@@ -238,7 +295,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                         ds.params['metric'],
                         ds.params['dimension'] or 'region')
 
-                    result = yield getPage(getURL)
+                    result = yield factory.get_page()
 
                 except Exception, ex:
                     code = getattr(ex, 'status', None)

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="d12e104">
+  <title>Discovery</title>
+  <refbody>
+    <section>
+      <p>The entities in the following table are discovered through the account name, access key and
+        secret key you provide. The attributes, tags and collections are updated at the scheduled
+        remodeling interval, which defaults to every 12 hours.</p>
+      <table>
+        <tgroup cols="5">
+          <colspec colname="c1" colwidth="1*"/>
+          <colspec colname="c2" colwidth="4*"/>
+          <colspec colname="c3" colwidth="2*"/>
+          <colspec colname="c4" colwidth="1*"/>
+          <colspec colname="c5" colwidth="1.5*"/>
+          <thead>
+            <row>
+              <entry>Entity</entry>
+              <entry>Attributes</entry>
+              <entry>Collections</entry>
+              <entry>Tags</entry>
+              <entry>Other</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>Regions</entry>
+              <entry>ID</entry>
+              <entry>VPCs, Subnets, Zones, Instances, Volumes, Images, Snapshots, Gateways,
+                  Reservations, Elastic IPs</entry>
+              <entry>(none)</entry>
+              <entry>(none)</entry>
+            </row>
+            <row>
+              <entry>Zones</entry>
+              <entry>ID, Region, State</entry>
+              <entry>Instances, Volumes, Subnets</entry>
+              <entry>(none)</entry>
+              <entry>(none)</entry>
+            </row>
+            <row>
+              <entry>VPCs</entry>
+              <entry>ID, Region, CIDR Block, State</entry>
+              <entry>Subnets, Instances</entry>
+              <entry>Name, Collector</entry>
+              <entry></entry>
+            </row>
+            <row>
+              <entry>Subnets</entry>
+              <entry>ID, Region, VPC, Zone, State, CIDR Block, Available IP Address Count, Zone
+                  Default, Auto-Public IP</entry>
+              <entry>Instances</entry>
+              <entry>Name</entry>
+              <entry>(none)</entry>
+            </row>
+            <row>
+              <entry>Instances</entry>
+              <entry>ID, Region, VPC, Zone, Image, Subnet, State, Instance ID, Tag, 
+                Instance Type, Instance Type Details, Platform, Public DNS Name, 
+                Private IP Address, Public IP, Launch Time, Guest Device</entry>
+              <entry>Volumes</entry>
+              <entry>Name</entry>
+              <entry>Guest Device (if monitored by <ph conkeyref="names/platform"/>)</entry>
+            </row>
+            <row>
+              <entry>Volumes</entry>
+              <entry>ID, Region, Zone, Instance, Type, Created Time, Size, 
+                IOPS, Status, Attach Data Status, Attach Data Device</entry>
+              <entry>(none)</entry>
+              <entry>Name</entry>
+              <entry>(none)</entry>
+            </row>
+            <row>
+              <entry>Elastic IPs</entry>
+              <entry>(none)</entry>
+              <entry>ID, Region, Public IP, Private IP, Instance ID, Domain,
+                Network interface ID, Network interface owner ID</entry>
+              <entry>Name</entry>
+              <entry>(none)</entry>
+            </row>
+            <row>
+              <entry>SQS Queues</entry>
+              <entry>ID, Region</entry>
+              <entry>(none)</entry>
+              <entry>Name</entry>
+              <entry>(none)</entry>
+            </row>
+            <row>
+              <entry>S3 Buckets</entry>
+              <entry>ID, Creation date</entry>
+              <entry>(none)</entry>
+              <entry>Name</entry>
+              <entry>(none)</entry>
+            </row>
+            <row>
+              <entry>Snapshots </entry>
+              <entry>ID, Region, Volume, Volume size in Bytes, Progress, Started, Description</entry>
+              <entry>(none)</entry>
+              <entry>Name</entry>
+              <entry>(none)</entry>
+            </row>
+            <row>
+              <entry>VPN Gateways</entry>
+              <entry>ID, Region, Gateway type, State</entry>
+              <entry>(none)</entry>
+              <entry>Name</entry>
+              <entry>(none)</entry>
+            </row>
+            <row>
+              <entry>Images</entry>
+              <entry>ID, Region, Status, Location, Owner ID, Architecture, Image type, Kernel ID, 
+                Ramdisk ID, Description, Block device mapping, Root device type, 
+                Root device name, Virtualization type, Hypervisor</entry>
+              <entry>(none)</entry>
+              <entry>Name</entry>
+              <entry>(none)</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+  </refbody>
+</reference>
