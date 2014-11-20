@@ -174,12 +174,15 @@ class EC2RegionPlugin(AWSBasePlugin):
                 vpc_security_groups_count=(sg_count, 'N'),
                 vpc_security_rules_count=(rules_count, 'N')
             )
+
             if ds.zAWSRemodelEnabled.lower() == 'true':
                 data['maps'].append(instances_rm(
                     region_id,
                     ds,
                     instances,
-                    []
+                    [],
+                    {},
+                    ec2regionconn
                 ))
                 data['maps'].append(ObjectMap({
                     "modname": "Guest update",

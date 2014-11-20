@@ -46,7 +46,7 @@ class VPNGateway(AWSComponent):
 class IVPNGatewayInfo(IComponentInfo):
     account = schema.Entity(title=_t(u'Account'))
     region = schema.Entity(title=_t(u'Region'))
-    gateway_type = schema.Entity(title=_t(u'Gateway type'))
+    gateway_type = schema.TextLine(title=_t(u'Gateway Type'))
     state = schema.TextLine(title=_t(u'State'))
     # availability_zone = schema.TextLine(title=_t(u'Availability zone'))
 
