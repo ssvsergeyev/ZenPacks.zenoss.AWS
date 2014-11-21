@@ -15,8 +15,10 @@ import hmac
 import base64
 import urllib
 import datetime
+from urlparse import urlunparse
 
 from twisted.internet.error import ConnectionRefusedError, TimeoutError
+from twisted.web import http
 
 from zope.event import notify
 
@@ -273,3 +275,41 @@ def prodState(state):
     else:
         return 1000
 
+
+def twisted_web_client_parse(url, defaultPort=None):
+    """
+    Split the given URL into the scheme, host, port, and path.
+
+    @type url: C{str}
+    @param url: An URL to parse.
+
+    @type defaultPort: C{int} or C{None}
+    @param defaultPort: An alternate value to use as the port if the URL does
+    not include one.
+
+    @return: A four-tuple of the scheme, host, port, and path of the URL.  All
+    of these are C{str} instances except for port, which is an C{int}.
+    """
+    url = url.strip()
+    parsed = http.urlparse(url)
+    scheme = parsed[0]
+    path = urlunparse(('', '') + parsed[2:])
+
+    if defaultPort is None:
+        if scheme == 'https':
+            defaultPort = 443
+        else:
+            defaultPort = 80
+
+    host, port = parsed[1], defaultPort
+    if ':' in host:
+        host, port = host.split(':')
+        try:
+            port = int(port)
+        except ValueError:
+            port = defaultPort
+
+    if path == '':
+        path = '/'
+
+    return scheme, host, port, path

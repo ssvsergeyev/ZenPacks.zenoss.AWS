@@ -38,8 +38,8 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSource, PythonDataSourcePlugin
 
-from ZenPacks.zenoss.AWS.utils \
-    import awsUrlSign, iso8601, result_errmsg, lookup_cwregion
+from ZenPacks.zenoss.AWS.utils import awsUrlSign, iso8601, result_errmsg,\
+    lookup_cwregion, twisted_web_client_parse
 
 
 MAX_RETRIES = 3
@@ -49,7 +49,7 @@ class ProxyWebClient(object):
 
     def __init__(self, url, username=None, password=None):
         # get scheme used by url
-        scheme, host, port, path = txwebclient._parse(url)
+        scheme, host, port, path = twisted_web_client_parse(url)
         envname = '%s_proxy' % scheme
         self.use_proxy = False
         self.proxy_host = None
@@ -61,7 +61,7 @@ class ProxyWebClient(object):
                 # host:port identifies a proxy server
                 # url is the actual target
                 self.use_proxy = True
-                scheme, host, port, path = txwebclient._parse(proxy)
+                scheme, host, port, path = twisted_web_client_parse(proxy)
                 self.proxy_host = host
                 self.proxy_port = port
                 self.username = username
@@ -73,7 +73,7 @@ class ProxyWebClient(object):
         self.url = url
 
     def get_page(self, contextFactory=None, *args, **kwargs):
-        scheme, _, _, _ = txwebclient._parse(self.url)
+        scheme, _, _, _ = twisted_web_client_parse(self.url)
         factory = txwebclient.HTTPClientFactory(self.url)
         if scheme == 'https':
             from twisted.internet import ssl
