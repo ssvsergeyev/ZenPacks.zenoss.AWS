@@ -241,6 +241,11 @@ Zenoss server that's monitoring the EC2 account, you must add a ''Collector''
 tag to containing VPC with the value set to the name of the Zenoss collector
 to which discovered guest devices should be assigned.
 
+Example:
+
+# If ''zAWSDiscover'' was filled with the value '''Test:test;''' after modeling all the devices with the tag '''Test:test''' will be discovered
+# If ''zAWSDiscover'' was filled with the value '''Test1:test1; Test2:test2''' after modeling all the devices with either of the tag will be discovered
+
 === Configuring Instances Remodeling ===
 
 You can optionally configure your monitored AWS account, so that the newly 
@@ -248,7 +253,7 @@ added or recently dropped instances are automatically reflected on Zenoss UI
 during monitoring:
 
 # Navigate to the ''Configuration Properties'' panel.
-# Enable the ''zAWSRemodelEnabled'' property (set it to ''true'').
+# Enable the ''zAWSRemodelEnabled'' property (set it to ''true'', this field is not case sensitive).
 
 === PEM file ===
 
