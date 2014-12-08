@@ -79,9 +79,13 @@ class TestS3BucketPlugin(BaseTestCase):
     def test_collect(self, defer, S3Connection):
         key = Mock()
         key.size = 3
+
+        bucket = Mock()
+        bucket.get_all_keys.return_value = [key] * 2
+        bucket.name = sentinel.component
+
         S3Connection.return_value\
-            .get_bucket.return_value\
-            .get_all_keys.return_value = [key] * 2
+            .get_all_buckets.return_value = [bucket]
 
         defer.maybeDeferred = lambda x: x()
 
