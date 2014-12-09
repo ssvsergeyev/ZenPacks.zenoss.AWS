@@ -66,7 +66,10 @@ class AWSBasePlugin(PythonDataSourcePlugin):
     def onError(self, result, config):
         data = self.new_data()
         str_res = str(result)
-        if "<Message>" in str_res:
+        eventKey = 'aws_result'
+        if not self.component:
+            eventKey = 'aws_bucket_result'
+        if "<Message>" in str_res and self.component:
             m = re.search('<Message>(.+?)</Message>', str_res)
             if m:
                 res = m.group(1)
@@ -87,7 +90,8 @@ class AWSBasePlugin(PythonDataSourcePlugin):
                 )
                 severity = ZenEventClasses.Info
             elif ('timed out' in str_res) or ("name resolution" in str_res) or\
-                 ("service not known" in str_res):
+                 ("service not known" in str_res) or\
+                 ("argument of type 'int' is not iterable" in str_res):
                 summary = "Connection timed out or network problems."
                 severity = ZenEventClasses.Error
             else:
@@ -98,9 +102,8 @@ class AWSBasePlugin(PythonDataSourcePlugin):
                 'component': self.component,
                 'summary': summary,
                 'eventClass': '/Status',
-                'eventKey': 'aws_result',
+                'eventKey': eventKey,
                 'severity': severity,
-
             })
             return data
 
@@ -113,12 +116,62 @@ class S3BucketPlugin(AWSBasePlugin):
     def collect(self, config):
         def inner():
             data = self.new_data()
+            ds0 = config.datasources[0]
+            bucket_keys = {}
+            # Add support Signature V4 for 's3' into boto config
+            if not boto.config.get('s3', 'use-sigv4'):
+                boto.config.add_section('s3')
+                boto.config.set('s3', 'use-sigv4', 'True')
+            s3connection = S3Connection(
+                ds0.ec2accesskey, ds0.ec2secretkey,
+                host=S3Connection.DefaultHost
+            )
+            buckets = s3connection.get_all_buckets()
+            data['events'].append({
+                'summary': 'Monitoring ok',
+                'eventClass': '/Status',
+                'eventKey': 'aws_bucket_result',
+                'severity': ZenEventClasses.Clear,
+            })
+
+            for bucket in buckets:
+                name = bucket.name
+                try:
+                    bucket_keys.update({name: bucket.get_all_keys()})
+                except Exception, e:
+                    if isinstance(e, boto.exception.S3ResponseError):
+                        # Parse an exception message to find expected 'region'
+                        pattern = (
+                            "The authorization header is malformed; the "
+                            "region '[\w-]+' is wrong; expecting '([\w-]+)'"
+                        )
+                        m = re.match(pattern, e.message)
+                        if m:
+                            region = m.group(1)
+                            region_con = boto.s3.connect_to_region(
+                                region, aws_access_key_id=ds0.ec2accesskey,
+                                aws_secret_access_key=ds0.ec2secretkey
+                            )
+                            bucket = region_con.get_bucket(name)
+                            bucket_keys.update({name: bucket.get_all_keys()})
+                        else:
+                            bucket_keys.update({name: e})
+                        continue
+                    else:
+                        bucket_keys.update({name: e})
+                        continue
             for ds in config.datasources:
                 self.component = ds.component
-                s3connection = S3Connection(ds.ec2accesskey, ds.ec2secretkey)
-                bucket = s3connection.get_bucket(ds.component)
-                keys = bucket.get_all_keys()
-
+                keys = bucket_keys.get(ds.component) or []
+                if not isinstance(keys, list):
+                    data['events'].append({
+                        'component': self.component,
+                        'summary': str(keys),
+                        'eventClass': '/Status',
+                        'eventKey': 'aws_result',
+                        'severity': ZenEventClasses.Error,
+                    })
+                    continue
                 data['values'][ds.component] = dict(
                     keys_count=(len(keys), 'N'),
                     total_size=(sum([key.size for key in keys]), 'N'),
