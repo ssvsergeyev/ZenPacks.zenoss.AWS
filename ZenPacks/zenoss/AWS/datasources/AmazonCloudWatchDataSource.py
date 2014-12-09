@@ -345,9 +345,10 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             try:
                 stats = etree.parse(StringIO(result))
             except Exception:
-                log.exception(
+                log.debug(
                     '%s (%s): error parsing response XML\n%s',
                     config.id, ds.params['region'], result)
+                continue
 
             if ds == 'volumestatus':
                 #Parse volume status events
