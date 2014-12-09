@@ -201,7 +201,6 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             datasource.getCycleTime(context),
             context.getRegionId(),
             datasource.namespace,
-            datasource.metric,
             context.getDimension(),
             )
 
