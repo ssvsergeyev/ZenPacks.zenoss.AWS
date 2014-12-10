@@ -344,7 +344,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             try:
                 stats = etree.parse(StringIO(result))
             except Exception:
-                log.debug(
+                log.exception(
                     '%s (%s): error parsing response XML\n%s',
                     config.id, ds.params['region'], result)
                 continue
