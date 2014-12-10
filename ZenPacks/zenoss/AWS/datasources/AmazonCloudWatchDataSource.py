@@ -201,7 +201,6 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             datasource.getCycleTime(context),
             context.getRegionId(),
             datasource.namespace,
-            datasource.metric,
             context.getDimension(),
             )
 
@@ -348,6 +347,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                 log.exception(
                     '%s (%s): error parsing response XML\n%s',
                     config.id, ds.params['region'], result)
+                continue
 
             if ds == 'volumestatus':
                 #Parse volume status events
