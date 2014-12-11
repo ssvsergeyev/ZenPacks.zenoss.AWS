@@ -90,10 +90,13 @@ class TestAWSCollector(BaseTestCase):
         )
 
     def test_reserved_instances_rm(self):
+        states = {}
         self.assertEquals(
-            EC2.reserved_instances_rm('test', self.tests).__dict__['maps'][0].title,
+            EC2.reserved_instances_rm(
+                'test', self.tests, states).__dict__['maps'][0].title,
             sentinel.id
         )
+        self.assertEquals(states.get('sentinel.id'), 1000)
 
     def test_s3buckets_rm(self):
         self.tests[0].creation_date = 'DDTHH.asdf'
