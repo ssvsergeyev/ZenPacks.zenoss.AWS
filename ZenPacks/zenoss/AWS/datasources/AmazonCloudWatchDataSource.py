@@ -14,10 +14,12 @@ import datetime
 import time
 import calendar
 import random
+import os
 
 from cStringIO import StringIO
 from lxml import etree
 
+from twisted.web import client as txwebclient
 from twisted.web.client import getPage
 
 from twisted.internet import reactor, defer
@@ -36,12 +38,66 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSource, PythonDataSourcePlugin
 
-from ZenPacks.zenoss.AWS.utils \
-    import awsUrlSign, iso8601, result_errmsg, lookup_cwregion
+from ZenPacks.zenoss.AWS.utils import awsUrlSign, iso8601, result_errmsg,\
+    lookup_cwregion, twisted_web_client_parse
 
 
 MAX_RETRIES = 3
 
+class ProxyWebClient(object):
+    """web methods with proxy."""
+
+    def __init__(self, url, username=None, password=None):
+        # get scheme used by url
+        scheme, host, port, path = twisted_web_client_parse(url)
+        envname = '%s_proxy' % scheme
+        self.use_proxy = False
+        self.proxy_host = None
+        self.proxy_port = None
+        if envname in os.environ.keys():
+            proxy = os.environ.get('%s_proxy' % scheme)
+            if proxy:
+                # using proxy server
+                # host:port identifies a proxy server
+                # url is the actual target
+                self.use_proxy = True
+                scheme, host, port, path = twisted_web_client_parse(proxy)
+                self.proxy_host = host
+                self.proxy_port = port
+                self.username = username
+                self.password = password
+        else:
+            self.host = host
+            self.port = port
+        self.path = url
+        self.url = url
+
+    def get_page(self, contextFactory=None, *args, **kwargs):
+        scheme, _, _, _ = twisted_web_client_parse(self.url)
+        factory = txwebclient.HTTPClientFactory(self.url)
+        if scheme == 'https':
+            from twisted.internet import ssl
+            if contextFactory is None:
+                contextFactory = ssl.ClientContextFactory()
+            if self.use_proxy:
+                reactor.connectSSL(self.proxy_host, self.proxy_port,
+                               factory, contextFactory)
+            else:
+                reactor.connectSSL(self.host, self.port,
+                               factory, contextFactory)
+        else:
+            if self.use_proxy:
+                reactor.connectTCP(self.proxy_host, self.proxy_port, factory)
+            else:
+                reactor.connectTCP(self.host, self.port, factory)
+        return factory.deferred.addCallbacks(self.getdata, self.errdata)
+
+    def getdata(self, data):
+        return data
+
+    def errdata(self, failure):
+        log.error('%s: %s', 'AWSCloudWatchError', failure.getErrorMessage())
+        return failure.getErrorMessage()
 
 class AmazonCloudWatchDataSource(PythonDataSource):
     '''
@@ -145,7 +201,6 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             datasource.getCycleTime(context),
             context.getRegionId(),
             datasource.namespace,
-            datasource.metric,
             context.getDimension(),
             )
 
@@ -216,6 +271,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                 (accesskey, secretkey))
 
             getURL = 'http://%s' % getURL
+            factory = ProxyWebClient(getURL)
 
             # Incremental backoff as outlined by AWS.
             # http://aws.amazon.com/articles/1394
@@ -238,7 +294,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                         ds.params['metric'],
                         ds.params['dimension'] or 'region')
 
-                    result = yield getPage(getURL)
+                    result = yield factory.get_page()
 
                 except Exception, ex:
                     code = getattr(ex, 'status', None)
@@ -291,6 +347,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                 log.exception(
                     '%s (%s): error parsing response XML\n%s',
                     config.id, ds.params['region'], result)
+                continue
 
             if ds == 'volumestatus':
                 #Parse volume status events

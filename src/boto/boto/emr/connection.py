@@ -37,6 +37,7 @@ from boto.emr.emrobject import AddInstanceGroupsResponse, BootstrapActionList, \
 from boto.emr.step import JarStep
 from boto.connection import AWSQueryConnection
 from boto.exception import EmrResponseError
+from boto.compat import six
 
 
 class EmrConnection(AWSQueryConnection):
@@ -55,19 +56,20 @@ class EmrConnection(AWSQueryConnection):
                  is_secure=True, port=None, proxy=None, proxy_port=None,
                  proxy_user=None, proxy_pass=None, debug=0,
                  https_connection_factory=None, region=None, path='/',
-                 security_token=None, validate_certs=True):
+                 security_token=None, validate_certs=True, profile_name=None):
         if not region:
             region = RegionInfo(self, self.DefaultRegionName,
                                 self.DefaultRegionEndpoint)
         self.region = region
-        AWSQueryConnection.__init__(self, aws_access_key_id,
+        super(EmrConnection, self).__init__(aws_access_key_id,
                                     aws_secret_access_key,
                                     is_secure, port, proxy, proxy_port,
                                     proxy_user, proxy_pass,
                                     self.region.endpoint, debug,
                                     https_connection_factory, path,
                                     security_token,
-                                    validate_certs=validate_certs)
+                                    validate_certs=validate_certs,
+                                    profile_name=profile_name)
         # Many of the EMR hostnames are of the form:
         #     <region>.<service_name>.amazonaws.com
         # rather than the more common:
@@ -265,7 +267,43 @@ class EmrConnection(AWSQueryConnection):
         if step_states:
             self.build_list_params(params, step_states, 'StepStateList.member')
 
-        self.get_object('ListSteps', params, StepSummaryList)
+        return self.get_object('ListSteps', params, StepSummaryList)
+
+    def add_tags(self, resource_id, tags):
+        """
+        Create new metadata tags for the specified resource id.
+
+        :type resource_id: str
+        :param resource_id: The cluster id
+
+        :type tags: dict
+        :param tags: A dictionary containing the name/value pairs.
+                     If you want to create only a tag name, the
+                     value for that tag should be the empty string
+                     (e.g. '') or None.
+        """
+        assert isinstance(resource_id, six.string_types)
+        params = {
+            'ResourceId': resource_id,
+        }
+        params.update(self._build_tag_list(tags))
+        return self.get_status('AddTags', params, verb='POST')
+
+    def remove_tags(self, resource_id, tags):
+        """
+        Remove metadata tags for the specified resource id.
+
+        :type resource_id: str
+        :param resource_id: The cluster id
+
+        :type tags: list
+        :param tags: A list of tag names to remove.
+        """
+        params = {
+            'ResourceId': resource_id,
+        }
+        params.update(self._build_string_list('TagKeys', tags))
+        return self.get_status('RemoveTags', params, verb='POST')
 
     def terminate_jobflow(self, jobflow_id):
         """
@@ -296,7 +334,7 @@ class EmrConnection(AWSQueryConnection):
         :type steps: list(boto.emr.Step)
         :param steps: A list of steps to add to the job
         """
-        if not isinstance(steps, types.ListType):
+        if not isinstance(steps, list):
             steps = [steps]
         params = {}
         params['JobFlowId'] = jobflow_id
@@ -319,7 +357,7 @@ class EmrConnection(AWSQueryConnection):
         :type instance_groups: list(boto.emr.InstanceGroup)
         :param instance_groups: A list of instance groups to add to the job
         """
-        if not isinstance(instance_groups, types.ListType):
+        if not isinstance(instance_groups, list):
             instance_groups = [instance_groups]
         params = {}
         params['JobFlowId'] = jobflow_id
@@ -340,9 +378,9 @@ class EmrConnection(AWSQueryConnection):
         :type new_sizes: list(int)
         :param new_sizes: A list of the new sizes for each instance group
         """
-        if not isinstance(instance_group_ids, types.ListType):
+        if not isinstance(instance_group_ids, list):
             instance_group_ids = [instance_group_ids]
-        if not isinstance(new_sizes, types.ListType):
+        if not isinstance(new_sizes, list):
             new_sizes = [new_sizes]
 
         instance_groups = zip(instance_group_ids, new_sizes)
@@ -372,7 +410,8 @@ class EmrConnection(AWSQueryConnection):
                     ami_version=None,
                     api_params=None,
                     visible_to_all_users=None,
-                    job_flow_role=None):
+                    job_flow_role=None,
+                    service_role=None):
         """
         Runs a job flow
         :type name: str
@@ -454,6 +493,10 @@ class EmrConnection(AWSQueryConnection):
             ``EMRJobflowDefault``. In order to use the default role,
             you must have already created it using the CLI.
 
+        :type service_role: str
+        :param service_role: The IAM role that will be assumed by the Amazon
+            EMR service to access AWS resources on your behalf.
+
         :rtype: str
         :return: The jobflow id
         """
@@ -487,7 +530,7 @@ class EmrConnection(AWSQueryConnection):
             # Instance group args (for spot instances or a heterogenous cluster)
             list_args = self._build_instance_group_list_args(instance_groups)
             instance_params = dict(
-                ('Instances.%s' % k, v) for k, v in list_args.iteritems()
+                ('Instances.%s' % k, v) for k, v in six.iteritems(list_args)
                 )
             params.update(instance_params)
 
@@ -516,7 +559,7 @@ class EmrConnection(AWSQueryConnection):
             params['AdditionalInfo'] = additional_info
 
         if api_params:
-            for key, value in api_params.iteritems():
+            for key, value in six.iteritems(api_params):
                 if value is None:
                     params.pop(key, None)
                 else:
@@ -530,6 +573,9 @@ class EmrConnection(AWSQueryConnection):
 
         if job_flow_role is not None:
             params['JobFlowRole'] = job_flow_role
+
+        if service_role is not None:
+            params['ServiceRole'] = service_role
 
         response = self.get_object(
             'RunJobFlow', params, RunJobFlowResponse, verb='POST')
@@ -604,23 +650,44 @@ class EmrConnection(AWSQueryConnection):
         return step_params
 
     def _build_bootstrap_action_list(self, bootstrap_actions):
-        if not isinstance(bootstrap_actions, types.ListType):
+        if not isinstance(bootstrap_actions, list):
             bootstrap_actions = [bootstrap_actions]
 
         params = {}
         for i, bootstrap_action in enumerate(bootstrap_actions):
-            for key, value in bootstrap_action.iteritems():
+            for key, value in six.iteritems(bootstrap_action):
                 params['BootstrapActions.member.%s.%s' % (i + 1, key)] = value
         return params
 
     def _build_step_list(self, steps):
-        if not isinstance(steps, types.ListType):
+        if not isinstance(steps, list):
             steps = [steps]
 
         params = {}
         for i, step in enumerate(steps):
-            for key, value in step.iteritems():
+            for key, value in six.iteritems(step):
                 params['Steps.member.%s.%s' % (i+1, key)] = value
+        return params
+
+    def _build_string_list(self, field, items):
+        if not isinstance(items, list):
+            items = [items]
+
+        params = {}
+        for i, item in enumerate(items):
+            params['%s.member.%s' % (field, i + 1)] = item
+        return params
+
+    def _build_tag_list(self, tags):
+        assert isinstance(tags, dict)
+
+        params = {}
+        for i, key_value in enumerate(sorted(six.iteritems(tags)), start=1):
+            key, value = key_value
+            current_prefix = 'Tags.member.%s' % i
+            params['%s.Key' % current_prefix] = key
+            if value:
+                params['%s.Value' % current_prefix] = value
         return params
 
     def _build_instance_common_args(self, ec2_keyname, availability_zone,
@@ -676,12 +743,12 @@ class EmrConnection(AWSQueryConnection):
         a comparable dict for use in making a RunJobFlow or AddInstanceGroups
         request.
         """
-        if not isinstance(instance_groups, types.ListType):
+        if not isinstance(instance_groups, list):
             instance_groups = [instance_groups]
 
         params = {}
         for i, instance_group in enumerate(instance_groups):
             ig_dict = self._build_instance_group_args(instance_group)
-            for key, value in ig_dict.iteritems():
+            for key, value in six.iteritems(ig_dict):
                 params['InstanceGroups.member.%d.%s' % (i+1, key)] = value
         return params

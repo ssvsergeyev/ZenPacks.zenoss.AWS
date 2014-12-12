@@ -66,6 +66,7 @@ def test_account(dmd, factor=1):
 
     dc = dmd.Devices.createOrganizer('/AWS/EC2')
     dc.setZenProperty('zPythonClass', 'ZenPacks.zenoss.AWS.EC2Account')
+    dc.setZenProperty('zAWSGuestCollector', '')
 
     account = dc.createInstance('account')
     account.setPerformanceMonitor('localhost')
@@ -124,6 +125,7 @@ def test_account(dmd, factor=1):
                         instance.setVPCSubnetId(subnet.id)
                         instance.private_ip_address = '10.77.77.77'
                         instance.guest = True
+                        instance.state = 'running'
                         instance.create_guest()
 
                         # Volumes

@@ -35,6 +35,7 @@ class EC2Account(Device):
     ec2secretkey = None
     linuxDeviceClass = None
     windowsDeviceClass = None
+    _setDiscoverGuests = None
 
     _properties = Device._properties + (
         {'id': 'ec2accesskey', 'type': 'string'},
@@ -60,22 +61,41 @@ class EC2Account(Device):
 
         The modeler plugin calls setDiscoverGuests which will cause
         ApplyDataMap to call this getter method first to validate that
-        the setter even needs to be run. For this reason, this method
-        must actually perform the discovery logic.
+        the setter even needs to be run.
+        This method will return what was set from a previous run.
+        Regenerate the current_model, if it matches the previous model_run 
+        send the previous value.
         '''
-        self.discover_guests()
 
-        return True
+        current_model = []
+        for region in self.regions():
+            for instance in region.instances():
+                guest_device = instance.guest_device()
+                if guest_device:
+                   current_model.append((instance.id, guest_device.productionState))
+        current_model = sorted(current_model)
+        try:
+            if current_model == self._setDiscoverGuests[1]:
+                return self._setDiscoverGuests[0]
+            else:
+                return []
+        except Exception:
+            return []
 
     def setDiscoverGuests(self, value):
         '''
         Attempt to discover and link instance guest devices.
-
-        This method should typically never be called because the
-        getDiscoverGuests method will always return the same value that
-        the modeler plugin sets.
+        Gather the current model and incoming value, save it for comparison later.
         '''
         self.discover_guests()
+        current_model = []
+        for region in self.regions():
+            for instance in region.instances():
+                guest_device = instance.guest_device()
+                if guest_device:
+                   current_model.append((instance.id, guest_device.productionState))
+        current_model = sorted(current_model)
+        self._setDiscoverGuests = (value, current_model)
 
     def discover_guests(self):
         '''

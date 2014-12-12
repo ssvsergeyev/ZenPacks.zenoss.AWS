@@ -18,7 +18,6 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
-
 from boto.resultset import ResultSet
 from boto.ec2.ec2object import EC2Object
 from boto.utils import parse_ts
@@ -31,7 +30,7 @@ class ReservedInstancesOffering(EC2Object):
                  usage_price=None, description=None, instance_tenancy=None,
                  currency_code=None, offering_type=None,
                  recurring_charges=None, pricing_details=None):
-        EC2Object.__init__(self, connection)
+        super(ReservedInstancesOffering, self).__init__(connection)
         self.id = id
         self.instance_type = instance_type
         self.availability_zone = availability_zone
@@ -82,13 +81,13 @@ class ReservedInstancesOffering(EC2Object):
             self.marketplace = True if value == 'true' else False
 
     def describe(self):
-        print 'ID=%s' % self.id
-        print '\tInstance Type=%s' % self.instance_type
-        print '\tZone=%s' % self.availability_zone
-        print '\tDuration=%s' % self.duration
-        print '\tFixed Price=%s' % self.fixed_price
-        print '\tUsage Price=%s' % self.usage_price
-        print '\tDescription=%s' % self.description
+        print('ID=%s' % self.id)
+        print('\tInstance Type=%s' % self.instance_type)
+        print('\tZone=%s' % self.availability_zone)
+        print('\tDuration=%s' % self.duration)
+        print('\tFixed Price=%s' % self.fixed_price)
+        print('\tUsage Price=%s' % self.usage_price)
+        print('\tDescription=%s' % self.description)
 
     def purchase(self, instance_count=1, dry_run=False):
         return self.connection.purchase_reserved_instance_offering(
@@ -128,9 +127,10 @@ class ReservedInstance(ReservedInstancesOffering):
                  availability_zone=None, duration=None, fixed_price=None,
                  usage_price=None, description=None,
                  instance_count=None, state=None):
-        ReservedInstancesOffering.__init__(self, connection, id, instance_type,
-                                           availability_zone, duration, fixed_price,
-                                           usage_price, description)
+        super(ReservedInstance, self).__init__(connection, id, instance_type,
+                                               availability_zone, duration,
+                                               fixed_price, usage_price,
+                                               description)
         self.instance_count = instance_count
         self.state = state
         self.start = None
@@ -148,7 +148,7 @@ class ReservedInstance(ReservedInstancesOffering):
         elif name == 'start':
             self.start = value
         else:
-            ReservedInstancesOffering.endElement(self, name, value, connection)
+            super(ReservedInstance, self).endElement(name, value, connection)
 
 
 class ReservedInstanceListing(EC2Object):

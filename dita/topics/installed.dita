@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="referenceid">
+  <title>Installed items</title>
+  <refbody>
+    <section>
+      <p>This ZenPack adds the following items to your <ph conkeyref="names/platform"/> system.</p>
+        
+        <dl>
+          <dlentry>
+            <dt>Device Classes</dt>
+            <dd>/AWS</dd>
+            <dd>/AWS/EC2</dd>
+          </dlentry>
+          <dlentry>
+            <dt>Modeler Plugins</dt>
+            <dd>aws.EC2</dd>
+          </dlentry>
+          <dlentry>
+            <dt>Datasource Types</dt>
+            <dd>AWSDataSource</dd>
+          </dlentry>
+          <dlentry>
+            <dt>Monitoring Templates</dt>
+            <dd>EC2Region (in /AWS/EC2)</dd>
+            <dd>EC2Instance (in /AWS/EC2)</dd>
+            <dd>EC2Instance-Detailed (in /AWS/EC2)</dd>
+            <dd>EC2Volume (in /AWS/EC2)</dd>
+            <dd>EC2Volume-IOPS (in /AWS/EC2)</dd>
+            <dd>EC2Image (in /AWS/EC2)</dd>
+            <dd>EC2VPC (in /AWS/EC2)</dd>
+            <dd>EC2VPCSubnet (in /AWS/EC2)</dd>
+            <dd>EC2Snapshot (in /AWS/EC2)</dd>
+            <dd>EC2Zone (in /AWS/EC2)</dd>
+            <dd>S3Bucket (in /AWS/EC2)</dd>
+            <dd>SQSQueue (in /AWS/EC2)</dd>
+            <dd>EC2ReservedInstance (in /AWS/EC2) </dd>
+            <dd>VPNGateway (in /AWS/EC2)</dd>
+          </dlentry>
+          <dlentry>
+            <dt>Device Types</dt>
+            <dd>EC2Account (in /AWS/EC2)</dd>
+          </dlentry>
+          <dlentry>
+            <dt>Component Types</dt>
+            <dd>EC2Region (on EC2Account)</dd>
+            <dd>EC2VPC (on EC2Region)</dd>
+            <dd>EC2VPCSubnet (on EC2Region)</dd>
+            <dd>EC2Zone (on EC2Region)</dd>
+            <dd>EC2Instance (on EC2Region)</dd>
+            <dd>EC2Volume (on EC2Region)</dd>
+            <dd>EC2Image (on EC2Region)</dd>
+            <dd>EC2Snapshot (on EC2Region)</dd>
+            <dd>SQSQueue (on EC2Region)</dd>
+            <dd>VPNGateway (on EC2Region)</dd>
+            <dd>EC2ReservedInstance (on EC2Region)</dd>
+            <dd>S3Bucket (on EC2Account)</dd>
+            <dd>Elastic IP (on EC2Region)</dd>
+          </dlentry>
+        </dl>
+    </section>
+  </refbody>
+</reference>

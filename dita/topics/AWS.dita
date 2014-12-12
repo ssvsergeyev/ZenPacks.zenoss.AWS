@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:reference" "reference.dtd">
+<reference id="referenceid">
+  <title>AWS (Amazon Web Services)</title>
+  <shortdesc>The <zenpack>ZenPacks.zenoss.AWS</zenpack> ZenPack monitors Amazon Elastic Compute Cloud<tm tmtype="tm"/> (Amazon
+    EC2<tm tmtype="tm"/>) server instances.</shortdesc>
+  <refbody>
+    <section>
+      <p>Information is collected through a combination of AWS EC2 and CloudWatch APIs. When you
+        install this ZenPack, the <filepath>/AWS/EC2</filepath> device class is added to your <ph
+          conkeyref="names/platform"/> instance. A single device in the EC2 class,
+          <filepath>EC2Manager</filepath>, represents your EC2 account. All instances and instance
+        types are contained in the EC2 account manager.</p>
+      <note>This ZenPack supercedes <zenpack>ZenPacks.zenoss.ZenAWS</zenpack>, which was installed 
+          by default on versions of <ph conkeyref="names/platform"/> prior to 
+          version 4.2.4. Please remove <zenpack>ZenPacks.zenoss.ZenAWS</zenpack> before
+          installing <zenpack>ZenPacks.zenoss.AWS</zenpack>.
+      </note>
+    </section>
+  </refbody>
+</reference>

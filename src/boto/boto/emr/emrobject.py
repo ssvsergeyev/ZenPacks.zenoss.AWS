@@ -256,16 +256,21 @@ class Cluster(EmrObject):
         self.status = None
         self.ec2instanceattributes = None
         self.applications = None
+        self.tags = None
 
     def startElement(self, name, attrs, connection):
         if name == 'Status':
             self.status = ClusterStatus()
             return self.status
-        elif name == 'EC2InstanceAttributes':
+        elif name == 'Ec2InstanceAttributes':
             self.ec2instanceattributes = Ec2InstanceAttributes()
             return self.ec2instanceattributes
         elif name == 'Applications':
             self.applications = ResultSet([('member', Application)])
+            return self.applications
+        elif name == 'Tags':
+            self.tags = ResultSet([('member', KeyValue)])
+            return self.tags
         else:
             return None
 
@@ -296,7 +301,7 @@ class ClusterSummaryList(EmrObject):
 
 class StepConfig(EmrObject):
     Fields = set([
-        'Jar'
+        'Jar',
         'MainClass'
     ])
 
@@ -429,11 +434,15 @@ class StepSummary(EmrObject):
     def __init__(self, connection=None):
         self.connection = connection
         self.status = None
+        self.config = None
 
     def startElement(self, name, attrs, connection):
         if name == 'Status':
             self.status = ClusterStatus()
             return self.status
+        elif name == 'Config':
+            self.config = StepConfig()
+            return self.config
         else:
             return None
 

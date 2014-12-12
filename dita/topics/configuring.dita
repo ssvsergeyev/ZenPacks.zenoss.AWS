@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task PUBLIC "urn:pubid:zenoss.com:doctypes:dita:dtd:task" "task.dtd">
+<task id="d12e314">
+  <title>Configuring</title>
+  <taskbody>
+    <context>Follow these steps to add a vSphere device through the <ph conkeyref="names/platform"/>
+      browser interface.</context>
+    <context>
+      <p>To set up the EC2 account manager in <ph conkeyref="names/platform"/>, follow these steps:</p>
+    </context>
+    <steps>
+      <step>
+        <cmd></cmd>
+      </step>
+    </steps>
+    <steps-informal>
+      <ol>
+      
+
+      <li>
+        <p>In the <ph conkeyref="names/platform"/> interface, select Infrastructure, and then
+        select the EC2Manager device in the device list.</p>
+      </li>
+
+      <li>
+        <p>Select Configure EC2 in the left panel.</p>
+
+        <p>The Configure EC2 page appears.</p>
+
+        <fig>
+          <title>Configure EC2</title>
+          <image href="../images/AWS_Configure_EC2.png" width="5in"/>          
+        </fig>
+      </li>
+
+      
+
+      
+    </ol>
+    </steps-informal>
+    <result>
+      <p>Alternatively you can use <cmdname>zenbatchload</cmdname> to add AWS accounts from the
+    command line. To do this, you must create a file with contents similar to
+    the following. Replace all values in angle brackets with your values minus
+    the brackets. Multiple accounts can be added under the same
+    <i>/Device/AWS/EC2</i> section.</p>
+     <codeblock>/Devices/AWS/EC2 loader='ec2account', loader_arg_keys=['accountname', 'accesskey', 'secretkey', 'collector']
+&lt;accountname&gt; accountname='&lt;accountname&gt;', accesskey='&lt;accesskey&gt;', secretkey='&lt;secretkey&gt;', collector='&lt;collector&gt;'</codeblock>
+      <p>You can then load the account(s) with the following command:</p>
+      <codeblock>$ zenbatchload &lt;filename&gt;</codeblock>
+    </result>
+  </taskbody>
+</task>

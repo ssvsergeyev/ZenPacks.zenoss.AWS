@@ -51,7 +51,7 @@ class Icmp(object):
 class NetworkAcl(TaggedEC2Object):
 
     def __init__(self, connection=None):
-        TaggedEC2Object.__init__(self, connection)
+        super(NetworkAcl, self).__init__(connection)
         self.id = None
         self.vpc_id = None
         self.network_acl_entries = []
@@ -135,7 +135,7 @@ class NetworkAclAssociation(object):
         if name == 'networkAclAssociationId':
             self.id = value
         elif name == 'networkAclId':
-            self.route_table_id = value
+            self.network_acl_id = value
         elif name == 'subnetId':
             self.subnet_id = value
 
