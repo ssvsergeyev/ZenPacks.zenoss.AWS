@@ -5,11 +5,17 @@
 |Documentation URL=https://github.com/zenoss/ZenPacks.zenoss.AWS
 |Source URI=git://github.com/zenoss/ZenPacks.zenoss.AWS.git
 |Releases={{Release
+|Version=2.2.1
+|Tag=2.2.1
+|Release date=2014/05/01
+|Compatible with=Zenoss Core 4.2.x, Zenoss Resource Manager 4.2.x
+|Requires=PythonCollector,
+}}{{Release
 |Version=2.1.0
 |Tag=2.1.0
 |Release date=2013/11/19
 |Compatible with=Zenoss Core 4.2.x, Zenoss Resource Manager 4.2.x
-|Requires=PythonCollector, 
+|Requires=PythonCollector,
 }}{{Release
 |Version=2.0.0
 |Tag=2.0.0
@@ -53,7 +59,6 @@ AWS Impact.png
 
 The features added by this ZenPack can be summarized as follows. They are each
 detailed further below.
-
 * Discovery of EC2, VPC and S3 entities.
 * Monitoring of CloudWatch metrics.
 * Monitoring of Region, S3Bucket and Subnet components.
@@ -153,6 +158,7 @@ Besides CloudWatch metrics, the following metrics will also be collected every 5
 : Metrics: Keys count, Total Size
 
 === Soft Limits Monitoring ===
+
 The following resource counts subject to the soft-limits will be collected every 5 minutes and when any of these metrics approaches a soft limit threshold, a Zenoss event will be triggered.
 
 ;Regions
@@ -169,8 +175,8 @@ The thresholds are set to the default limit values. If you changed this limit fo
 
 You can optionally configure each monitored AWS account to attempt to discover
 and monitor the guest Linux or Windows operating systems running within each
-EC2 instance, when specific Tags are present. This requires that your Zenoss system 
-has the network and server access it needs to monitor the guest operating system. 
+EC2 instance, when specific Tags are present. This requires that your Zenoss system
+has the network and server access it needs to monitor the guest operating system.
 VPC and non-VPC modes are supported.
 
 The guest operating system devices' life-cycle are managed along with the
@@ -201,7 +207,6 @@ in any services that contain one or more of the explicitly mentioned entities.
 === Adding AWS Accounts ===
 
 Use the following steps to start monitoring EC2 using the Zenoss web interface.
-
 # Navigate to the Infrastructure page.
 # Choose ''Add EC2 Account'' from the add device button.
 # Enter your AWS account name, access key and secret key.
@@ -246,19 +251,30 @@ Example:
 # If ''zAWSDiscover'' was filled with the value '''Test:test;''' after modeling all the devices with the tag '''Test:test''' will be discovered
 # If ''zAWSDiscover'' was filled with the value '''Test1:test1; Test2:test2''' after modeling all the devices with either of the tag will be discovered
 
+=== Configuring Remote Collector for Guest Devices ===
+
+You can optionally configure an alternate remote collector for the devices
+created from AWS Instances with the following configuration properties:
+
+;zAWSGuestCollector
+This property allows you to specify the name of the collector all discovered
+devices for this AWS device will use.
+
+;zAWSResetGuestCollector
+Setting this property to ''false'' will tell AWS not to change the collector
+if you have set it manually.
+
 === Configuring Instances Remodeling ===
 
-You can optionally configure your monitored AWS account, so that the newly 
-added or recently dropped instances are automatically reflected on Zenoss UI 
+You can optionally configure your monitored AWS account, so that the newly
+added or recently dropped instances are automatically reflected on Zenoss UI
 during monitoring:
-
 # Navigate to the ''Configuration Properties'' panel.
 # Enable the ''zAWSRemodelEnabled'' property (set it to ''true'', this field is not case sensitive).
 
 === PEM file ===
 
 Use the following steps to specify the PEM file to region for use in auto-discovering instance guest operating systems:
-
 # Navigate to the ''Configuration Properties'' panel.
 # Set region name and path to PEM file in the appropriate fields of ''zAWSRegionPEM'' property (see [http://wiki.zenoss.org/File:ZAWSRegionPEM_Property.png zAWSRegionPEM Propery]).
 
@@ -291,7 +307,6 @@ Installing this ZenPack will add the following items to your Zenoss system.
 * S3Bucket (in /AWS/EC2)
 * SQSQueue (in /AWS/EC2)
 * EC2ReservedInstance (in /AWS/EC2)
-
 * VPNGateway (in /AWS/EC2)
 
 ;Device Types
@@ -325,15 +340,79 @@ Installing this ZenPack will add the following items to your Zenoss system.
 |zenpython
 |}
 
+== IAM Permissions ==
+
+<nowiki>
+{
+    "Statement": [
+        {
+            "Action": [
+                "autoscaling:Describe*",
+                "cloudformation:DescribeStacks",
+                "cloudformation:DescribeStackEvents",
+                "cloudformation:DescribeStackResources",
+                "cloudformation:GetTemplate",
+                "cloudfront:Get*",
+                "cloudfront:List*",
+                "cloudwatch:Describe*",
+                "cloudwatch:Get*",
+                "cloudwatch:List*",
+                "directconnect:Describe*",
+                "dynamodb:GetItem",
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:DescribeTable",
+                "dynamodb:ListTables",
+                "ec2:Describe*",
+                "elasticache:Describe*",
+                "elasticbeanstalk:Check*",
+                "elasticbeanstalk:Describe*",
+                "elasticbeanstalk:List*",
+                "elasticbeanstalk:RequestEnvironmentInfo",
+                "elasticbeanstalk:RetrieveEnvironmentInfo",
+                "elasticloadbalancing:Describe*",
+                "iam:List*",
+                "iam:Get*",
+                "route53:Get*",
+                "route53:List*",
+                "rds:Describe*",
+                "s3:Get*",
+                "s3:List*",
+                "sdb:GetAttributes",
+                "sdb:List*",
+                "sdb:Select*",
+                "ses:Get*",
+                "ses:List*",
+                "sns:Get*",
+                "sns:List*",
+                "sqs:GetQueueAttributes",
+                "sqs:ListQueues",
+                "sqs:ReceiveMessage",
+                "storagegateway:List*",
+                "storagegateway:Describe*"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        }
+    ]
+}
+</nowiki>
+
 == Upgrade ==
 
-The AWS Zenpack of versions 2.0.0 / 2.1.0 can be upgraded. To upgrade the ZenPack, install the 
-latest version over the existing one. There is no action for the user to migrate the data. 
+The AWS Zenpack of versions 2.0.0 / 2.1.0 can be upgraded. To upgrade the ZenPack, install the
+latest version over the existing one. There is no action for the user to migrate the data.
 The performance data and events of old ZenPack are retained as per the retain policy settings.
 
 == Changes ==
 
-;2.2.0
+;2.2.2
+* Add support for Zenoss 5x.
+* Add ability for user to specify an alternate remote collector for discovered devices.
+* Update boto version shipped with the ZenPack to support signature v4.
+
+;2.2.1
 * Add support for SQS Messages, S3 Buckets, Reserved Instances, Elastic IPs, Images, VPN Gateways, Snapshots.
 * Discover instances via Layer 3 when specific Tags are present on the instance.
 * Add ability for user to upload PEM file to region for use in auto-discovering instance guest operating systems.
