@@ -342,62 +342,62 @@ Installing this ZenPack will add the following items to your Zenoss system.
 
 == IAM Permissions ==
 
-<nowiki>
-{
-    "Statement": [
-        {
-            "Action": [
-                "autoscaling:Describe*",
-                "cloudformation:DescribeStacks",
-                "cloudformation:DescribeStackEvents",
-                "cloudformation:DescribeStackResources",
-                "cloudformation:GetTemplate",
-                "cloudfront:Get*",
-                "cloudfront:List*",
-                "cloudwatch:Describe*",
-                "cloudwatch:Get*",
-                "cloudwatch:List*",
-                "directconnect:Describe*",
-                "dynamodb:GetItem",
-                "dynamodb:BatchGetItem",
-                "dynamodb:Query",
-                "dynamodb:Scan",
-                "dynamodb:DescribeTable",
-                "dynamodb:ListTables",
-                "ec2:Describe*",
-                "elasticache:Describe*",
-                "elasticbeanstalk:Check*",
-                "elasticbeanstalk:Describe*",
-                "elasticbeanstalk:List*",
-                "elasticbeanstalk:RequestEnvironmentInfo",
-                "elasticbeanstalk:RetrieveEnvironmentInfo",
-                "elasticloadbalancing:Describe*",
-                "iam:List*",
-                "iam:Get*",
-                "route53:Get*",
-                "route53:List*",
-                "rds:Describe*",
-                "s3:Get*",
-                "s3:List*",
-                "sdb:GetAttributes",
-                "sdb:List*",
-                "sdb:Select*",
-                "ses:Get*",
-                "ses:List*",
-                "sns:Get*",
-                "sns:List*",
-                "sqs:GetQueueAttributes",
-                "sqs:ListQueues",
-                "sqs:ReceiveMessage",
-                "storagegateway:List*",
-                "storagegateway:Describe*"
-            ],
-            "Effect": "Allow",
-            "Resource": "*"
-        }
-    ]
-}
-</nowiki>
+ <nowiki>
+ {
+   "Statement": [
+     {
+       "Action": [
+         "autoscaling:Describe*",
+         "cloudformation:DescribeStacks",
+         "cloudformation:DescribeStackEvents",
+         "cloudformation:DescribeStackResources",
+         "cloudformation:GetTemplate",
+         "cloudfront:Get*",
+         "cloudfront:List*",
+         "cloudwatch:Describe*",
+         "cloudwatch:Get*",
+         "cloudwatch:List*",
+         "directconnect:Describe*",
+         "dynamodb:GetItem",
+         "dynamodb:BatchGetItem",
+         "dynamodb:Query",
+         "dynamodb:Scan",
+         "dynamodb:DescribeTable",
+         "dynamodb:ListTables",
+         "ec2:Describe*",
+         "elasticache:Describe*",
+         "elasticbeanstalk:Check*",
+         "elasticbeanstalk:Describe*",
+         "elasticbeanstalk:List*",
+         "elasticbeanstalk:RequestEnvironmentInfo",
+         "elasticbeanstalk:RetrieveEnvironmentInfo",
+         "elasticloadbalancing:Describe*",
+         "iam:List*",
+         "iam:Get*",
+         "route53:Get*",
+         "route53:List*",
+         "rds:Describe*",
+         "s3:Get*",
+         "s3:List*",
+         "sdb:GetAttributes",
+         "sdb:List*",
+         "sdb:Select*",
+         "ses:Get*",
+         "ses:List*",
+         "sns:Get*",
+         "sns:List*",
+         "sqs:GetQueueAttributes",
+         "sqs:ListQueues",
+         "sqs:ReceiveMessage",
+         "storagegateway:List*",
+         "storagegateway:Describe*"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+     }
+   ]
+ }
+ </nowiki>
 
 == Upgrade ==
 
