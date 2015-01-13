@@ -19,7 +19,7 @@ import boto.vpc
 
 from boto.sqs.message import RawMessage
 from boto.s3.connection import S3Connection
-from twisted.internet import defer
+from twisted.internet import defer, threads
 
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.ZenEvents import ZenEventClasses
@@ -178,7 +178,7 @@ class S3BucketPlugin(AWSBasePlugin):
                 )
             return data
 
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(inner)
 
 
 class EC2RegionPlugin(AWSBasePlugin):
@@ -190,58 +190,59 @@ class EC2RegionPlugin(AWSBasePlugin):
         'zAWSRemodelEnabled',
     )
 
-    @defer.inlineCallbacks
     def collect(self, config):
-        _ = yield
-        data = self.new_data()
-        for ds in config.datasources:
-            region_id = self.component = ds.component
-            ec2regionconn = boto.ec2.connect_to_region(
-                region_id,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
-            vpcregionconn = boto.vpc.connect_to_region(
-                region_id,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
-
-            instances = ec2regionconn.get_only_instances(
-                filters=INSTANCE_FILTERS
-            )
-            elastic_ips_count = len(ec2regionconn.get_all_addresses())
-            subnets_count = len(vpcregionconn.get_all_subnets())
-            volumes_count = len(ec2regionconn.get_all_volumes())
-            sg = ec2regionconn.get_all_security_groups()
-            sg_count = len(sg)
-            rules_count = 0
-            for group in sg:
-                rules_count = max(len(group.rules), rules_count)
-
-            data['values'][region_id] = dict(
-                instances_count=(len(instances), 'N'),
-                elastic_ips_count=(elastic_ips_count, 'N'),
-                subnets_count=(subnets_count, 'N'),
-                volumes_count=(volumes_count, 'N'),
-                vpc_security_groups_count=(sg_count, 'N'),
-                vpc_security_rules_count=(rules_count, 'N')
-            )
-
-            if ds.zAWSRemodelEnabled.lower() == 'true':
-                data['maps'].append(instances_rm(
+        def inner():
+            data = self.new_data()
+            for ds in config.datasources:
+                region_id = self.component = ds.component
+                ec2regionconn = boto.ec2.connect_to_region(
                     region_id,
-                    ds,
-                    instances,
-                    [],
-                    {},
-                    ec2regionconn
-                ))
-                data['maps'].append(ObjectMap({
-                    "modname": "Guest update",
-                    "setDiscoverGuests": True,
-                }))
-        defer.returnValue(data)
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+                vpcregionconn = boto.vpc.connect_to_region(
+                    region_id,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+
+                instances = ec2regionconn.get_only_instances(
+                    filters=INSTANCE_FILTERS
+                )
+                elastic_ips_count = len(ec2regionconn.get_all_addresses())
+                subnets_count = len(vpcregionconn.get_all_subnets())
+                volumes_count = len(ec2regionconn.get_all_volumes())
+                sg = ec2regionconn.get_all_security_groups()
+                sg_count = len(sg)
+                rules_count = 0
+                for group in sg:
+                    rules_count = max(len(group.rules), rules_count)
+
+                data['values'][region_id] = dict(
+                    instances_count=(len(instances), 'N'),
+                    elastic_ips_count=(elastic_ips_count, 'N'),
+                    subnets_count=(subnets_count, 'N'),
+                    volumes_count=(volumes_count, 'N'),
+                    vpc_security_groups_count=(sg_count, 'N'),
+                    vpc_security_rules_count=(rules_count, 'N')
+                )
+
+                if ds.zAWSRemodelEnabled.lower() == 'true':
+                    data['maps'].append(instances_rm(
+                        region_id,
+                        ds,
+                        instances,
+                        [],
+                        {},
+                        ec2regionconn
+                    ))
+                    data['maps'].append(ObjectMap({
+                        "modname": "Guest update",
+                        "setDiscoverGuests": True,
+                    }))
+            return data
+
+        return threads.deferToThread(inner)
 
 
 def get_messages(queue):
@@ -304,7 +305,7 @@ class SQSQueuePlugin(AWSBasePlugin):
                     })
             return data
 
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(inner)
 
 
 class ZonePlugin(AWSBasePlugin):
@@ -441,7 +442,7 @@ class EC2BaseStatePlugin(AWSBasePlugin):
 
             return data
 
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(inner)
 
 
 class EC2InstanceStatePlugin(EC2BaseStatePlugin):
@@ -463,7 +464,7 @@ class EC2InstanceStatePlugin(EC2BaseStatePlugin):
                 }))
             return data
 
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(inner)
 
 
 class EC2VPCStatePlugin(EC2BaseStatePlugin):
@@ -572,7 +573,7 @@ class EC2UnreservedInstancesPlugin(AWSBasePlugin):
                         'eventClass': '/AWS/Suggestion',
                     })
             return data
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(inner)
 
 
 class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
@@ -613,4 +614,4 @@ class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
                         'eventClass': '/AWS/Suggestion',
                     })
             return data
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(inner)
