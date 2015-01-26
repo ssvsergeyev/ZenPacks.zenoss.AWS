@@ -7,6 +7,10 @@
 #
 ##############################################################################
 
+'''
+Collects information about AWS EC2 infrastructure.
+'''
+
 import collections
 import json
 
@@ -474,7 +478,7 @@ def instances_rm(region_id, device, instances, images, instance_states, region_c
     image_filters = []
     for instance in instances:
         image_filters.append(instance.image_id)
-           
+
     if image_filters:
         data = region_conn.get_all_images(image_ids=image_filters)
         images.extend(data)
