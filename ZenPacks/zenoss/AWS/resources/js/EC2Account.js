@@ -66,12 +66,12 @@ ZC.EC2ComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
                 if (n.data) {
                     return n.data.text == 'Components';
                 }
-                
+
                 return n.text == 'Components';
             });
-        
+
         var component_card = Ext.getCmp('component_card');
-        
+
         if (components_node.data) {
             component_card.setContext(components_node.data.id, meta_type);
         } else {
@@ -84,10 +84,10 @@ ZC.EC2ComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
                 if (n.data) {
                     return n.data.id == meta_type;
                 }
-                
+
                 return n.id == meta_type;
             });
-        
+
         if (component_type_node.select) {
             tree_selection_model.suspendEvents();
             component_type_node.select();
@@ -1550,9 +1550,10 @@ Ext.onReady(function(){
         var idpanel = Ext.getCmp(DEVICE_ID_PANEL);
         idpanel.defaultType = 'devformpanel';
         idpanel.minHeight = 390;
-        
+
         idpanel.removeField('serialNumber');
         idpanel.removeField('tagNumber');
+        idpanel.removeField('rackSlot');
 
         idpanel.addField({
             name: 'ec2accesskey',
@@ -1574,7 +1575,7 @@ Ext.onReady(function(){
 
         descriptionpanel.defaultType = 'devformpanel';
         descriptionpanel.minHeight = 390;
-        
+
         descriptionpanel.removeField('rackSlot');
         descriptionpanel.removeField('hwManufacturer');
         descriptionpanel.removeField('hwModel');
@@ -1613,7 +1614,7 @@ Ext.onReady(function(){
 
         descriptionpanel.addField({
             id: 'firstSeen-view',
-            xtype: 'displayfield',
+            xtype: Ext.ClassManager.getByAlias("widget.datedisplayfield")? 'datedisplayfield' : 'displayfield',
             name: 'firstSeen',
             fieldLabel: _t('First Seen'),
             permission: 'Manage Device'
@@ -1621,7 +1622,7 @@ Ext.onReady(function(){
 
         descriptionpanel.addField({
             id: 'lastChanged-view',
-            xtype: 'displayfield',
+            xtype: Ext.ClassManager.getByAlias("widget.datedisplayfield")? 'datedisplayfield' : 'displayfield',
             name: 'lastChanged',
             fieldLabel: _t('Last Change'),
             permission: 'Manage Device'
