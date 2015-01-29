@@ -900,7 +900,7 @@ ZC.S3BucketPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'creation_date',
                 dataIndex: 'creation_date',
                 header: _t('Creation Date'),
-                width: 100
+                width: 160
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
@@ -1110,21 +1110,11 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Status'),
                 width: 80
             },{
-                id: 'location',
-                dataIndex: 'location',
-                header: _t('Location'),
-                width: 80
-            },{
                 id: 'region',
                 dataIndex: 'region',
                 header: _t('Region'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 90
-            },{
-                id: 'owner_id',
-                dataIndex: 'owner_id',
-                header: _t('Owner ID'),
-                width: 100
             },{
                 id: 'architecture',
                 dataIndex: 'architecture',
@@ -1141,29 +1131,14 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Kernel ID'),
                 width: 90
             },{
-                id: 'ramdisk_id',
-                dataIndex: 'ramdisk_id',
-                header: _t('RAM Disk ID'),
-                width: 90
-            },{
                 id: 'description',
                 dataIndex: 'description',
                 header: _t('Description'),
                 width: 90
             },{
-                id: 'block_device_mapping',
-                dataIndex: 'block_device_mapping',
-                header: _t('Block Device Mapping'),
-                width: 90
-            },{
                 id: 'root_device_type',
                 dataIndex: 'root_device_type',
                 header: _t('Root Device Type'),
-                width: 90
-            },{
-                id: 'root_device_name',
-                dataIndex: 'root_device_name',
-                header: _t('Root Device Name'),
                 width: 90
             },{
                 id: 'virtualization_type',
