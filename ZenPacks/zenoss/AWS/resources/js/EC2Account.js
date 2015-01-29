@@ -900,7 +900,7 @@ ZC.S3BucketPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'creation_date',
                 dataIndex: 'creation_date',
                 header: _t('Creation Date'),
-                width: 100
+                width: 160
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
