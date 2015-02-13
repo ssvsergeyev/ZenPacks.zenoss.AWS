@@ -42,7 +42,7 @@ from ZenPacks.zenoss.AWS.utils import awsUrlSign, iso8601, result_errmsg,\
     lookup_cwregion, twisted_web_client_parse
 
 
-MAX_RETRIES = 3
+# MAX_RETRIES = 3
 
 class ProxyWebClient(object):
     """web methods with proxy."""
@@ -273,39 +273,39 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             getURL = 'http://%s' % getURL
             factory = ProxyWebClient(getURL)
 
-            # Incremental backoff as outlined by AWS.
-            # http://aws.amazon.com/articles/1394
-            for retry in xrange(MAX_RETRIES + 1):
-                if retry > 0:
-                    delay = (random.random() * pow(4, retry)) / 10.0
-                    log.debug(
-                        '%s (%s): retry %s backoff is %s seconds',
-                        config.id, ds.params['region'], retry, delay)
+            # # Incremental backoff as outlined by AWS.
+            # # http://aws.amazon.com/articles/1394
+            # for retry in xrange(MAX_RETRIES + 1):
+            #     if retry > 0:
+            #         delay = (random.random() * pow(4, retry)) / 10.0
+            #         log.debug(
+            #             '%s (%s): retry %s backoff is %s seconds',
+            #             config.id, ds.params['region'], retry, delay)
 
-                    wait = yield sleep(delay)
+            #         wait = yield sleep(delay)
 
-                try:
-                    log.debug(
-                        '%s (%s): requesting %s %s/%s for %s',
-                        config.id,
-                        ds.params['region'],
-                        ds.params['statistic'],
-                        ds.params['namespace'],
-                        ds.params['metric'],
-                        ds.params['dimension'] or 'region')
+            try:
+                log.debug(
+                    '%s (%s): requesting %s %s/%s for %s',
+                    config.id,
+                    ds.params['region'],
+                    ds.params['statistic'],
+                    ds.params['namespace'],
+                    ds.params['metric'],
+                    ds.params['dimension'] or 'region')
 
-                    result = yield factory.get_page()
+                result = yield factory.get_page()
 
-                except Exception, ex:
-                    code = getattr(ex, 'status', None)
-                    if code in ('500', '503'):
-                        continue
+            except Exception, ex:
+                code = getattr(ex, 'status', None)
+                if code in ('500', '503'):
+                    continue
 
-                    raise
+                raise
 
-                else:
-                    results.append((ds, result))
-                    break
+            else:
+                results.append((ds, result))
+                break
 
             # if ds.params['metric'] == 'VolumeTotalWriteTime':
             #     # Get Volume Status
@@ -344,9 +344,11 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             try:
                 stats = etree.parse(StringIO(result))
             except Exception:
-                log.exception(
-                    '%s (%s): error parsing response XML\n%s',
-                    config.id, ds.params['region'], result)
+                # Connection refused will goes to onError anyway,
+                # so no need to duplicate it
+                if not "Connection was refused" in result:
+                    log.warning('%s (%s): %s',
+                        config.id, ds.params['region'], result)
                 continue
 
             if ds == 'volumestatus':
