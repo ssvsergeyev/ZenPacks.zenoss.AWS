@@ -260,7 +260,7 @@ class EC2Instance(AWSComponent):
 
             if collector:
                 return collector
- 
+
         if self.zAWSGuestCollector:
             collector = self.getDmdRoot('Monitors').Performance._getOb(
                 self.zAWSGuestCollector, None)
@@ -337,6 +337,15 @@ class EC2Instance(AWSComponent):
                         self.titleOrId())
 
                     guest_device.setProdState(self._running_prodstate)
+
+                # check whether external IP address has changed
+                new_ip = self.guest_manage_ip()
+                old_ip = guest_device.manageIp
+                if new_ip != old_ip:
+                    guest_device.setManageIp(new_ip)
+                    LOG.info(
+                        'manageIp address of device %s changed from %s to %s' \
+                         % ( guest_device.titleOrId(), old_ip, new_ip ))
             else:
                 self.create_guest()
 
