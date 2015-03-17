@@ -346,9 +346,6 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             except Exception:
                 # Connection refused will goes to onError anyway,
                 # so no need to duplicate it
-                if not "Connection was refused" in result:
-                    log.warning('%s (%s): %s',
-                        config.id, ds.params['region'], result)
                 continue
 
             if ds == 'volumestatus':
