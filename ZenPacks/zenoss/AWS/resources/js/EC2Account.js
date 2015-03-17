@@ -1605,7 +1605,7 @@ Ext.onReady(function(){
 
         descriptionpanel.addField({
             id: 'lastCollected-view',
-            xtype: 'displayfield',
+            xtype: Ext.ClassManager.getByAlias("widget.datedisplayfield")? 'datedisplayfield' : 'displayfield',
             name: 'lastCollected',
             fieldLabel: _t('Model Time'),
             permission: 'Manage Device'
