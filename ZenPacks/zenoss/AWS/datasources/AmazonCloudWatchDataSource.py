@@ -191,7 +191,7 @@ def timestamp_from_cloudwatch(cloudwatch_time_string):
 
 class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
     proxy_attributes = (
-        'ec2accesskey', 'ec2secretkey',
+        'ec2accesskey', 'ec2secretkey', 'zAWSCloudWatchSSL',
         )
 
     @classmethod
@@ -270,7 +270,9 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                 monitorRequest,
                 (accesskey, secretkey))
 
-            getURL = 'http://%s' % getURL
+            getURL = '{0}://{1}'.format(
+                ('https' if ds.zAWSCloudWatchSSL else 'http'), getURL
+            )
             factory = ProxyWebClient(getURL)
 
             # # Incremental backoff as outlined by AWS.
