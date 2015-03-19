@@ -1131,20 +1131,15 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Kernel ID'),
                 width: 90
             },{
-                id: 'description',
-                dataIndex: 'description',
-                header: _t('Description'),
-                width: 90
-            },{
                 id: 'root_device_type',
                 dataIndex: 'root_device_type',
                 header: _t('Root Device Type'),
-                width: 90
+                width: 100
             },{
                 id: 'virtualization_type',
                 dataIndex: 'virtualization_type',
                 header: _t('Virtualization Type'),
-                width: 90
+                width: 100
             },{
                 id: 'hypervisor',
                 dataIndex: 'hypervisor',
@@ -1154,7 +1149,7 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'instance_count',
                 dataIndex: 'instance_count',
                 header: _t('Number of Instances'),
-                width: 90
+                width: 115
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
