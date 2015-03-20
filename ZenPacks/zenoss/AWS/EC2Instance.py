@@ -198,8 +198,11 @@ class EC2Instance(AWSComponent):
         Return the best manageIp for this instance's guest device or
         None if no good option is found.
         '''
-        if self.vpc():
+        if self.vpc() and self.zAWSGuestUseVPCIPs:
             return self.private_ip_address
+
+        if self.public_ip:
+            return self.public_ip
 
         if self.public_dns_name:
             try:
