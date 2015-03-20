@@ -329,29 +329,6 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='InstanceState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-AWSDataSource
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="component" mode="w" >
-${here/id}
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="string" id="cycletime" mode="w" >
-300
-</property>
-<property type="string" id="plugin_classname" mode="w" >
-ZenPacks.zenoss.AWS.dsplugins.EC2InstanceStatePlugin
-</property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
-</object>
 <object id='NetworkIn' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Amazon CloudWatch
@@ -1295,29 +1272,6 @@ True
 </property>
 </object>
 </tomanycont>
-</object>
-<object id='InstanceState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-AWSDataSource
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="component" mode="w" >
-${here/id}
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="string" id="cycletime" mode="w" >
-300
-</property>
-<property type="string" id="plugin_classname" mode="w" >
-ZenPacks.zenoss.AWS.dsplugins.EC2InstanceStatePlugin
-</property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 </object>
 <object id='NetworkIn' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -3167,29 +3121,6 @@ ${here/getRegionId}
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='SnapshotStatus' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-AWSDataSource
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="component" mode="w" >
-${here/id}
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="string" id="cycletime" mode="w" >
-300
-</property>
-<property type="string" id="plugin_classname" mode="w" >
-ZenPacks.zenoss.AWS.dsplugins.EC2SnapshotStatePlugin
-</property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='EC2VPC' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
@@ -3532,29 +3463,6 @@ True
 </property>
 </object>
 </tomanycont>
-</object>
-<object id='VolumeStatus' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-AWSDataSource
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="component" mode="w" >
-${here/id}
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="string" id="cycletime" mode="w" >
-300
-</property>
-<property type="string" id="plugin_classname" mode="w" >
-ZenPacks.zenoss.AWS.dsplugins.EC2VolumeStatePlugin
-</property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
 </object>
 <object id='VolumeTotalReadTime' module='ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource' class='AmazonCloudWatchDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >

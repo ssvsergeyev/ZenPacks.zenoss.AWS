@@ -23,6 +23,7 @@ from twisted.internet import defer, threads
 
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.ZenEvents import ZenEventClasses
+from Products.ZenUtils.Utils import prepId
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
 
@@ -209,9 +210,13 @@ class EC2RegionPlugin(AWSBasePlugin):
                 instances = ec2regionconn.get_only_instances(
                     filters=INSTANCE_FILTERS
                 )
+                volumes = ec2regionconn.get_all_volumes()
+                snapshots = ec2regionconn.get_all_snapshots(
+                    owner="self"
+                )
+
                 elastic_ips_count = len(ec2regionconn.get_all_addresses())
                 subnets_count = len(vpcregionconn.get_all_subnets())
-                volumes_count = len(ec2regionconn.get_all_volumes())
                 sg = ec2regionconn.get_all_security_groups()
                 sg_count = len(sg)
                 rules_count = 0
@@ -222,7 +227,7 @@ class EC2RegionPlugin(AWSBasePlugin):
                     instances_count=(len(instances), 'N'),
                     elastic_ips_count=(elastic_ips_count, 'N'),
                     subnets_count=(subnets_count, 'N'),
-                    volumes_count=(volumes_count, 'N'),
+                    volumes_count=(len(volumes), 'N'),
                     vpc_security_groups_count=(sg_count, 'N'),
                     vpc_security_rules_count=(rules_count, 'N')
                 )
@@ -240,6 +245,34 @@ class EC2RegionPlugin(AWSBasePlugin):
                         "modname": "Guest update",
                         "setDiscoverGuests": True,
                     }))
+                else:
+                    # InstanceState moved here for optiomization
+                    for instance in instances:
+                        data['maps'].append(ObjectMap({
+                            "compname": "regions/%s/instances/%s" % (
+                                region_id, prepId(instance.id)),
+                            "modname": "Instance state",
+                            "state": instance.state
+                        }))
+
+                # VolumeState moved here for optiomization
+                for volume in volumes:
+                    data['maps'].append(ObjectMap({
+                        "compname": "regions/%s/volumes/%s" % (
+                            region_id, prepId(volume.id)),
+                        "modname": "Volume status",
+                        "status": volume.status
+                    }))
+
+                # SnapshotState moved here for optimization
+                for snapshot in snapshots:
+                    data['maps'].append(ObjectMap({
+                        "compname": "regions/%s/snapshots/%s" % (
+                            region_id, prepId(snapshot.id)),
+                        "modname": "Snapshot status",
+                        "status": snapshot.status
+                    }))
+
             return data
 
         return threads.deferToThread(inner)
@@ -445,28 +478,6 @@ class EC2BaseStatePlugin(AWSBasePlugin):
         return threads.deferToThread(inner)
 
 
-class EC2InstanceStatePlugin(EC2BaseStatePlugin):
-    """
-    Subclass of EC2BaseStatePlugin to monitor AWS Instance state.
-    """
-    def collect(self, config):
-        def inner():
-            data = self.new_data()
-            for ds in config.datasources:
-                self.component = ds.component
-                self.connect_to_region(ds)
-                instance = self.ec2regionconn.get_only_instances(ds.component).pop()
-                data['maps'].append(ObjectMap({
-                    "compname": "regions/%s/instances/%s" % (
-                        ds.params['region'], ds.component),
-                    "modname": "Instance state",
-                    "state": instance.state
-                }))
-            return data
-
-        return threads.deferToThread(inner)
-
-
 class EC2VPCStatePlugin(EC2BaseStatePlugin):
     """
     Subclass of EC2BaseStatePlugin to monitor AWS VPC state.
@@ -479,21 +490,6 @@ class EC2VPCStatePlugin(EC2BaseStatePlugin):
                 region, component),
             "modname": "VPC state",
             "state": vpc.state
-        })
-
-
-class EC2SnapshotStatePlugin(EC2BaseStatePlugin):
-    """
-    Subclass of EC2BaseStatePlugin to monitor AWS Snapshot status.
-    """
-
-    def results_to_maps(self, region, component):
-        snapshot = self.ec2regionconn.get_all_snapshots(component).pop()
-        return ObjectMap({
-            "compname": "regions/%s/snapshots/%s" % (
-                region, component),
-            "modname": "Snapshot status",
-            "status": snapshot.status
         })
 
 
@@ -524,21 +520,6 @@ class VPNGatewayStatePlugin(EC2BaseStatePlugin):
                 region, component),
             "modname": "VPNGateway state",
             "state": gateway.state
-        })
-
-
-class EC2VolumeStatePlugin(EC2BaseStatePlugin):
-    """
-    Subclass of EC2BaseStatePlugin to monitor AWS Volumes status.
-    """
-
-    def results_to_maps(self, region, component):
-        volume = self.ec2regionconn.get_all_volumes(component).pop()
-        return ObjectMap({
-            "compname": "regions/%s/volumes/%s" % (
-                region, component),
-            "modname": "Volume status",
-            "status": volume.status
         })
 
 
