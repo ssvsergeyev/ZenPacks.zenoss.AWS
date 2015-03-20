@@ -67,6 +67,7 @@ def test_account(dmd, factor=1):
     dc = dmd.Devices.createOrganizer('/AWS/EC2')
     dc.setZenProperty('zPythonClass', 'ZenPacks.zenoss.AWS.EC2Account')
     dc.setZenProperty('zAWSGuestCollector', '')
+    dc.setZenProperty('zAWSGuestUsePublicIPs', False)
 
     account = dc.createInstance('account')
     account.setPerformanceMonitor('localhost')
