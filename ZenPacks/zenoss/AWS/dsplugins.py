@@ -493,21 +493,6 @@ class EC2VPCStatePlugin(EC2BaseStatePlugin):
         })
 
 
-class EC2ImageStatePlugin(EC2BaseStatePlugin):
-    """
-    Subclass of EC2BaseStatePlugin to monitor AWS Image state.
-    """
-
-    def results_to_maps(self, region, component):
-        image = self.ec2regionconn.get_all_images(component).pop()
-        return ObjectMap({
-            "compname": "regions/%s/images/%s" % (
-                region, component),
-            "modname": "Image state",
-            "state": image.state
-        })
-
-
 class VPNGatewayStatePlugin(EC2BaseStatePlugin):
     """
     Subclass of EC2BaseStatePlugin to monitor AWS Gateways state.
@@ -524,6 +509,10 @@ class VPNGatewayStatePlugin(EC2BaseStatePlugin):
 
 
 class EC2UnreservedInstancesPlugin(AWSBasePlugin):
+    """
+    Subclass of EC2BaseStatePlugin to check if instance could be reserved
+    """
+
     def collect(self, config):
         def inner():
             data = self.new_data()
