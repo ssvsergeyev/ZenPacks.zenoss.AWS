@@ -21,29 +21,6 @@ ZenPacks.zenoss.AWS.EC2Account
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='ImageState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-AWSDataSource
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="component" mode="w" >
-${here/id}
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="string" id="cycletime" mode="w" >
-300
-</property>
-<property type="string" id="plugin_classname" mode="w" >
-ZenPacks.zenoss.AWS.dsplugins.EC2ImageStatePlugin
-</property>
-<property type="string" id="region" >
-${here/getRegionId}
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='EC2Instance' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
@@ -116,7 +93,7 @@ ${here/id}
 3
 </property>
 <property type="string" id="cycletime" mode="w" >
-300
+3600
 </property>
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.dsplugins.EC2UnreservedInstancesPlugin
