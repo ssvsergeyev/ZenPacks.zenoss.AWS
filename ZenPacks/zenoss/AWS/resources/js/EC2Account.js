@@ -1631,7 +1631,7 @@ Ext.onReady(function(){
                     var tree = Ext.getCmp(DEVICE_PANEL.items.items[0].id);
                     var items = tree.store.data.items;
                     for (i in items){
-                        if (items[i].data.id =="software"){
+                        if (items[i].data.id.match(/software*/)){
                             try {
                                 tree.store.remove(items[i]);
                                 tree.store.sync();
