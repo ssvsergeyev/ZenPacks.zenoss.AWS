@@ -232,7 +232,7 @@ class EC2RegionPlugin(AWSBasePlugin):
                     vpc_security_rules_count=(rules_count, 'N')
                 )
 
-                if ds.zAWSRemodelEnabled.lower() == 'true':
+                if ds.zAWSRemodelEnabled:
                     instance_states = {}
                     data['maps'].append(instances_rm(
                         region_id,

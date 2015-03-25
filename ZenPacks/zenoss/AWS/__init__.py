@@ -96,9 +96,9 @@ class ZenPack(ZenPackBase):
     packZProperties = [
         ('zAWSDiscover', '', 'awsdiscoverfield'),
         ('zAWSRegionPEM', '', 'multilinekeypath'),
-        ('zAWSRemodelEnabled', 'false', 'bool'),
+        ('zAWSRemodelEnabled', False, 'boolean'),
         ('zAWSGuestCollector', '', 'string'),
-        ('zAWSResetGuestCollector', 'true', 'bool'),
+        ('zAWSResetGuestCollector', True, 'boolean'),
         ('zAWSCloudWatchSSL', False, 'boolean'),
         ('zAWSGuestUsePublicIPs', False, 'boolean'),
     ]
