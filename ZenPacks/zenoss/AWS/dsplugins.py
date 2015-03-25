@@ -1,6 +1,6 @@
 ######################################################################
 #
-# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2013-2015, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is
@@ -233,17 +233,18 @@ class EC2RegionPlugin(AWSBasePlugin):
                 )
 
                 if ds.zAWSRemodelEnabled.lower() == 'true':
+                    instance_states = {}
                     data['maps'].append(instances_rm(
                         region_id,
                         ds,
                         instances,
                         [],
-                        {},
+                        instance_states,
                         ec2regionconn
                     ))
                     data['maps'].append(ObjectMap({
                         "modname": "Guest update",
-                        "setDiscoverGuests": True,
+                        "setDiscoverGuests": sorted(instance_states.items()),
                     }))
                 else:
                     # InstanceState moved here for optiomization
