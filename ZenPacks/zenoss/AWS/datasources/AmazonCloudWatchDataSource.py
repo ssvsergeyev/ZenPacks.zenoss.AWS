@@ -96,8 +96,8 @@ class ProxyWebClient(object):
         return data
 
     def errdata(self, failure):
-        log.error('%s: %s', 'AWSCloudWatchError', failure.getErrorMessage())
         return failure.getErrorMessage()
+
 
 class AmazonCloudWatchDataSource(PythonDataSource):
     '''
@@ -307,7 +307,6 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
 
             else:
                 results.append((ds, result))
-                break
 
             # if ds.params['metric'] == 'VolumeTotalWriteTime':
             #     # Get Volume Status
