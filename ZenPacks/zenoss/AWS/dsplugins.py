@@ -114,72 +114,72 @@ class S3BucketPlugin(AWSBasePlugin):
     Subclass of AWSBasePlugin to monitor AWS S3Buckets.
     """
 
-    def collect(self, config):
-        def inner():
-            data = self.new_data()
-            ds0 = config.datasources[0]
-            bucket_keys = {}
-            # Add support Signature V4 for 's3' into boto config
-            if not boto.config.get('s3', 'use-sigv4'):
-                boto.config.add_section('s3')
-                boto.config.set('s3', 'use-sigv4', 'True')
-            s3connection = S3Connection(
-                ds0.ec2accesskey, ds0.ec2secretkey,
-                host=S3Connection.DefaultHost
-            )
-            buckets = s3connection.get_all_buckets()
-            data['events'].append({
-                'summary': 'Monitoring ok',
-                'eventClass': '/Status',
-                'eventKey': 'aws_bucket_result',
-                'severity': ZenEventClasses.Clear,
-            })
+    def inner(self, config):
+        data = self.new_data()
+        ds0 = config.datasources[0]
+        bucket_keys = {}
+        # Add support Signature V4 for 's3' into boto config
+        if not boto.config.get('s3', 'use-sigv4'):
+            boto.config.add_section('s3')
+            boto.config.set('s3', 'use-sigv4', 'True')
+        s3connection = S3Connection(
+            ds0.ec2accesskey, ds0.ec2secretkey,
+            host=S3Connection.DefaultHost
+        )
+        buckets = s3connection.get_all_buckets()
+        data['events'].append({
+            'summary': 'Monitoring ok',
+            'eventClass': '/Status',
+            'eventKey': 'aws_bucket_result',
+            'severity': ZenEventClasses.Clear,
+        })
 
-            for bucket in buckets:
-                name = bucket.name
-                try:
-                    bucket_keys.update({name: bucket.get_all_keys()})
-                except Exception, e:
-                    if isinstance(e, boto.exception.S3ResponseError):
-                        # Parse an exception message to find expected 'region'
-                        pattern = (
-                            "The authorization header is malformed; the "
-                            "region '[\w-]+' is wrong; expecting '([\w-]+)'"
+        for bucket in buckets:
+            name = bucket.name
+            try:
+                bucket_keys.update({name: bucket.get_all_keys()})
+            except Exception, e:
+                if isinstance(e, boto.exception.S3ResponseError):
+                    # Parse an exception message to find expected 'region'
+                    pattern = (
+                        "The authorization header is malformed; the "
+                        "region '[\w-]+' is wrong; expecting '([\w-]+)'"
+                    )
+                    m = re.match(pattern, e.message)
+                    if m:
+                        region = m.group(1)
+                        region_con = boto.s3.connect_to_region(
+                            region, aws_access_key_id=ds0.ec2accesskey,
+                            aws_secret_access_key=ds0.ec2secretkey
                         )
-                        m = re.match(pattern, e.message)
-                        if m:
-                            region = m.group(1)
-                            region_con = boto.s3.connect_to_region(
-                                region, aws_access_key_id=ds0.ec2accesskey,
-                                aws_secret_access_key=ds0.ec2secretkey
-                            )
-                            bucket = region_con.get_bucket(name)
-                            bucket_keys.update({name: bucket.get_all_keys()})
-                        else:
-                            bucket_keys.update({name: e})
-                        continue
+                        bucket = region_con.get_bucket(name)
+                        bucket_keys.update({name: bucket.get_all_keys()})
                     else:
                         bucket_keys.update({name: e})
-                        continue
-            for ds in config.datasources:
-                self.component = ds.component
-                keys = bucket_keys.get(ds.component) or []
-                if not isinstance(keys, list):
-                    data['events'].append({
-                        'component': self.component,
-                        'summary': str(keys),
-                        'eventClass': '/Status',
-                        'eventKey': 'aws_result',
-                        'severity': ZenEventClasses.Error,
-                    })
                     continue
-                data['values'][ds.component] = dict(
-                    keys_count=(len(keys), 'N'),
-                    total_size=(sum([key.size for key in keys]), 'N'),
-                )
-            return data
+                else:
+                    bucket_keys.update({name: e})
+                    continue
+        for ds in config.datasources:
+            self.component = ds.component
+            keys = bucket_keys.get(ds.component) or []
+            if not isinstance(keys, list):
+                data['events'].append({
+                    'component': self.component,
+                    'summary': str(keys),
+                    'eventClass': '/Status',
+                    'eventKey': 'aws_result',
+                    'severity': ZenEventClasses.Error,
+                })
+                continue
+            data['values'][ds.component] = dict(
+                keys_count=(len(keys), 'N'),
+                total_size=(sum([key.size for key in keys]), 'N'),
+            )
+        return data
 
-        return threads.deferToThread(inner)
+    def collect(self, config):
+        return threads.deferToThread(lambda: self.inner(config))
 
 
 class EC2RegionPlugin(AWSBasePlugin):
@@ -455,22 +455,22 @@ class EC2BaseStatePlugin(AWSBasePlugin):
     def gen_events(self, ds, data):
         """ Generate the events.  """
 
+    def inner(self, config):
+        data = self.new_data()
+        for ds in config.datasources:
+            self.component = ds.component
+            self.connect_to_region(ds)
+
+            maps = self.results_to_maps(ds.params['region'], ds.component)
+            if maps:
+                data['maps'].append(maps)
+
+            self.gen_events(ds, data)
+
+        return data
+
     def collect(self, config):
-        def inner():
-            data = self.new_data()
-            for ds in config.datasources:
-                self.component = ds.component
-                self.connect_to_region(ds)
-
-                maps = self.results_to_maps(ds.params['region'], ds.component)
-                if maps:
-                    data['maps'].append(maps)
-
-                self.gen_events(ds, data)
-
-            return data
-
-        return threads.deferToThread(inner)
+        return threads.deferToThread(lambda: self.inner(config))
 
 
 class EC2VPCStatePlugin(EC2BaseStatePlugin):
@@ -508,75 +508,78 @@ class EC2UnreservedInstancesPlugin(AWSBasePlugin):
     Subclass of EC2BaseStatePlugin to check if instance could be reserved
     """
 
+    def inner(self, config):
+        data = self.new_data()
+        for ds in config.datasources:
+            self.component = ds.component
+            region = ds.params['region']
+            ec2_conn = boto.ec2.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+            instance = ec2_conn.get_only_instances(ds.component).pop()
+            c = unreserved_instance_count(ec2_conn, instance)
+
+            event = None
+            if c == 1:
+                event = 'This instance could be reserved'
+            elif c > 1:
+                event = 'There are {0} instances of this type in this ' \
+                    'availability zone which could be reserved'.format(c)
+
+            if event:
+                data['events'].append({
+                    'summary': event,
+                    'device': config.id,
+                    'component': ds.component,
+                    'severity': ZenEventClasses.Info,
+                    'eventClass': '/AWS/Suggestion',
+                })
+        return data
+
     def collect(self, config):
-        def inner():
-            data = self.new_data()
-            for ds in config.datasources:
-                self.component = ds.component
-                region = ds.params['region']
-                ec2_conn = boto.ec2.connect_to_region(
-                    region,
-                    aws_access_key_id=ds.ec2accesskey,
-                    aws_secret_access_key=ds.ec2secretkey,
-                )
-                instance = ec2_conn.get_only_instances(ds.component).pop()
-                c = unreserved_instance_count(ec2_conn, instance)
-
-                event = None
-                if c == 1:
-                    event = 'This instance could be reserved'
-                elif c > 1:
-                    event = 'There are {0} instances of this type in this ' \
-                        'availability zone which could be reserved'.format(c)
-
-                if event:
-                    data['events'].append({
-                        'summary': event,
-                        'device': config.id,
-                        'component': ds.component,
-                        'severity': ZenEventClasses.Info,
-                        'eventClass': '/AWS/Suggestion',
-                    })
-            return data
-        return threads.deferToThread(inner)
+        return threads.deferToThread(lambda: self.inner(config))
 
 
 class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
+
+    def inner(self, config):
+        data = self.new_data()
+        for ds in config.datasources:
+            self.component = ds.component
+            region = ds.params['region']
+            ec2_conn = boto.ec2.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+
+            reserved_instance = ec2_conn.get_all_reserved_instances(
+                ds.component
+            ).pop()
+
+            c = unused_reserved_instances_count(
+                ec2_conn,
+                reserved_instance
+            )
+
+            event = None
+            if c == 1:
+                event = 'This reserved instance is unused'
+            elif c > 1:
+                event = 'There are {0} unused reserved instances of ' \
+                    'this type in this availability zone'.format(c)
+
+            if event:
+                data['events'].append({
+                    'summary': event,
+                    'device': config.id,
+                    'component': ds.component,
+                    'severity': ZenEventClasses.Info,
+                    'eventClass': '/AWS/Suggestion',
+                })
+        return data
+
     def collect(self, config):
-        def inner():
-            data = self.new_data()
-            for ds in config.datasources:
-                self.component = ds.component
-                region = ds.params['region']
-                ec2_conn = boto.ec2.connect_to_region(
-                    region,
-                    aws_access_key_id=ds.ec2accesskey,
-                    aws_secret_access_key=ds.ec2secretkey,
-                )
-
-                reserved_instance = ec2_conn.get_all_reserved_instances(
-                    ds.component
-                ).pop()
-
-                c = unused_reserved_instances_count(
-                    ec2_conn,
-                    reserved_instance
-                )
-
-                event = None
-                if c == 1:
-                    event = 'This reserved instance is unused'
-                elif c > 1:
-                    event = 'There are {0} unused reserved instances of ' \
-                        'this type in this availability zone'.format(c)
-
-                if event:
-                    data['events'].append({
-                        'summary': event,
-                        'device': config.id,
-                        'component': ds.component,
-                        'severity': ZenEventClasses.Info,
-                        'eventClass': '/AWS/Suggestion',
-                    })
-            return data
-        return threads.deferToThread(inner)
+        return threads.deferToThread(lambda: self.inner(config))
