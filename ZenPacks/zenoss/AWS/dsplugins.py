@@ -183,6 +183,11 @@ class S3BucketPlugin(AWSBasePlugin):
 
 
 class EC2RegionPlugin(AWSBasePlugin):
+    """
+    Retrieves information about soft limits for region
+    and updates statuses of EC2 instances and volumes.
+    """
+
     proxy_attributes = (
         'ec2accesskey',
         'ec2secretkey',
@@ -211,9 +216,6 @@ class EC2RegionPlugin(AWSBasePlugin):
                     filters=INSTANCE_FILTERS
                 )
                 volumes = ec2regionconn.get_all_volumes()
-                snapshots = ec2regionconn.get_all_snapshots(
-                    owner="self"
-                )
 
                 elastic_ips_count = len(ec2regionconn.get_all_addresses())
                 subnets_count = len(vpcregionconn.get_all_subnets())
@@ -232,7 +234,8 @@ class EC2RegionPlugin(AWSBasePlugin):
                     vpc_security_rules_count=(rules_count, 'N')
                 )
 
-                if ds.zAWSRemodelEnabled:
+                # Previously zAWSRemodelEnabled was a string, fix for this case
+                if str(ds.zAWSRemodelEnabled).lower() == 'true':
                     instance_states = {}
                     data['maps'].append(instances_rm(
                         region_id,
@@ -247,7 +250,7 @@ class EC2RegionPlugin(AWSBasePlugin):
                         "setDiscoverGuests": sorted(instance_states.items()),
                     }))
                 else:
-                    # InstanceState moved here for optiomization
+                    # InstanceState moved here for optimization
                     for instance in instances:
                         data['maps'].append(ObjectMap({
                             "compname": "regions/%s/instances/%s" % (
@@ -256,22 +259,13 @@ class EC2RegionPlugin(AWSBasePlugin):
                             "state": instance.state
                         }))
 
-                # VolumeState moved here for optiomization
+                # VolumeState moved here for optimization
                 for volume in volumes:
                     data['maps'].append(ObjectMap({
                         "compname": "regions/%s/volumes/%s" % (
                             region_id, prepId(volume.id)),
                         "modname": "Volume status",
                         "status": volume.status
-                    }))
-
-                # SnapshotState moved here for optimization
-                for snapshot in snapshots:
-                    data['maps'].append(ObjectMap({
-                        "compname": "regions/%s/snapshots/%s" % (
-                            region_id, prepId(snapshot.id)),
-                        "modname": "Snapshot status",
-                        "status": snapshot.status
                     }))
 
             return data
