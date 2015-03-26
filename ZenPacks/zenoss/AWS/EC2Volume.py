@@ -60,7 +60,7 @@ class EC2Volume(AWSComponent):
 
     def monitored(self):
         '''
-        Return True if this instance should be monitored. False
+        Return True if this volume should be monitored. False
         otherwise.
         '''
         return self.status and self.status.lower() == 'in-use'
