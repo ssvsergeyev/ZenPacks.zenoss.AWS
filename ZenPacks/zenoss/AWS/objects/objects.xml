@@ -3569,7 +3569,7 @@ ZenPacks.zenoss.AWS.datasources.AmazonCloudWatchDataSource.AmazonCloudWatchDataS
 AWS/EBS
 </property>
 <property type="string" id="metric" >
-VoluemWriteBytes
+VolumeWriteBytes
 </property>
 <property type="string" id="statistic" >
 Average
