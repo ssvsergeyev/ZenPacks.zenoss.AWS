@@ -58,6 +58,13 @@ class EC2Volume(AWSComponent):
         ('snapshots', ToMany(ToOne, MODULE_NAME['EC2Snapshot'], 'volume')),
         )
 
+    def monitored(self):
+        '''
+        Return True if this volume should be monitored. False
+        otherwise.
+        '''
+        return self.status and self.status.lower() == 'in-use'
+
     def getRRDTemplates(self):
         template_names = ['EC2Volume']
 
