@@ -95,7 +95,7 @@ class TestS3BucketPlugin(BaseTestCase):
 
         from ZenPacks.zenoss.AWS.dsplugins import S3BucketPlugin
         plugin = S3BucketPlugin()
-        data = plugin.collect(config)
+        data = plugin.inner(config)
 
         self.assertIn(sentinel.component, data['values'])
         d = data['values'][sentinel.component]
@@ -117,7 +117,7 @@ class TestReservedInstancesPlugins(BaseTestCase):
 
         from ZenPacks.zenoss.AWS.dsplugins import EC2UnreservedInstancesPlugin
         plugin = EC2UnreservedInstancesPlugin()
-        data = plugin.collect(config)
+        data = plugin.inner(config)
 
         self.assertEquals(data['events'][0]['eventClass'], '/AWS/Suggestion')
         self.assertEquals(data['events'][0]['severity'], ZenEventClasses.Info)
@@ -135,7 +135,7 @@ class TestReservedInstancesPlugins(BaseTestCase):
         from ZenPacks.zenoss.AWS.dsplugins import EC2UnusedReservedInstancesPlugin
 
         plugin = EC2UnusedReservedInstancesPlugin()
-        data = plugin.collect(config)
+        data = plugin.inner(config)
 
         self.assertEquals(data['events'][0]['eventClass'], '/AWS/Suggestion')
         self.assertEquals(data['events'][0]['severity'], ZenEventClasses.Info)
@@ -155,7 +155,7 @@ class TestEC2BaseStatePlugin(BaseTestCase):
         from ZenPacks.zenoss.AWS.dsplugins import EC2BaseStatePlugin
         plugin = EC2BaseStatePlugin()
         plugin.results_to_maps = lambda *args: sentinel.map
-        data = plugin.collect(config)
+        data = plugin.inner(config)
 
         self.assertEquals(len(data['maps']), 1)
         self.assertEquals(data['maps'][0], sentinel.map)
