@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2013-2015, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -9,6 +9,7 @@
 
 import logging
 log = logging.getLogger('zen.AWS')
+logging.getLogger('boto').setLevel(logging.CRITICAL)
 
 import datetime
 
@@ -116,8 +117,12 @@ class AmazonCloudWatchDataSourceInfo(RRDDataSourceInfo):
 
 
 class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
+    '''
+    Datasource plugin for PythonCollector
+    '''
+
     proxy_attributes = (
-        'ec2accesskey', 'ec2secretkey', 'zAWSCloudWatchSSL',
+        'ec2accesskey', 'ec2secretkey',
         )
 
     @classmethod
@@ -140,40 +145,37 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             'region': datasource.talesEval(datasource.region, context),
             }
 
-    def collect(self, config):
+    def _do_collect(self, config):
         '''
-        Retrieves metrics data from CloudWatch
+        Worker, do actual data retrieval
         '''
+        log.debug("Collect for AWS")
 
-        def inner():
-            log.debug("Collect for AWS")
+        data = self.new_data()
+        ds0 = config.datasources[0]
+        accesskey = ds0.ec2accesskey
+        secretkey = ds0.ec2secretkey
 
-            data = self.new_data()
+        # CloudWatch only accepts periods that are evenly divisible by 60.
+        cycletime = (ds0.cycletime / 60) * 60
 
-            ds0 = config.datasources[0]
-            accesskey = ds0.ec2accesskey
-            secretkey = ds0.ec2secretkey
+        for ds in config.datasources:
+            region = ds.params['region']
+            region_con = boto.ec2.cloudwatch.connect_to_region(region,
+                aws_access_key_id=accesskey,
+                aws_secret_access_key=secretkey
+            )
 
-            # CloudWatch only accepts periods that are evenly divisible by 60.
-            cycletime = (ds0.cycletime / 60) * 60
+            dimensions = {}
+            if ds.params['dimension']:
+                dim_group = ds.params['dimension'].split(';')
+                for k, v in [x.split('=') for x in dim_group]:
+                    dimensions[k] = v
 
-            for ds in config.datasources:
-                region = ds.params['region']
-                region_con = boto.ec2.cloudwatch.connect_to_region(region,
-                    aws_access_key_id=accesskey,
-                    aws_secret_access_key=secretkey
-                )
+            end_time = datetime.datetime.utcnow()
+            start_time = end_time - datetime.timedelta(seconds=cycletime * 2)
 
-                dimensions = {}
-                if ds.params['dimension']:
-                    dim_group = ds.params['dimension'].split(';')
-
-                    for k, v in [x.split('=') for x in dim_group]:
-                        dimensions[k] = v
-
-                end_time = datetime.datetime.utcnow()
-                start_time = end_time - datetime.timedelta(seconds=cycletime * 2)
-
+            try:
                 res = region_con.get_metric_statistics(
                     period=cycletime,
                     start_time=start_time,
@@ -184,17 +186,38 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     dimensions=dimensions
                 )
 
-                value = 0.0
                 if res:
                     value = float(res[-1][ds.params['statistic']])
-                data['values'][ds.component][ds.datasource] = value, 'N'
+                    data['values'][ds.component][ds.datasource] = value, 'N'
+            except Exception, ex:
+                code = getattr(ex, 'status', None)
+                body = getattr(ex, 'body', '')
+                if 'throttling' in body.lower():
+                    data['events'].append({
+                        'device': config.id,
+                        'summary': 'AWS CloudWatch: Rate exceeded. '
+                            'Consider to contact AWS support with request '
+                            'to increase CloudWatch API limits.',
+                        'severity': ZenEventClasses.Info,
+                        'eventKey': 'awsCloudWatchCollectionThrottling',
+                        'eventClassKey': 'AWSCloudWatchThrottling',
+                        })
+                if code in ('500', '503'):
+                    continue
 
-            return data
+        return data
 
-        return threads.deferToThread(inner)
-        # return defer.maybeDeferred(inner)
+    def collect(self, config):
+        '''
+        Retrieves metrics data from CloudWatch
+        '''
+        return threads.deferToThread(lambda: self._do_collect(config))
+        # return defer.maybeDeferred(lambda: self._do_collect(config))
 
     def onSuccess(self, results, config):
+        '''
+        Successful collection
+        '''
 
         results['events'].append({
             'device': config.id,
@@ -206,20 +229,20 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
         return results
 
     def onError(self, result, config):
+        '''
+        In case we error(s) occured during collection
+        '''
 
         errmsg = 'AWS: %s' % result_errmsg(result)
         data = self.new_data()
 
-        if 'timeout' in errmsg or 'connection lost' in errmsg:
-            log.debug('%s: %s', config.id, errmsg)
-        else:
-            log.error('%s: %s', config.id, errmsg)
-            data['events'].append({
-                'device': config.id,
-                'summary': errmsg,
-                'severity': ZenEventClasses.Error,
-                'eventKey': 'awsCloudWatchCollection',
-                'eventClassKey': 'AWSCloudWatchError',
-                })
+        log.error('%s: %s', config.id, errmsg)
+        data['events'].append({
+            'device': config.id,
+            'summary': errmsg,
+            'severity': ZenEventClasses.Error,
+            'eventKey': 'awsCloudWatchCollection',
+            'eventClassKey': 'AWSCloudWatchError',
+            })
 
         return data
