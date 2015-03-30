@@ -414,15 +414,18 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
     def onError(self, result, config):
 
         errmsg = 'AWS: %s' % result_errmsg(result)
-        log.error('%s: %s', config.id, errmsg)
-
         data = self.new_data()
-        data['events'].append({
-            'device': config.id,
-            'summary': errmsg,
-            'severity': ZenEventClasses.Error,
-            'eventKey': 'awsCloudWatchCollection',
-            'eventClassKey': 'AWSCloudWatchError',
-            })
+
+        if 'timeout' in errmsg or 'connection lost' in errmsg:
+            log.debug('%s: %s', config.id, errmsg)
+        else:
+            log.error('%s: %s', config.id, errmsg)
+            data['events'].append({
+                'device': config.id,
+                'summary': errmsg,
+                'severity': ZenEventClasses.Error,
+                'eventKey': 'awsCloudWatchCollection',
+                'eventClassKey': 'AWSCloudWatchError',
+                })
 
         return data
