@@ -42,6 +42,7 @@ class EC2Account(Device):
         {'id': 'ec2secretkey', 'type': 'string'},
         {'id': 'linuxDeviceClass', 'type': 'string'},
         {'id': 'windowsDeviceClass', 'type': 'string'},
+        {'id': '_setDiscoverGuests', 'type': 'tuple'},
     )
 
     _relations = Device._relations + (
