@@ -13,7 +13,9 @@ logging.getLogger('boto').setLevel(logging.CRITICAL)
 
 import datetime
 
-from twisted.internet import defer, threads
+from twisted.internet import defer, threads, reactor
+
+reactor.suggestThreadPoolSize(30)
 
 from zope.component import adapts
 from zope.interface import implements
