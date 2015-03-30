@@ -201,6 +201,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                         'severity': ZenEventClasses.Info,
                         'eventKey': 'awsCloudWatchCollectionThrottling',
                         'eventClassKey': 'AWSCloudWatchThrottling',
+                        'eventClass': '/AWS/Suggestion',
                         })
                 if code in ('500', '503'):
                     continue
