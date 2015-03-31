@@ -248,22 +248,24 @@ class EC2RegionPlugin(AWSBasePlugin):
                     ))
                 else:
                     # InstanceState moved here for optimization
+                    ins_res = {}
                     for instance in instances:
-                        data['maps'].append(ObjectMap({
-                            "compname": "regions/%s/instances/%s" % (
-                                region_id, prepId(instance.id)),
-                            "modname": "Instance state",
-                            "state": instance.state
-                        }))
+                        ins_res[prepId(instance.id)] = instance.state
+                    data['maps'].append(ObjectMap({
+                        "compname": "regions/%s" % region_id,
+                        "modname": "Instances states",
+                        "setInstancesStates": ins_res
+                    }))
 
                 # VolumeState moved here for optimization
+                vol_res = {}
                 for volume in volumes:
-                    data['maps'].append(ObjectMap({
-                        "compname": "regions/%s/volumes/%s" % (
-                            region_id, prepId(volume.id)),
-                        "modname": "Volume status",
-                        "status": volume.status
-                    }))
+                    vol_res[prepId(volume.id)] = volume.status
+                data['maps'].append(ObjectMap({
+                    "compname": "regions/%s" % region_id,
+                    "modname": "Volumes states",
+                    "setVolumesStatuses": vol_res
+                }))
 
             ds0 = config.datasources[0]
             if str(ds0.zAWSRemodelEnabled).lower() == 'true':

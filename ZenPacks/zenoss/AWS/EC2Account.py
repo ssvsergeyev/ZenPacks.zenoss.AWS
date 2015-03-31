@@ -63,7 +63,7 @@ class EC2Account(Device):
         ApplyDataMap to call this getter method first to validate that
         the setter even needs to be run.
         This method will return what was set from a previous run.
-        Regenerate the current_model, if it matches the previous model_run 
+        Regenerate the current_model, if it matches the previous model_run
         send the previous value.
         '''
 
@@ -127,6 +127,12 @@ class EC2Account(Device):
             if key and key not in component_list:
                 del_filter = zep.createEventFilter(uuid=res['uuid'])
                 zep.closeEventSummaries(eventFilter=del_filter)
+
+    def getRegionId(self):
+        return ""
+
+    def getDimension(self):
+        return ""
 
 
 class IEC2AccountInfo(IDeviceInfo):
