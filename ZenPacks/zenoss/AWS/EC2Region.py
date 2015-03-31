@@ -102,6 +102,30 @@ class EC2Region(AWSComponent):
         # Store instance device ids for next run.
         self._instance_device_ids = instance_device_ids
 
+    def setVolumesStatuses(self, data):
+        '''
+        Updates volumes statuses
+        '''
+        for volume in self.volumes():
+            if volume.id in data:
+                volume.status = data[volume.id]
+                volume.index_object()
+
+    def getVolumesStatuses(self):
+        return True
+
+    def setInstancesStates(self, data):
+        '''
+        Updates instances states
+        '''
+        for instance in self.instances():
+            if instance.id in data:
+                instance.state = data[instance.id]
+                instance.index_object()
+
+    def getInstancesStates(self):
+        return True
+
 
 class IEC2RegionInfo(IComponentInfo):
     '''

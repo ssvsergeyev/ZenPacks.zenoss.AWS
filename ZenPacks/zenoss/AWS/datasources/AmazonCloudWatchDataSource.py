@@ -215,6 +215,22 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
         '''
         Retrieves metrics data from CloudWatch
         '''
+
+        if not config.datasources[0].component:
+            log.warn("Amazon CloudWatch data source type "
+                "not suitable to use on device level")
+            data = self.new_data()
+            data['events'].append({
+                'device': config.id,
+                'summary': "Amazon CloudWatch data source type "
+                    "not suitable to use on device level",
+                'severity': ZenEventClasses.Info,
+                'eventKey': 'awsCloudWatchCollectionDevice',
+                'eventClassKey': 'AWSCloudWatchDevice',
+                'eventClass': '/AWS',
+                })
+            return defer.maybeDeferred(lambda: data)
+
         return threads.deferToThread(lambda: self._do_collect(config))
         # return defer.maybeDeferred(lambda: self._do_collect(config))
 
