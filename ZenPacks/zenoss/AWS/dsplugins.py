@@ -194,11 +194,13 @@ class EC2RegionPlugin(AWSBasePlugin):
         'zAWSDiscover',
         'zAWSRegionPEM',
         'zAWSRemodelEnabled',
+        'getDiscoverGuests',
     )
 
     def collect(self, config):
         def inner():
             data = self.new_data()
+            instance_states = {}
             for ds in config.datasources:
                 region_id = self.component = ds.component
                 ec2regionconn = boto.ec2.connect_to_region(
@@ -236,7 +238,6 @@ class EC2RegionPlugin(AWSBasePlugin):
 
                 # Previously zAWSRemodelEnabled was a string, fix for this case
                 if str(ds.zAWSRemodelEnabled).lower() == 'true':
-                    instance_states = {}
                     data['maps'].append(instances_rm(
                         region_id,
                         ds,
@@ -245,10 +246,6 @@ class EC2RegionPlugin(AWSBasePlugin):
                         instance_states,
                         ec2regionconn
                     ))
-                    data['maps'].append(ObjectMap({
-                        "modname": "Guest update",
-                        "setDiscoverGuests": sorted(instance_states.items()),
-                    }))
                 else:
                     # InstanceState moved here for optimization
                     for instance in instances:
@@ -268,6 +265,14 @@ class EC2RegionPlugin(AWSBasePlugin):
                         "status": volume.status
                     }))
 
+            ds0 = config.datasources[0]
+            if str(ds0.zAWSRemodelEnabled).lower() == 'true':
+                # Run "setDiscoverGuests" every time during the monitoring
+                data['maps'].append(ObjectMap({
+                    "modname": "Guest update",
+                    "setDiscoverGuests": False if ds0.getDiscoverGuests
+                    else True,
+                }))
             return data
 
         return threads.deferToThread(inner)

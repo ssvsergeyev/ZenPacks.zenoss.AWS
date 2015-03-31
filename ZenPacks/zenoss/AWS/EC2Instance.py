@@ -53,6 +53,7 @@ class EC2Instance(AWSComponent):
     detailed_monitoring = None
     guest = None
     pem_path = None
+    _has_guest = None
 
     # Used to restore user-defined production state when a stopped
     # instance is resumed.
@@ -280,6 +281,10 @@ class EC2Instance(AWSComponent):
         if not self.guest:
             return
 
+        # Create guest device only if it was not created before
+        if self._has_guest:
+            return
+
         deviceclass = self.guest_deviceclass()
         if not deviceclass:
             return
@@ -310,6 +315,8 @@ class EC2Instance(AWSComponent):
 
         # Schedule a modeling job for the new device.
         device.collectDevice(setlog=False, background=True)
+
+        self._has_guest = True
 
     def discover_guest(self):
         '''
