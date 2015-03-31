@@ -175,7 +175,7 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     dimensions[k] = v
 
             end_time = datetime.datetime.utcnow()
-            start_time = end_time - datetime.timedelta(seconds=cycletime * 2)
+            start_time = end_time - datetime.timedelta(seconds=cycletime * 3)
 
             try:
                 res = region_con.get_metric_statistics(
@@ -188,9 +188,10 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
                     dimensions=dimensions
                 )
 
+                value = 0.0
                 if res:
                     value = float(res[-1][ds.params['statistic']])
-                    data['values'][ds.component][ds.datasource] = value, 'N'
+                data['values'][ds.component][ds.datasource] = value, 'N'
             except Exception, ex:
                 code = getattr(ex, 'status', None)
                 body = getattr(ex, 'body', '')
