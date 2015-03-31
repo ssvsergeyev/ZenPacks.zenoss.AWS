@@ -18,7 +18,7 @@ ZenPacks.zenoss.AWS.EC2Account
 <tomanycont id='rrdTemplates'>
 <object id='EC2Image' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
-Products.ZenModel.Device
+ZenPacks.zenoss.AWS.EC2Image
 </property>
 <tomanycont id='datasources'>
 </tomanycont>
@@ -3065,7 +3065,7 @@ AVERAGE
 </object>
 <object id='EC2ReservedInstance' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
-Products.ZenModel.Device
+ZenPacks.zenoss.AWS.EC2ReservedInstance
 </property>
 <tomanycont id='datasources'>
 <object id='CheckUsage' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
@@ -3095,14 +3095,14 @@ ${here/getRegionId}
 </object>
 <object id='EC2Snapshot' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
-Products.ZenModel.Device
+ZenPacks.zenoss.AWS.EC2Snapshot
 </property>
 <tomanycont id='datasources'>
 </tomanycont>
 </object>
 <object id='EC2VPC' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
-Products.ZenModel.Device
+ZenPacks.zenoss.AWS.EC2VPC
 </property>
 <tomanycont id='datasources'>
 <object id='VPCState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
@@ -3132,7 +3132,7 @@ ${here/getRegionId}
 </object>
 <object id='EC2VPCSubnet' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
-Products.ZenModel.Device
+ZenPacks.zenoss.AWS.EC2VPCSubnet
 </property>
 <tomanycont id='datasources'>
 <object id='IPAddressesCount' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
@@ -4262,7 +4262,7 @@ AVERAGE
 </object>
 <object id='EC2Zone' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
-Products.ZenModel.Device
+ZenPacks.zenoss.AWS.EC2Zone
 </property>
 <tomanycont id='datasources'>
 <object id='ZoneStatus' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
@@ -4292,7 +4292,7 @@ ${here/getRegionId}
 </object>
 <object id='S3Bucket' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
-Products.ZenModel.Device
+ZenPacks.zenoss.AWS.S3Bucket
 </property>
 <tomanycont id='datasources'>
 <object id='bucketSize' module='ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource' class='PythonDataSource'>
@@ -4504,7 +4504,7 @@ AVERAGE
 </object>
 <object id='SQSQueue' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
-Products.ZenModel.Device
+ZenPacks.zenoss.AWS.SQSQueue
 </property>
 <tomanycont id='datasources'>
 <object id='SQSQueueStatus' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
@@ -4534,7 +4534,7 @@ ${here/getRegionId}
 </object>
 <object id='VPNGateway' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="string" id="targetPythonClass" mode="w" >
-Products.ZenModel.Device
+ZenPacks.zenoss.AWS.VPNGateway
 </property>
 <tomanycont id='datasources'>
 <object id='GatewayState' module='ZenPacks.zenoss.AWS.datasources.AWSDataSource' class='AWSDataSource'>
