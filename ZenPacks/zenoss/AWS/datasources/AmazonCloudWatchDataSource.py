@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2013-2015, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -9,21 +9,13 @@
 
 import logging
 log = logging.getLogger('zen.AWS')
+logging.getLogger('boto').setLevel(logging.CRITICAL)
 
 import datetime
-import time
-import calendar
-import random
-import os
 
-from cStringIO import StringIO
-from lxml import etree
+from twisted.internet import defer, threads, reactor
 
-from twisted.web import client as txwebclient
-from twisted.web.client import getPage
-
-from twisted.internet import reactor, defer
-from twisted.internet.defer import inlineCallbacks
+# reactor.suggestThreadPoolSize(30)
 
 from zope.component import adapts
 from zope.interface import implements
@@ -38,65 +30,13 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSource, PythonDataSourcePlugin
 
-from ZenPacks.zenoss.AWS.utils import awsUrlSign, iso8601, result_errmsg,\
-    lookup_cwregion, twisted_web_client_parse
+from ZenPacks.zenoss.AWS.utils import result_errmsg
 
+from ZenPacks.zenoss.AWS.utils import addLocalLibPath
 
-# MAX_RETRIES = 3
+addLocalLibPath()
 
-class ProxyWebClient(object):
-    """web methods with proxy."""
-
-    def __init__(self, url, username=None, password=None):
-        # get scheme used by url
-        scheme, host, port, path = twisted_web_client_parse(url)
-        envname = '%s_proxy' % scheme
-        self.use_proxy = False
-        self.proxy_host = None
-        self.proxy_port = None
-        if envname in os.environ.keys():
-            proxy = os.environ.get('%s_proxy' % scheme)
-            if proxy:
-                # using proxy server
-                # host:port identifies a proxy server
-                # url is the actual target
-                self.use_proxy = True
-                scheme, host, port, path = twisted_web_client_parse(proxy)
-                self.proxy_host = host
-                self.proxy_port = port
-                self.username = username
-                self.password = password
-        else:
-            self.host = host
-            self.port = port
-        self.path = url
-        self.url = url
-
-    def get_page(self, contextFactory=None, *args, **kwargs):
-        scheme, _, _, _ = twisted_web_client_parse(self.url)
-        factory = txwebclient.HTTPClientFactory(self.url)
-        if scheme == 'https':
-            from twisted.internet import ssl
-            if contextFactory is None:
-                contextFactory = ssl.ClientContextFactory()
-            if self.use_proxy:
-                reactor.connectSSL(self.proxy_host, self.proxy_port,
-                               factory, contextFactory)
-            else:
-                reactor.connectSSL(self.host, self.port,
-                               factory, contextFactory)
-        else:
-            if self.use_proxy:
-                reactor.connectTCP(self.proxy_host, self.proxy_port, factory)
-            else:
-                reactor.connectTCP(self.host, self.port, factory)
-        return factory.deferred.addCallbacks(self.getdata, self.errdata)
-
-    def getdata(self, data):
-        return data
-
-    def errdata(self, failure):
-        return failure.getErrorMessage()
+import boto.ec2.cloudwatch
 
 
 class AmazonCloudWatchDataSource(PythonDataSource):
@@ -178,20 +118,13 @@ class AmazonCloudWatchDataSourceInfo(RRDDataSourceInfo):
     region = ProxyProperty('region')
 
 
-def timestamp_from_cloudwatch(cloudwatch_time_string):
-    try:
-        return calendar.timegm(
-            time.strptime(cloudwatch_time_string, '%Y-%m-%dT%H:%M:%SZ'))
-
-    except Exception:
-        pass
-
-    return calendar.timegm(datetime.datetime.utcnow().timetuple())
-
-
 class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
+    '''
+    Datasource plugin for PythonCollector
+    '''
+
     proxy_attributes = (
-        'ec2accesskey', 'ec2secretkey', 'zAWSCloudWatchSSL',
+        'ec2accesskey', 'ec2secretkey',
         )
 
     @classmethod
@@ -214,13 +147,13 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
             'region': datasource.talesEval(datasource.region, context),
             }
 
-    @inlineCallbacks
-    def collect(self, config):
-        # defer.returnValue([])
-
+    def _do_collect(self, config):
+        '''
+        Worker, do actual data retrieval
+        '''
         log.debug("Collect for AWS")
-        results = []
 
+        data = self.new_data()
         ds0 = config.datasources[0]
         accesskey = ds0.ec2accesskey
         secretkey = ds0.ec2secretkey
@@ -228,204 +161,91 @@ class AmazonCloudWatchDataSourcePlugin(PythonDataSourcePlugin):
         # CloudWatch only accepts periods that are evenly divisible by 60.
         cycletime = (ds0.cycletime / 60) * 60
 
-        # Static for performance collection
-        httpVerb = 'GET'
-        uriRequest = '/'
-
-        baseRequest = {}
-        baseRequest['SignatureMethod'] = 'HmacSHA256'
-        baseRequest['SignatureVersion'] = '2'
-
-        def sleep(secs):
-            d = defer.Deferred()
-            reactor.callLater(secs, d.callback, None)
-            return d
-
         for ds in config.datasources:
-            hostHeader = lookup_cwregion(ds.params['region'])
+            region = ds.params['region']
+            region_con = boto.ec2.cloudwatch.connect_to_region(region,
+                aws_access_key_id=accesskey,
+                aws_secret_access_key=secretkey
+            )
 
-            monitorRequest = baseRequest.copy()
-            monitorRequest['Action'] = 'GetMetricStatistics'
-            monitorRequest['Version'] = '2010-08-01'
-            monitorRequest['Period'] = cycletime
-            monitorRequest['StartTime'] = iso8601(seconds_ago=(cycletime * 2))
-            monitorRequest['EndTime'] = iso8601()
-            monitorRequest['Namespace'] = ds.params['namespace']
-            monitorRequest['MetricName'] = ds.params['metric']
-            monitorRequest['Statistics.member.1'] = ds.params['statistic']
-
+            dimensions = {}
             if ds.params['dimension']:
                 dim_group = ds.params['dimension'].split(';')
+                for k, v in [x.split('=') for x in dim_group]:
+                    dimensions[k] = v
 
-                i = 0
-                for dim_name, dim_value in [x.split('=') for x in dim_group]:
-                    i += 1
-                    monitorRequest['Dimensions.member.%d.Name' % i] = dim_name
-                    monitorRequest['Dimensions.member.%d.Value' % i] = dim_value
-
-            getURL = awsUrlSign(
-                httpVerb,
-                hostHeader,
-                uriRequest,
-                monitorRequest,
-                (accesskey, secretkey))
-
-            getURL = '{0}://{1}'.format(
-                ('https' if ds.zAWSCloudWatchSSL else 'http'), getURL
-            )
-            factory = ProxyWebClient(getURL)
-
-            # # Incremental backoff as outlined by AWS.
-            # # http://aws.amazon.com/articles/1394
-            # for retry in xrange(MAX_RETRIES + 1):
-            #     if retry > 0:
-            #         delay = (random.random() * pow(4, retry)) / 10.0
-            #         log.debug(
-            #             '%s (%s): retry %s backoff is %s seconds',
-            #             config.id, ds.params['region'], retry, delay)
-
-            #         wait = yield sleep(delay)
+            end_time = datetime.datetime.utcnow()
+            start_time = end_time - datetime.timedelta(seconds=cycletime * 2)
 
             try:
-                log.debug(
-                    '%s (%s): requesting %s %s/%s for %s',
-                    config.id,
-                    ds.params['region'],
-                    ds.params['statistic'],
-                    ds.params['namespace'],
-                    ds.params['metric'],
-                    ds.params['dimension'] or 'region')
+                res = region_con.get_metric_statistics(
+                    period=cycletime,
+                    start_time=start_time,
+                    end_time=end_time,
+                    metric_name=ds.params['metric'],
+                    namespace=ds.params['namespace'],
+                    statistics=[ds.params['statistic']],
+                    dimensions=dimensions
+                )
 
-                result = yield factory.get_page()
-
+                if res:
+                    value = float(res[-1][ds.params['statistic']])
+                    data['values'][ds.component][ds.datasource] = value, 'N'
             except Exception, ex:
                 code = getattr(ex, 'status', None)
+                body = getattr(ex, 'body', '')
+                if 'throttling' in body.lower():
+                    data['events'].append({
+                        'device': config.id,
+                        'summary': 'AWS CloudWatch: Rate exceeded. '
+                            'Consider to contact AWS support with request '
+                            'to increase CloudWatch API limits.',
+                        'severity': ZenEventClasses.Info,
+                        'eventKey': 'awsCloudWatchCollectionThrottling',
+                        'eventClassKey': 'AWSCloudWatchThrottling',
+                        'eventClass': '/AWS/Suggestion',
+                        })
                 if code in ('500', '503'):
                     continue
 
-                raise
+        return data
 
-            else:
-                results.append((ds, result))
-
-            # if ds.params['metric'] == 'VolumeTotalWriteTime':
-            #     # Get Volume Status
-            #     volumeRequest = baseRequest.copy()
-            #     volumeRequest['Action'] = 'DescribeVolumeStatus'
-            #     volumeRequest['Version'] = '2013-02-01'
-            #     volumeRequest['VolumeId.1'] = dim_value
-            #     hostHeader = 'ec2.amazonaws.com'
-
-            #     getURL = awsUrlSign(
-            #         httpVerb,
-            #         hostHeader,
-            #         uriRequest,
-            #         volumeRequest,
-            #         [accesskey, secretkey]
-            #     )
-
-            #     getURL = 'http://%s' % getURL
-
-            #     log.debug('Get Volume Information: %s', getURL)
-
-            #     result = yield getPage(getURL)
-            #     results.append(('volumestatus', result))
-
-        defer.returnValue(results)
+    def collect(self, config):
+        '''
+        Retrieves metrics data from CloudWatch
+        '''
+        return threads.deferToThread(lambda: self._do_collect(config))
+        # return defer.maybeDeferred(lambda: self._do_collect(config))
 
     def onSuccess(self, results, config):
-        data = self.new_data()
+        '''
+        Successful collection
+        '''
 
-        for ds, result in results:
-
-            # Only one namespace is used. Mangle the xmlns attribute
-            # to make further processing of the XML simpler.
-            result = result.replace(' xmlns=', ' xmlnamespace=', 1)
-
-            try:
-                stats = etree.parse(StringIO(result))
-            except Exception:
-                # Connection refused will goes to onError anyway,
-                # so no need to duplicate it
-                continue
-
-            if ds == 'volumestatus':
-                #Parse volume status events
-                try:
-                    volumes = stats.xpath('//volumeStatusSet/item')
-
-                    for vol in volumes:
-                        volumeID = str(vol.xpath('volumeId[last()]/text()')[0])
-                        volumeStatus = str(vol.xpath(
-                            'volumeStatus/status/text()'
-                        )[0])
-
-                        if volumeStatus == 'ok':
-                            data['events'].append({
-                                'component': volumeID,
-                                'device': config.id,
-                                'summary': 'AWS Volume Status: OK',
-                                'severity': ZenEventClasses.Clear,
-                                'eventClass': '/Status',
-                                'eventClassKey': 'AWSVolume',
-                            })
-                        else:
-                            data['events'].append({
-                                'component': volumeID,
-                                'device': config.id,
-                                'summary': "AWS Volume Status: {}".format(
-                                    volumeStatus
-                                ),
-                                'severity': ZenEventClasses.Critical,
-                                'eventClass': '/Status',
-                                'eventClassKey': 'AWSVolume',
-                            })
-
-                except IndexError:
-                    continue
-
-            else:
-                #Parse cloudwatch metrics
-                try:
-                    timestamp = timestamp_from_cloudwatch(
-                        stats.xpath('//Timestamp[last()]/text()')[0])
-
-                    value = stats.xpath('//%s[last()]/text()' % (
-                        ds.params['statistic']))[0]
-
-                except IndexError:
-                    # No value in response. This is usually normal.
-                    value = 0
-                    timestamp = 'N'
-                    # continue
-
-                data['values'][ds.component][ds.datasource] = value, 'N'  # timestamp
-                # data['values'][ds.component][ds.datasource] = (value, timestamp)
-
-        data['events'].append({
+        results['events'].append({
             'device': config.id,
             'summary': 'AWS CloudWatch: successful metrics collection',
             'severity': ZenEventClasses.Clear,
             'eventKey': 'awsCloudWatchCollection',
             'eventClassKey': 'AWSCloudWatchSuccess',
             })
-        return data
+        return results
 
     def onError(self, result, config):
+        '''
+        In case we error(s) occured during collection
+        '''
 
         errmsg = 'AWS: %s' % result_errmsg(result)
         data = self.new_data()
 
-        if 'timeout' in errmsg or 'connection lost' in errmsg:
-            log.debug('%s: %s', config.id, errmsg)
-        else:
-            log.error('%s: %s', config.id, errmsg)
-            data['events'].append({
-                'device': config.id,
-                'summary': errmsg,
-                'severity': ZenEventClasses.Error,
-                'eventKey': 'awsCloudWatchCollection',
-                'eventClassKey': 'AWSCloudWatchError',
-                })
+        log.error('%s: %s', config.id, errmsg)
+        data['events'].append({
+            'device': config.id,
+            'summary': errmsg,
+            'severity': ZenEventClasses.Error,
+            'eventKey': 'awsCloudWatchCollection',
+            'eventClassKey': 'AWSCloudWatchError',
+            })
 
         return data

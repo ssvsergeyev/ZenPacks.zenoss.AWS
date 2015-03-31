@@ -21,7 +21,6 @@ setzPropertyCategory('zAWSRegionPEM', 'AWS')
 setzPropertyCategory('zAWSRemodelEnabled', 'AWS')
 setzPropertyCategory('zAWSGuestCollector', 'AWS')
 setzPropertyCategory('zAWSResetGuestCollector', 'AWS')
-setzPropertyCategory('zAWSCloudWatchSSL', 'AWS')
 setzPropertyCategory('zAWSGuestUsePublicIPs', 'AWS')
 
 # Modules containing model classes. Used by zenchkschema to validate
@@ -99,7 +98,6 @@ class ZenPack(ZenPackBase):
         ('zAWSRemodelEnabled', False, 'boolean'),
         ('zAWSGuestCollector', '', 'string'),
         ('zAWSResetGuestCollector', True, 'boolean'),
-        ('zAWSCloudWatchSSL', False, 'boolean'),
         ('zAWSGuestUsePublicIPs', False, 'boolean'),
     ]
 

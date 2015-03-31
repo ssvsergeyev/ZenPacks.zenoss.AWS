@@ -157,6 +157,9 @@ Besides CloudWatch metrics, the following metrics will also be collected every 5
 ;S3 Buckets
 : Metrics: Keys count, Total Size
 
+Monitoring large cloud may require to contact AWS support with request to increase CloudWatch API requests limit.
+Appropriate event will be created in Zenoss in case limit for CloudWatch requests has been exceeded.
+
 === Soft Limits Monitoring ===
 
 The following resource counts subject to the soft-limits will be collected every 5 minutes and when any of these metrics approaches a soft limit threshold, a Zenoss event will be triggered.
