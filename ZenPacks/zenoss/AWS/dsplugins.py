@@ -194,7 +194,7 @@ class EC2RegionPlugin(AWSBasePlugin):
         'zAWSDiscover',
         'zAWSRegionPEM',
         'zAWSRemodelEnabled',
-        '_setDiscoverGuests',
+        'getDiscoverGuests',
     )
 
     def collect(self, config):
@@ -266,12 +266,11 @@ class EC2RegionPlugin(AWSBasePlugin):
                     }))
 
             ds0 = config.datasources[0]
-            if str(ds0.zAWSRemodelEnabled).lower() == 'true' and\
-                    ds0._setDiscoverGuests:
+            if str(ds0.zAWSRemodelEnabled).lower() == 'true':
                 # Run "setDiscoverGuests" every time during the monitoring
                 data['maps'].append(ObjectMap({
                     "modname": "Guest update",
-                    "setDiscoverGuests": False if ds0._setDiscoverGuests[0]
+                    "setDiscoverGuests": False if ds0.getDiscoverGuests
                     else True,
                 }))
             return data
