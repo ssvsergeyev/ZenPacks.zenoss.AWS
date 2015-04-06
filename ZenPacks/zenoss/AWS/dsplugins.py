@@ -158,6 +158,9 @@ class S3BucketPlugin(AWSBasePlugin):
                         bucket_keys.update({name: e})
                     continue
                 else:
+                    if "argument of type 'int' is not iterable" in str(e):
+                        # TODO: find the reason why 'boto' has that behavior in this case
+                        continue
                     bucket_keys.update({name: e})
                     continue
         for ds in config.datasources:
