@@ -160,6 +160,8 @@ Besides CloudWatch metrics, the following metrics will also be collected every 5
 Monitoring large cloud may require to contact AWS support with request to increase CloudWatch API requests limit.
 Appropriate event will be created in Zenoss in case limit for CloudWatch requests has been exceeded.
 
+CloudWatch datasources utilize multithreading for better performance. It is possible to increase speed by setting "twistedthreadpoolsize" value in configuration of "zenpython" daemon. Please note that setting higher value will result also in bigger memory usage.
+
 === Soft Limits Monitoring ===
 
 The following resource counts subject to the soft-limits will be collected every 5 minutes and when any of these metrics approaches a soft limit threshold, a Zenoss event will be triggered.
@@ -410,6 +412,10 @@ latest version over the existing one. There is no action for the user to migrate
 The performance data and events of old ZenPack are retained as per the retain policy settings.
 
 == Changes ==
+
+;2.3.0
+* Add ability for instances into VPC to use public IP address for guest device
+* Add parallel processing for CloudWatch datasources using multithreading. For large AWS installation it can be boosted by setting bigger value for "twistedthreadpoolsize" setting of PythonCollector.
 
 ;2.2.2
 * Add support for Zenoss 5x.
