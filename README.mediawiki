@@ -411,6 +411,16 @@ The AWS Zenpack of versions 2.0.0 / 2.1.0 can be upgraded. To upgrade the ZenPac
 latest version over the existing one. There is no action for the user to migrate the data.
 The performance data and events of old ZenPack are retained as per the retain policy settings.
 
+== Limitations ==
+
+;In current version of Zenpack monitoring of large AWS account (ex., ~1000 EC2 instances and volumes) may cause some issues.
+* Limit for datapoints processed by ''zenpython'' daemon may be exceeded. This will result in gaps on graphs.
+* Monitoring cycle may not fit into default value of 5 minutes. This will result for some points on graphs to be not aligned by 5 minutes interval.
+
+Having more than one AWS account added into Zenoss may lead to issues described above.
+
+It is possible to reduce number of datapoints collected by disabling monitoring templates you don't need.
+
 == Changes ==
 
 ;2.3.0
