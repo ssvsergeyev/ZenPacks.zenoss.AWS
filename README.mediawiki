@@ -413,8 +413,8 @@ The performance data and events of old ZenPack are retained as per the retain po
 
 == Limitations ==
 
-;In the current version of Zenpack monitoring of large AWS account 
-(ex., > 1000 EC2 instances and volumes) may cause performance issues.
+;In the current version of Zenpack monitoring of large AWS account (ex., > 1000 EC2 instances and volumes) may cause performance issues.
+
 * Limit for datapoints processed by ''zenpython'' daemon may be exceeded. This will result in gaps in graphs.
 * Monitoring cycle may not fit into default value of 5 minutes. This will
   result for some points on graphs to be not aligned by 5 minutes interval.
