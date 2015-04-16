@@ -53,6 +53,7 @@ class EC2Instance(AWSComponent):
     detailed_monitoring = None
     guest = None
     pem_path = None
+    _has_guest = None
 
     # Used to restore user-defined production state when a stopped
     # instance is resumed.
@@ -108,12 +109,12 @@ class EC2Instance(AWSComponent):
 
         return '/++resource++aws/img/%s.png' % img_name
 
-    # def monitored(self):
-    #     '''
-    #     Return True if this instance should be monitored. False
-    #     otherwise.
-    #     '''
-    #     return self.state and self.state.lower() == 'running'
+    def monitored(self):
+        '''
+        Return True if this instance should be monitored. False
+        otherwise.
+        '''
+        return self.state and self.state.lower() == 'running'
 
     def getRRDTemplates(self):
         template_names = []
@@ -198,8 +199,11 @@ class EC2Instance(AWSComponent):
         Return the best manageIp for this instance's guest device or
         None if no good option is found.
         '''
-        if self.vpc():
+        if self.vpc() and not self.zAWSGuestUsePublicIPs:
             return self.private_ip_address
+
+        if self.public_ip:
+            return self.public_ip
 
         if self.public_dns_name:
             try:
@@ -260,7 +264,7 @@ class EC2Instance(AWSComponent):
 
             if collector:
                 return collector
- 
+
         if self.zAWSGuestCollector:
             collector = self.getDmdRoot('Monitors').Performance._getOb(
                 self.zAWSGuestCollector, None)
@@ -275,6 +279,10 @@ class EC2Instance(AWSComponent):
         exist.
         '''
         if not self.guest:
+            return
+
+        # Create guest device only if it was not created before
+        if self._has_guest:
             return
 
         deviceclass = self.guest_deviceclass()
@@ -308,6 +316,8 @@ class EC2Instance(AWSComponent):
         # Schedule a modeling job for the new device.
         device.collectDevice(setlog=False, background=True)
 
+        self._has_guest = True
+
     def discover_guest(self):
         '''
         Attempt to discover and link guest device.
@@ -337,6 +347,15 @@ class EC2Instance(AWSComponent):
                         self.titleOrId())
 
                     guest_device.setProdState(self._running_prodstate)
+
+                # check whether external IP address has changed
+                new_ip = self.guest_manage_ip()
+                old_ip = guest_device.manageIp
+                if new_ip != old_ip:
+                    guest_device.setManageIp(new_ip)
+                    LOG.info(
+                        'manageIp address of device %s changed from %s to %s' \
+                         % ( guest_device.titleOrId(), old_ip, new_ip ))
             else:
                 self.create_guest()
 

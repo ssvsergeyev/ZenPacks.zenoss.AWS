@@ -66,12 +66,12 @@ ZC.EC2ComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
                 if (n.data) {
                     return n.data.text == 'Components';
                 }
-                
+
                 return n.text == 'Components';
             });
-        
+
         var component_card = Ext.getCmp('component_card');
-        
+
         if (components_node.data) {
             component_card.setContext(components_node.data.id, meta_type);
         } else {
@@ -84,10 +84,10 @@ ZC.EC2ComponentGridPanel = Ext.extend(ZC.ComponentGridPanel, {
                 if (n.data) {
                     return n.data.id == meta_type;
                 }
-                
+
                 return n.id == meta_type;
             });
-        
+
         if (component_type_node.select) {
             tree_selection_model.suspendEvents();
             component_type_node.select();
@@ -900,7 +900,7 @@ ZC.S3BucketPanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'creation_date',
                 dataIndex: 'creation_date',
                 header: _t('Creation Date'),
-                width: 100
+                width: 160
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
@@ -1110,21 +1110,11 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Status'),
                 width: 80
             },{
-                id: 'location',
-                dataIndex: 'location',
-                header: _t('Location'),
-                width: 80
-            },{
                 id: 'region',
                 dataIndex: 'region',
                 header: _t('Region'),
                 renderer: Zenoss.render.aws_entityLinkFromGrid,
                 width: 90
-            },{
-                id: 'owner_id',
-                dataIndex: 'owner_id',
-                header: _t('Owner ID'),
-                width: 100
             },{
                 id: 'architecture',
                 dataIndex: 'architecture',
@@ -1141,35 +1131,15 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 header: _t('Kernel ID'),
                 width: 90
             },{
-                id: 'ramdisk_id',
-                dataIndex: 'ramdisk_id',
-                header: _t('RAM Disk ID'),
-                width: 90
-            },{
-                id: 'description',
-                dataIndex: 'description',
-                header: _t('Description'),
-                width: 90
-            },{
-                id: 'block_device_mapping',
-                dataIndex: 'block_device_mapping',
-                header: _t('Block Device Mapping'),
-                width: 90
-            },{
                 id: 'root_device_type',
                 dataIndex: 'root_device_type',
                 header: _t('Root Device Type'),
-                width: 90
-            },{
-                id: 'root_device_name',
-                dataIndex: 'root_device_name',
-                header: _t('Root Device Name'),
-                width: 90
+                width: 100
             },{
                 id: 'virtualization_type',
                 dataIndex: 'virtualization_type',
                 header: _t('Virtualization Type'),
-                width: 90
+                width: 100
             },{
                 id: 'hypervisor',
                 dataIndex: 'hypervisor',
@@ -1179,7 +1149,7 @@ ZC.EC2ImagePanel = Ext.extend(ZC.EC2ComponentGridPanel, {
                 id: 'instance_count',
                 dataIndex: 'instance_count',
                 header: _t('Number of Instances'),
-                width: 90
+                width: 115
             },{
                 id: 'monitored',
                 dataIndex: 'monitored',
@@ -1550,9 +1520,10 @@ Ext.onReady(function(){
         var idpanel = Ext.getCmp(DEVICE_ID_PANEL);
         idpanel.defaultType = 'devformpanel';
         idpanel.minHeight = 390;
-        
+
         idpanel.removeField('serialNumber');
         idpanel.removeField('tagNumber');
+        idpanel.removeField('rackSlot');
 
         idpanel.addField({
             name: 'ec2accesskey',
@@ -1574,7 +1545,7 @@ Ext.onReady(function(){
 
         descriptionpanel.defaultType = 'devformpanel';
         descriptionpanel.minHeight = 390;
-        
+
         descriptionpanel.removeField('rackSlot');
         descriptionpanel.removeField('hwManufacturer');
         descriptionpanel.removeField('hwModel');
@@ -1613,7 +1584,7 @@ Ext.onReady(function(){
 
         descriptionpanel.addField({
             id: 'firstSeen-view',
-            xtype: 'displayfield',
+            xtype: Ext.ClassManager.getByAlias("widget.datedisplayfield")? 'datedisplayfield' : 'displayfield',
             name: 'firstSeen',
             fieldLabel: _t('First Seen'),
             permission: 'Manage Device'
@@ -1621,7 +1592,7 @@ Ext.onReady(function(){
 
         descriptionpanel.addField({
             id: 'lastChanged-view',
-            xtype: 'displayfield',
+            xtype: Ext.ClassManager.getByAlias("widget.datedisplayfield")? 'datedisplayfield' : 'displayfield',
             name: 'lastChanged',
             fieldLabel: _t('Last Change'),
             permission: 'Manage Device'
@@ -1629,7 +1600,7 @@ Ext.onReady(function(){
 
         descriptionpanel.addField({
             id: 'lastCollected-view',
-            xtype: 'displayfield',
+            xtype: Ext.ClassManager.getByAlias("widget.datedisplayfield")? 'datedisplayfield' : 'displayfield',
             name: 'lastCollected',
             fieldLabel: _t('Model Time'),
             permission: 'Manage Device'
@@ -1649,6 +1620,28 @@ Ext.onReady(function(){
         var snmppanel = Ext.getCmp(DEVICE_SNMP_PANEL);
         snmppanel.hide();
     });
+
+    /* Hide Software component, as it always empty */
+    DEVICE_ELEMENTS = "subselecttreepaneldeviceDetailNav"
+     Ext.ComponentMgr.onAvailable(DEVICE_ELEMENTS, function(){
+        var DEVICE_PANEL = Ext.getCmp(DEVICE_ELEMENTS);
+        Ext.apply(DEVICE_PANEL, {
+            listeners: {
+                afterrender: function() {
+                    var tree = Ext.getCmp(DEVICE_PANEL.items.items[0].id);
+                    var items = tree.store.data.items;
+                    for (i in items){
+                        if (items[i].data.id.match(/software*/)){
+                            try {
+                                tree.store.remove(items[i]);
+                                tree.store.sync();
+                            } catch(err){}
+                        }
+                    }
+                }
+            }
+        })
+     })
 });
 
 })();

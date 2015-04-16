@@ -157,6 +157,11 @@ Besides CloudWatch metrics, the following metrics will also be collected every 5
 ;S3 Buckets
 : Metrics: Keys count, Total Size
 
+Monitoring large cloud may require to contact AWS support with request to increase CloudWatch API requests limit.
+Appropriate event will be created in Zenoss in case limit for CloudWatch requests has been exceeded.
+
+CloudWatch datasources utilize multithreading for better performance. It is possible to increase speed by setting "twistedthreadpoolsize" value in configuration of "zenpython" daemon. Please note that setting higher value will result also in bigger memory usage.
+
 === Soft Limits Monitoring ===
 
 The following resource counts subject to the soft-limits will be collected every 5 minutes and when any of these metrics approaches a soft limit threshold, a Zenoss event will be triggered.
@@ -239,6 +244,7 @@ device discovery must be configured individually for each EC2 account.
 # Choose the device class for Linux and/or Windows instances.
 # Navigate to the ''Configuration Properties'' panel and in the ''zAWSDiscover'' property specify the instances' tags and values (e.g. ''tag:value;'').
 # Verify that appropriate SSH, SNMP or Windows credentials are configured for the chosen device class(es).
+# To choose private or public IP address will be used for creating guest device, change the ''zAWSGuestUsePublicIPs'' property.
 # Remodel the EC2 account by choosing ''Model Device'' from its menu.
 
 If your instances are VPC instances, and are in a different VPC than the
@@ -342,62 +348,62 @@ Installing this ZenPack will add the following items to your Zenoss system.
 
 == IAM Permissions ==
 
-<nowiki>
-{
-    "Statement": [
-        {
-            "Action": [
-                "autoscaling:Describe*",
-                "cloudformation:DescribeStacks",
-                "cloudformation:DescribeStackEvents",
-                "cloudformation:DescribeStackResources",
-                "cloudformation:GetTemplate",
-                "cloudfront:Get*",
-                "cloudfront:List*",
-                "cloudwatch:Describe*",
-                "cloudwatch:Get*",
-                "cloudwatch:List*",
-                "directconnect:Describe*",
-                "dynamodb:GetItem",
-                "dynamodb:BatchGetItem",
-                "dynamodb:Query",
-                "dynamodb:Scan",
-                "dynamodb:DescribeTable",
-                "dynamodb:ListTables",
-                "ec2:Describe*",
-                "elasticache:Describe*",
-                "elasticbeanstalk:Check*",
-                "elasticbeanstalk:Describe*",
-                "elasticbeanstalk:List*",
-                "elasticbeanstalk:RequestEnvironmentInfo",
-                "elasticbeanstalk:RetrieveEnvironmentInfo",
-                "elasticloadbalancing:Describe*",
-                "iam:List*",
-                "iam:Get*",
-                "route53:Get*",
-                "route53:List*",
-                "rds:Describe*",
-                "s3:Get*",
-                "s3:List*",
-                "sdb:GetAttributes",
-                "sdb:List*",
-                "sdb:Select*",
-                "ses:Get*",
-                "ses:List*",
-                "sns:Get*",
-                "sns:List*",
-                "sqs:GetQueueAttributes",
-                "sqs:ListQueues",
-                "sqs:ReceiveMessage",
-                "storagegateway:List*",
-                "storagegateway:Describe*"
-            ],
-            "Effect": "Allow",
-            "Resource": "*"
-        }
-    ]
-}
-</nowiki>
+ <nowiki>
+ {
+   "Statement": [
+     {
+       "Action": [
+         "autoscaling:Describe*",
+         "cloudformation:DescribeStacks",
+         "cloudformation:DescribeStackEvents",
+         "cloudformation:DescribeStackResources",
+         "cloudformation:GetTemplate",
+         "cloudfront:Get*",
+         "cloudfront:List*",
+         "cloudwatch:Describe*",
+         "cloudwatch:Get*",
+         "cloudwatch:List*",
+         "directconnect:Describe*",
+         "dynamodb:GetItem",
+         "dynamodb:BatchGetItem",
+         "dynamodb:Query",
+         "dynamodb:Scan",
+         "dynamodb:DescribeTable",
+         "dynamodb:ListTables",
+         "ec2:Describe*",
+         "elasticache:Describe*",
+         "elasticbeanstalk:Check*",
+         "elasticbeanstalk:Describe*",
+         "elasticbeanstalk:List*",
+         "elasticbeanstalk:RequestEnvironmentInfo",
+         "elasticbeanstalk:RetrieveEnvironmentInfo",
+         "elasticloadbalancing:Describe*",
+         "iam:List*",
+         "iam:Get*",
+         "route53:Get*",
+         "route53:List*",
+         "rds:Describe*",
+         "s3:Get*",
+         "s3:List*",
+         "sdb:GetAttributes",
+         "sdb:List*",
+         "sdb:Select*",
+         "ses:Get*",
+         "ses:List*",
+         "sns:Get*",
+         "sns:List*",
+         "sqs:GetQueueAttributes",
+         "sqs:ListQueues",
+         "sqs:ReceiveMessage",
+         "storagegateway:List*",
+         "storagegateway:Describe*"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+     }
+   ]
+ }
+ </nowiki>
 
 == Upgrade ==
 
@@ -405,7 +411,28 @@ The AWS Zenpack of versions 2.0.0 / 2.1.0 can be upgraded. To upgrade the ZenPac
 latest version over the existing one. There is no action for the user to migrate the data.
 The performance data and events of old ZenPack are retained as per the retain policy settings.
 
+== Limitations ==
+
+;In the current version of Zenpack monitoring of large AWS account (ex., > 1000
+EC2 instances and volumes) may cause performance issues:
+
+* Limit for datapoints processed by ''zenpython'' daemon may be exceeded. This
+* will result in gaps in graphs.
+
+* Monitoring cycle may not fit into default value of 5 minutes. This will
+* result for some points on graphs to be not aligned by 5 minutes interval.
+
+* Having more than one AWS account added into Zenoss may lead to issues
+* described above.
+
+{{Note}} It is possible to reduce number of datapoints collected by disabling
+monitoring templates you don't need.
+
 == Changes ==
+
+;2.3.0
+* Add ability for instances into VPC to use public IP address for guest device
+* Add parallel processing for CloudWatch datasources using multithreading. For large AWS installation it can be boosted by setting bigger value for "twistedthreadpoolsize" setting of PythonCollector.
 
 ;2.2.2
 * Add support for Zenoss 5x.

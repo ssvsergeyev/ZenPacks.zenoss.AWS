@@ -1,6 +1,6 @@
 ######################################################################
 #
-# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2013-2015, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is
@@ -19,10 +19,11 @@ import boto.vpc
 
 from boto.sqs.message import RawMessage
 from boto.s3.connection import S3Connection
-from twisted.internet import defer
+from twisted.internet import defer, threads
 
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.ZenEvents import ZenEventClasses
+from Products.ZenUtils.Utils import prepId
 from ZenPacks.zenoss.PythonCollector.datasources.PythonDataSource \
     import PythonDataSourcePlugin
 
@@ -113,135 +114,173 @@ class S3BucketPlugin(AWSBasePlugin):
     Subclass of AWSBasePlugin to monitor AWS S3Buckets.
     """
 
-    def collect(self, config):
-        def inner():
-            data = self.new_data()
-            ds0 = config.datasources[0]
-            bucket_keys = {}
-            # Add support Signature V4 for 's3' into boto config
-            if not boto.config.get('s3', 'use-sigv4'):
-                boto.config.add_section('s3')
-                boto.config.set('s3', 'use-sigv4', 'True')
-            s3connection = S3Connection(
-                ds0.ec2accesskey, ds0.ec2secretkey,
-                host=S3Connection.DefaultHost
-            )
-            buckets = s3connection.get_all_buckets()
-            data['events'].append({
-                'summary': 'Monitoring ok',
-                'eventClass': '/Status',
-                'eventKey': 'aws_bucket_result',
-                'severity': ZenEventClasses.Clear,
-            })
+    def inner(self, config):
+        data = self.new_data()
+        ds0 = config.datasources[0]
+        bucket_keys = {}
+        # Add support Signature V4 for 's3' into boto config
+        if not boto.config.get('s3', 'use-sigv4'):
+            boto.config.add_section('s3')
+            boto.config.set('s3', 'use-sigv4', 'True')
+        s3connection = S3Connection(
+            ds0.ec2accesskey, ds0.ec2secretkey,
+            host=S3Connection.DefaultHost
+        )
+        buckets = s3connection.get_all_buckets()
+        data['events'].append({
+            'summary': 'Monitoring ok',
+            'eventClass': '/Status',
+            'eventKey': 'aws_bucket_result',
+            'severity': ZenEventClasses.Clear,
+        })
 
-            for bucket in buckets:
-                name = bucket.name
-                try:
-                    bucket_keys.update({name: bucket.get_all_keys()})
-                except Exception, e:
-                    if isinstance(e, boto.exception.S3ResponseError):
-                        # Parse an exception message to find expected 'region'
-                        pattern = (
-                            "The authorization header is malformed; the "
-                            "region '[\w-]+' is wrong; expecting '([\w-]+)'"
+        for bucket in buckets:
+            name = bucket.name
+            try:
+                bucket_keys.update({name: bucket.get_all_keys()})
+            except Exception, e:
+                if isinstance(e, boto.exception.S3ResponseError):
+                    # Parse an exception message to find expected 'region'
+                    pattern = (
+                        "The authorization header is malformed; the "
+                        "region '[\w-]+' is wrong; expecting '([\w-]+)'"
+                    )
+                    m = re.match(pattern, e.message)
+                    if m:
+                        region = m.group(1)
+                        region_con = boto.s3.connect_to_region(
+                            region, aws_access_key_id=ds0.ec2accesskey,
+                            aws_secret_access_key=ds0.ec2secretkey
                         )
-                        m = re.match(pattern, e.message)
-                        if m:
-                            region = m.group(1)
-                            region_con = boto.s3.connect_to_region(
-                                region, aws_access_key_id=ds0.ec2accesskey,
-                                aws_secret_access_key=ds0.ec2secretkey
-                            )
-                            bucket = region_con.get_bucket(name)
-                            bucket_keys.update({name: bucket.get_all_keys()})
-                        else:
-                            bucket_keys.update({name: e})
-                        continue
+                        bucket = region_con.get_bucket(name)
+                        bucket_keys.update({name: bucket.get_all_keys()})
                     else:
                         bucket_keys.update({name: e})
-                        continue
-            for ds in config.datasources:
-                self.component = ds.component
-                keys = bucket_keys.get(ds.component) or []
-                if not isinstance(keys, list):
-                    data['events'].append({
-                        'component': self.component,
-                        'summary': str(keys),
-                        'eventClass': '/Status',
-                        'eventKey': 'aws_result',
-                        'severity': ZenEventClasses.Error,
-                    })
                     continue
-                data['values'][ds.component] = dict(
-                    keys_count=(len(keys), 'N'),
-                    total_size=(sum([key.size for key in keys]), 'N'),
-                )
-            return data
+                else:
+                    if "argument of type 'int' is not iterable" in str(e):
+                        # TODO: find the reason why 'boto' has that behavior in this case
+                        continue
+                    bucket_keys.update({name: e})
+                    continue
+        for ds in config.datasources:
+            self.component = ds.component
+            keys = bucket_keys.get(ds.component) or []
+            if not isinstance(keys, list):
+                data['events'].append({
+                    'component': self.component,
+                    'summary': str(keys),
+                    'eventClass': '/Status',
+                    'eventKey': 'aws_result',
+                    'severity': ZenEventClasses.Error,
+                })
+                continue
+            data['values'][ds.component] = dict(
+                keys_count=(len(keys), 'N'),
+                total_size=(sum([key.size for key in keys]), 'N'),
+            )
+        return data
 
-        return defer.maybeDeferred(inner)
+    def collect(self, config):
+        return threads.deferToThread(lambda: self.inner(config))
 
 
 class EC2RegionPlugin(AWSBasePlugin):
+    """
+    Retrieves information about soft limits for region
+    and updates statuses of EC2 instances and volumes.
+    """
+
     proxy_attributes = (
         'ec2accesskey',
         'ec2secretkey',
         'zAWSDiscover',
         'zAWSRegionPEM',
         'zAWSRemodelEnabled',
+        'getDiscoverGuests',
     )
 
-    @defer.inlineCallbacks
     def collect(self, config):
-        _ = yield
-        data = self.new_data()
-        for ds in config.datasources:
-            region_id = self.component = ds.component
-            ec2regionconn = boto.ec2.connect_to_region(
-                region_id,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
-            vpcregionconn = boto.vpc.connect_to_region(
-                region_id,
-                aws_access_key_id=ds.ec2accesskey,
-                aws_secret_access_key=ds.ec2secretkey,
-            )
-
-            instances = ec2regionconn.get_only_instances(
-                filters=INSTANCE_FILTERS
-            )
-            elastic_ips_count = len(ec2regionconn.get_all_addresses())
-            subnets_count = len(vpcregionconn.get_all_subnets())
-            volumes_count = len(ec2regionconn.get_all_volumes())
-            sg = ec2regionconn.get_all_security_groups()
-            sg_count = len(sg)
-            rules_count = 0
-            for group in sg:
-                rules_count = max(len(group.rules), rules_count)
-
-            data['values'][region_id] = dict(
-                instances_count=(len(instances), 'N'),
-                elastic_ips_count=(elastic_ips_count, 'N'),
-                subnets_count=(subnets_count, 'N'),
-                volumes_count=(volumes_count, 'N'),
-                vpc_security_groups_count=(sg_count, 'N'),
-                vpc_security_rules_count=(rules_count, 'N')
-            )
-
-            if ds.zAWSRemodelEnabled.lower() == 'true':
-                data['maps'].append(instances_rm(
+        def inner():
+            data = self.new_data()
+            instance_states = {}
+            for ds in config.datasources:
+                region_id = self.component = ds.component
+                ec2regionconn = boto.ec2.connect_to_region(
                     region_id,
-                    ds,
-                    instances,
-                    [],
-                    {},
-                    ec2regionconn
-                ))
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+                vpcregionconn = boto.vpc.connect_to_region(
+                    region_id,
+                    aws_access_key_id=ds.ec2accesskey,
+                    aws_secret_access_key=ds.ec2secretkey,
+                )
+
+                instances = ec2regionconn.get_only_instances(
+                    filters=INSTANCE_FILTERS
+                )
+                volumes = ec2regionconn.get_all_volumes()
+
+                elastic_ips_count = len(ec2regionconn.get_all_addresses())
+                subnets_count = len(vpcregionconn.get_all_subnets())
+                sg = ec2regionconn.get_all_security_groups()
+                sg_count = len(sg)
+                rules_count = 0
+                for group in sg:
+                    rules_count = max(len(group.rules), rules_count)
+
+                data['values'][region_id] = dict(
+                    instances_count=(len(instances), 'N'),
+                    elastic_ips_count=(elastic_ips_count, 'N'),
+                    subnets_count=(subnets_count, 'N'),
+                    volumes_count=(len(volumes), 'N'),
+                    vpc_security_groups_count=(sg_count, 'N'),
+                    vpc_security_rules_count=(rules_count, 'N')
+                )
+
+                # Previously zAWSRemodelEnabled was a string, fix for this case
+                if str(ds.zAWSRemodelEnabled).lower() == 'true':
+                    data['maps'].append(instances_rm(
+                        region_id,
+                        ds,
+                        instances,
+                        [],
+                        instance_states,
+                        ec2regionconn
+                    ))
+                else:
+                    # InstanceState moved here for optimization
+                    ins_res = {}
+                    for instance in instances:
+                        ins_res[prepId(instance.id)] = instance.state
+                    data['maps'].append(ObjectMap({
+                        "compname": "regions/%s" % region_id,
+                        "modname": "Instances states",
+                        "setInstancesStates": ins_res
+                    }))
+
+                # VolumeState moved here for optimization
+                vol_res = {}
+                for volume in volumes:
+                    vol_res[prepId(volume.id)] = volume.status
+                data['maps'].append(ObjectMap({
+                    "compname": "regions/%s" % region_id,
+                    "modname": "Volumes states",
+                    "setVolumesStatuses": vol_res
+                }))
+
+            ds0 = config.datasources[0]
+            if str(ds0.zAWSRemodelEnabled).lower() == 'true':
+                # Run "setDiscoverGuests" every time during the monitoring
                 data['maps'].append(ObjectMap({
                     "modname": "Guest update",
-                    "setDiscoverGuests": True,
+                    "setDiscoverGuests": False if ds0.getDiscoverGuests
+                    else True,
                 }))
-        defer.returnValue(data)
+            return data
+
+        return threads.deferToThread(inner)
 
 
 def get_messages(queue):
@@ -304,7 +343,7 @@ class SQSQueuePlugin(AWSBasePlugin):
                     })
             return data
 
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(inner)
 
 
 class ZonePlugin(AWSBasePlugin):
@@ -426,44 +465,22 @@ class EC2BaseStatePlugin(AWSBasePlugin):
     def gen_events(self, ds, data):
         """ Generate the events.  """
 
+    def inner(self, config):
+        data = self.new_data()
+        for ds in config.datasources:
+            self.component = ds.component
+            self.connect_to_region(ds)
+
+            maps = self.results_to_maps(ds.params['region'], ds.component)
+            if maps:
+                data['maps'].append(maps)
+
+            self.gen_events(ds, data)
+
+        return data
+
     def collect(self, config):
-        def inner():
-            data = self.new_data()
-            for ds in config.datasources:
-                self.component = ds.component
-                self.connect_to_region(ds)
-
-                maps = self.results_to_maps(ds.params['region'], ds.component)
-                if maps:
-                    data['maps'].append(maps)
-
-                self.gen_events(ds, data)
-
-            return data
-
-        return defer.maybeDeferred(inner)
-
-
-class EC2InstanceStatePlugin(EC2BaseStatePlugin):
-    """
-    Subclass of EC2BaseStatePlugin to monitor AWS Instance state.
-    """
-    def collect(self, config):
-        def inner():
-            data = self.new_data()
-            for ds in config.datasources:
-                self.component = ds.component
-                self.connect_to_region(ds)
-                instance = self.ec2regionconn.get_only_instances(ds.component).pop()
-                data['maps'].append(ObjectMap({
-                    "compname": "regions/%s/instances/%s" % (
-                        ds.params['region'], ds.component),
-                    "modname": "Instance state",
-                    "state": instance.state
-                }))
-            return data
-
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(lambda: self.inner(config))
 
 
 class EC2VPCStatePlugin(EC2BaseStatePlugin):
@@ -478,36 +495,6 @@ class EC2VPCStatePlugin(EC2BaseStatePlugin):
                 region, component),
             "modname": "VPC state",
             "state": vpc.state
-        })
-
-
-class EC2SnapshotStatePlugin(EC2BaseStatePlugin):
-    """
-    Subclass of EC2BaseStatePlugin to monitor AWS Snapshot status.
-    """
-
-    def results_to_maps(self, region, component):
-        snapshot = self.ec2regionconn.get_all_snapshots(component).pop()
-        return ObjectMap({
-            "compname": "regions/%s/snapshots/%s" % (
-                region, component),
-            "modname": "Snapshot status",
-            "status": snapshot.status
-        })
-
-
-class EC2ImageStatePlugin(EC2BaseStatePlugin):
-    """
-    Subclass of EC2BaseStatePlugin to monitor AWS Image state.
-    """
-
-    def results_to_maps(self, region, component):
-        image = self.ec2regionconn.get_all_images(component).pop()
-        return ObjectMap({
-            "compname": "regions/%s/images/%s" % (
-                region, component),
-            "modname": "Image state",
-            "state": image.state
         })
 
 
@@ -526,91 +513,83 @@ class VPNGatewayStatePlugin(EC2BaseStatePlugin):
         })
 
 
-class EC2VolumeStatePlugin(EC2BaseStatePlugin):
-    """
-    Subclass of EC2BaseStatePlugin to monitor AWS Volumes status.
-    """
-
-    def results_to_maps(self, region, component):
-        volume = self.ec2regionconn.get_all_volumes(component).pop()
-        return ObjectMap({
-            "compname": "regions/%s/volumes/%s" % (
-                region, component),
-            "modname": "Volume status",
-            "status": volume.status
-        })
-
-
 class EC2UnreservedInstancesPlugin(AWSBasePlugin):
+    """
+    Subclass of EC2BaseStatePlugin to check if instance could be reserved
+    """
+
+    def inner(self, config):
+        data = self.new_data()
+        for ds in config.datasources:
+            self.component = ds.component
+            region = ds.params['region']
+            ec2_conn = boto.ec2.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+            instance = ec2_conn.get_only_instances(ds.component).pop()
+            c = unreserved_instance_count(ec2_conn, instance)
+
+            event = None
+            if c == 1:
+                event = 'This instance could be reserved'
+            elif c > 1:
+                event = 'There are {0} instances of this type in this ' \
+                    'availability zone which could be reserved'.format(c)
+
+            if event:
+                data['events'].append({
+                    'summary': event,
+                    'device': config.id,
+                    'component': ds.component,
+                    'severity': ZenEventClasses.Info,
+                    'eventClass': '/AWS/Suggestion',
+                })
+        return data
+
     def collect(self, config):
-        def inner():
-            data = self.new_data()
-            for ds in config.datasources:
-                self.component = ds.component
-                region = ds.params['region']
-                ec2_conn = boto.ec2.connect_to_region(
-                    region,
-                    aws_access_key_id=ds.ec2accesskey,
-                    aws_secret_access_key=ds.ec2secretkey,
-                )
-                instance = ec2_conn.get_only_instances(ds.component).pop()
-                c = unreserved_instance_count(ec2_conn, instance)
-
-                event = None
-                if c == 1:
-                    event = 'This instance could be reserved'
-                elif c > 1:
-                    event = 'There are {0} instances of this type in this ' \
-                        'availability zone which could be reserved'.format(c)
-
-                if event:
-                    data['events'].append({
-                        'summary': event,
-                        'device': config.id,
-                        'component': ds.component,
-                        'severity': ZenEventClasses.Info,
-                        'eventClass': '/AWS/Suggestion',
-                    })
-            return data
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(lambda: self.inner(config))
 
 
 class EC2UnusedReservedInstancesPlugin(AWSBasePlugin):
+
+    def inner(self, config):
+        data = self.new_data()
+        for ds in config.datasources:
+            self.component = ds.component
+            region = ds.params['region']
+            ec2_conn = boto.ec2.connect_to_region(
+                region,
+                aws_access_key_id=ds.ec2accesskey,
+                aws_secret_access_key=ds.ec2secretkey,
+            )
+
+            reserved_instance = ec2_conn.get_all_reserved_instances(
+                ds.component
+            ).pop()
+
+            c = unused_reserved_instances_count(
+                ec2_conn,
+                reserved_instance
+            )
+
+            event = None
+            if c == 1:
+                event = 'This reserved instance is unused'
+            elif c > 1:
+                event = 'There are {0} unused reserved instances of ' \
+                    'this type in this availability zone'.format(c)
+
+            if event:
+                data['events'].append({
+                    'summary': event,
+                    'device': config.id,
+                    'component': ds.component,
+                    'severity': ZenEventClasses.Info,
+                    'eventClass': '/AWS/Suggestion',
+                })
+        return data
+
     def collect(self, config):
-        def inner():
-            data = self.new_data()
-            for ds in config.datasources:
-                self.component = ds.component
-                region = ds.params['region']
-                ec2_conn = boto.ec2.connect_to_region(
-                    region,
-                    aws_access_key_id=ds.ec2accesskey,
-                    aws_secret_access_key=ds.ec2secretkey,
-                )
-
-                reserved_instance = ec2_conn.get_all_reserved_instances(
-                    ds.component
-                ).pop()
-
-                c = unused_reserved_instances_count(
-                    ec2_conn,
-                    reserved_instance
-                )
-
-                event = None
-                if c == 1:
-                    event = 'This reserved instance is unused'
-                elif c > 1:
-                    event = 'There are {0} unused reserved instances of ' \
-                        'this type in this availability zone'.format(c)
-
-                if event:
-                    data['events'].append({
-                        'summary': event,
-                        'device': config.id,
-                        'component': ds.component,
-                        'severity': ZenEventClasses.Info,
-                        'eventClass': '/AWS/Suggestion',
-                    })
-            return data
-        return defer.maybeDeferred(inner)
+        return threads.deferToThread(lambda: self.inner(config))

@@ -1,11 +1,15 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2013-2015, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+
+'''
+Collects information about AWS EC2 infrastructure.
+'''
 
 import collections
 import json
@@ -14,6 +18,7 @@ from itertools import chain
 from logging import getLogger
 log = getLogger('zen.ZenModeler')
 
+from socket import gaierror
 
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
@@ -75,6 +80,9 @@ class EC2(PythonPlugin):
         except EC2ResponseError:
             log.error('Invalid Keys. '
                       'Check your EC2 Access Key and EC2 Secret Key.')
+            return
+        except gaierror, e:
+            log.error(e.strerror)
             return
         finally:
             boto.log.error = old_logger
@@ -474,7 +482,7 @@ def instances_rm(region_id, device, instances, images, instance_states, region_c
     image_filters = []
     for instance in instances:
         image_filters.append(instance.image_id)
-           
+
     if image_filters:
         data = region_conn.get_all_images(image_ids=image_filters)
         images.extend(data)

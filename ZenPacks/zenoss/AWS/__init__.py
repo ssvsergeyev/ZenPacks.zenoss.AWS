@@ -21,6 +21,7 @@ setzPropertyCategory('zAWSRegionPEM', 'AWS')
 setzPropertyCategory('zAWSRemodelEnabled', 'AWS')
 setzPropertyCategory('zAWSGuestCollector', 'AWS')
 setzPropertyCategory('zAWSResetGuestCollector', 'AWS')
+setzPropertyCategory('zAWSGuestUsePublicIPs', 'AWS')
 
 # Modules containing model classes. Used by zenchkschema to validate
 # bidirectional integrity of defined relationships.
@@ -94,9 +95,10 @@ class ZenPack(ZenPackBase):
     packZProperties = [
         ('zAWSDiscover', '', 'awsdiscoverfield'),
         ('zAWSRegionPEM', '', 'multilinekeypath'),
-        ('zAWSRemodelEnabled', 'false', 'bool'),
+        ('zAWSRemodelEnabled', False, 'boolean'),
         ('zAWSGuestCollector', '', 'string'),
-        ('zAWSResetGuestCollector', 'true', 'bool'),
+        ('zAWSResetGuestCollector', True, 'boolean'),
+        ('zAWSGuestUsePublicIPs', False, 'boolean'),
     ]
 
     def install(self, app):
