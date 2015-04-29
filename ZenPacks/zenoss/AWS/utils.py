@@ -313,3 +313,10 @@ def twisted_web_client_parse(url, defaultPort=None):
         path = '/'
 
     return scheme, host, port, path
+
+
+def format_time(time):
+    '''
+    Return formatted time string.
+    '''
+    return time[:time.rfind('.')].replace('T', ' ')
