@@ -22,6 +22,7 @@ setzPropertyCategory('zAWSRemodelEnabled', 'AWS')
 setzPropertyCategory('zAWSGuestCollector', 'AWS')
 setzPropertyCategory('zAWSResetGuestCollector', 'AWS')
 setzPropertyCategory('zAWSGuestUsePublicIPs', 'AWS')
+setzPropertyCategory('zAWSRegionToModel', 'AWS')
 
 # Modules containing model classes. Used by zenchkschema to validate
 # bidirectional integrity of defined relationships.
@@ -99,6 +100,7 @@ class ZenPack(ZenPackBase):
         ('zAWSGuestCollector', '', 'string'),
         ('zAWSResetGuestCollector', True, 'boolean'),
         ('zAWSGuestUsePublicIPs', False, 'boolean'),
+        ('zAWSRegionToModel', '', 'string'),
     ]
 
     def install(self, app):

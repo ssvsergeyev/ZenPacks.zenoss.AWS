@@ -26,13 +26,12 @@ from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
 from Products.ZenUtils.Utils import prepId
 
 from ZenPacks.zenoss.AWS import MODULE_NAME
-from ZenPacks.zenoss.AWS.utils import addLocalLibPath, prodState
+from ZenPacks.zenoss.AWS.utils import addLocalLibPath, prodState, format_time
 
 addLocalLibPath()
 
 from boto.ec2.connection import EC2Connection, EC2ResponseError
 from boto.vpc import VPCConnection
-from boto.s3.connection import S3Connection
 import boto.sqs
 
 '''
@@ -56,6 +55,7 @@ class EC2(PythonPlugin):
         'ec2secretkey',
         'zAWSDiscover',
         'zAWSRegionPEM',
+        'zAWSRegionToModel',
     )
 
     def collect(self, device, log):
@@ -75,7 +75,6 @@ class EC2(PythonPlugin):
             if not secretkey or not accesskey:
                 raise EC2ResponseError('', '', '')
             ec2conn = EC2Connection(accesskey, secretkey)
-            s3connection = S3Connection(accesskey, secretkey)
             ec2_regions = ec2conn.get_all_regions()
         except EC2ResponseError:
             log.error('Invalid Keys. '
@@ -89,7 +88,6 @@ class EC2(PythonPlugin):
 
         maps = collections.OrderedDict([
             ('regions', []),
-            ('s3buckets', []),
             ('instance types', []),
             ('zones', []),
             ('VPCs', []),
@@ -111,6 +109,11 @@ class EC2(PythonPlugin):
         region_oms = []
         instance_states = {}
         for region in ec2_regions:
+            # Controls which region(s) to model
+            if device.zAWSRegionToModel:
+                if not region.name in device.zAWSRegionToModel:
+                    continue
+
             region_id = prepId(region.name)
 
             region_oms.append(ObjectMap(data={
@@ -201,11 +204,6 @@ class EC2(PythonPlugin):
             relname='regions',
             modname=MODULE_NAME['EC2Region'],
             objmaps=region_oms))
-
-        # S3Buckets
-        maps['s3buckets'].append(
-            s3buckets_rm(s3connection.get_all_buckets())
-        )
 
         # Trigger discovery of instance guest devices.
         maps['account'].append(ObjectMap(data={
@@ -306,13 +304,6 @@ def path_to_pem(region_name, values):
     if not region_name in results:
         return ''
     return results[region_name]
-
-
-def format_time(time):
-    '''
-    Return formatted time string.
-    '''
-    return time[:time.rfind('.')].replace('T', ' ')
 
 
 def format_size(size):
@@ -627,26 +618,6 @@ def elastic_ips_rm(region_id, elastic_ips):
         relname='elastic_ips',
         modname=MODULE_NAME['EC2ElasticIP'],
         objmaps=elastic_ip_data)
-
-
-def s3buckets_rm(buckets):
-    '''
-    Return buckets RelationshipMap given a BucketInfo
-    ResultSet.
-    '''
-    bucket_oms = []
-    for bucket in buckets:
-        bucket_oms.append(ObjectMap(data={
-            'id': prepId(bucket.name),
-            'title': bucket.name,
-            'creation_date': format_time(bucket.creation_date),
-        }))
-
-    return RelationshipMap(
-        relname='s3buckets',
-        modname=MODULE_NAME['S3Bucket'],
-        objmaps=bucket_oms
-    )
 
 
 def reserved_instances_rm(region_id, reserved_instances, instance_states):
