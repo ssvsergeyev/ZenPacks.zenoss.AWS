@@ -623,6 +623,10 @@ def elastic_ips_rm(region_id, elastic_ips):
 def reserved_instances_rm(region_id, reserved_instances, instance_states):
     obj_map = []
     for ri in reserved_instances:
+        # ZEN-17556: Ignore reserved instances with a None id.
+        if ri.id is None:
+            continue
+
         obj_map.append({
             'id': prepId(ri.id),
             'title': ri.id,

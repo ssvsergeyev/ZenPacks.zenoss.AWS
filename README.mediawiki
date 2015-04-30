@@ -438,6 +438,9 @@ monitoring templates you don't need.
 
 == Changes ==
 
+;2.3.1
+* Ignore reserved instances with a null id. (ZEN-17556).
+
 ;2.3.0
 * Add ability for instances into VPC to use public IP address for guest device
 * Add parallel processing for CloudWatch datasources using multithreading. For large AWS installation it can be boosted by setting bigger value for "twistedthreadpoolsize" setting of PythonCollector.
