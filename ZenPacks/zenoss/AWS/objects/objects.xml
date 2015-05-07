@@ -4279,7 +4279,7 @@ ${here/id}
 3
 </property>
 <property type="string" id="cycletime" mode="w" >
-30
+300
 </property>
 <property type="string" id="plugin_classname" mode="w" >
 ZenPacks.zenoss.AWS.dsplugins.ZonePlugin
